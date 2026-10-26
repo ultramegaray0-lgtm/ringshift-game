@@ -1441,6 +1441,40 @@ body.modalOpen #bgParticles .bgp{animation-play-state:paused}
 body.theme-spore #bgCanvas { opacity:.24 !important; }
 body.theme-mistcosmos #bgCanvas,body.theme-mistjungle #bgCanvas,body.theme-virus #bgCanvas,body.theme-carnival #bgCanvas { opacity:.36 !important; }
 
+/* ===== VISUAL MILESTONE 1 -- mechanism idle motion =====
+   The Mirror glyph is now a direction arrow; tilting it +/-6deg made the direction wobble. Pulse instead. */
+.gm-idle.gm-mirror_l,.gm-idle.gm-mirror_r{animation-name:gmBeat}
+
+/* ===== VISUAL MILESTONE 1 -- HUD LAYOUT (cosmetic only) =====
+   The fixed utility buttons (#utilityBtns: x 14..144px, y 14..52px) used to sit on top of
+   "◀ LEVELS" and the level title at every width below ~1400px, and on wide screens the
+   stage overflowed into the top bar and the d-pad. */
+/* the two HUD wrappers are layout-transparent by default -> one row, exactly as before */
+#gameTop .hudRow1, #gameTop .hudStats{display:contents}
+#gameTop .lockStatus, #gameTop .hudStat, #gameTop .coinStatus{white-space:nowrap}
+#gameTop .backBtn{flex:none; white-space:nowrap}
+#gameTop .lvlLabel{flex:0 1 auto; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
+/* wide/tablet: keep one row, but start it to the right of the utility buttons */
+@media (min-width:641px) and (max-width:899px){ body.inGame #gameTop{padding-left:150px} }
+@media (min-width:900px){ body.inGame #gameTop{padding-left:max(10px, calc(156px - max(32px, (100vw - 1100px) / 2)))} }
+/* phones: row 1 = [utility buttons] ◀ LEVELS · title, row 2 = the stats */
+@media (max-width:640px){
+  #gameTop{flex-direction:column; align-items:stretch; gap:4px; padding:4px 6px}
+  #gameTop .hudRow1{display:flex; align-items:center; gap:10px; min-height:40px; padding-left:136px; min-width:0}
+  #gameTop .hudRow1 .backBtn{flex:none; white-space:nowrap}
+  #gameTop .hudRow1 .lvlLabel{flex:1 1 auto; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; text-align:right}
+  #gameTop .hudStats{display:flex; align-items:center; justify-content:space-between; gap:8px; flex-wrap:wrap; padding:0 2px}
+}
+/* RING tag: out of the disc (it used to cover the 12-o'clock Lock) into the stage's empty top-left corner */
+#ringTag{top:0; left:0; transform:none; transform-origin:left center; z-index:4}
+@media (max-width:359px){ #ringTag{font-size:9px; letter-spacing:1px; padding:2px 6px} }
+/* stage: size to the space actually left between the top bar and the d-pad */
+@supports (width:1cqh){
+  #gameCenter{container-type:size}
+  #stage{width:min(92cqw,100cqh,520px); height:min(92cqw,100cqh,520px)}
+  @media (min-width:900px){ #stage{width:min(52vw,100cqh,620px); height:min(52vw,100cqh,620px)} }
+}
+
 </style>
 </head>
 <body>
@@ -1673,8 +1707,11 @@ body.theme-mistcosmos #bgCanvas,body.theme-mistjungle #bgCanvas,body.theme-virus
   <!-- GAME -->
   <div id="gameScreen" class="screen">
     <div id="gameTop">
+      <div class="hudRow1">
       <div class="backBtn" id="backToLevelsBtn" style="position:static;">◀ LEVELS</div>
       <div class="lvlLabel" id="gameLvlLabel">LEVEL 1</div>
+      </div>
+      <div class="hudStats">
       <div class="lockStatus">LOCKS <b id="lockCountLabel">0/0</b></div>
       <div class="hudStat" id="movesLabel">0 moves</div>
       <div class="hudStat" id="timeLabel">00:00</div>
@@ -1691,6 +1728,7 @@ body.theme-mistcosmos #bgCanvas,body.theme-mistjungle #bgCanvas,body.theme-virus
       </div>
       <div id="rocketHud">
         <span id="rocketHudText">—</span>
+      </div>
       </div>
     </div>
     <div id="gameLegendChips"></div>
@@ -6133,6 +6171,12 @@ let toastTimer = null;
 function showNewGimmickToast(msg){
   const el2 = document.getElementById('newGimmickToast');
   el2.textContent = msg;
+  // Sit just BELOW the mechanism chips (the message says "tap the chip above") instead of
+  // on top of them at a fixed 64px. Cosmetic only.
+  // (deferred one frame: on level load this runs before the game screen is shown/laid out)
+  const placeToast = ()=>{ const ch = document.getElementById('gameLegendChips'), r = ch && ch.getBoundingClientRect();
+    el2.style.top = (r && r.height && document.body.classList.contains('inGame')) ? Math.round(Math.max(64, r.bottom + 4))+'px' : ''; };
+  placeToast(); requestAnimationFrame(placeToast);
   el2.classList.add('show');
   if(toastTimer) clearTimeout(toastTimer);
   toastTimer = setTimeout(()=> el2.classList.remove('show'), 4200);
@@ -7646,6 +7690,8 @@ function renderPuzzleFull(){
     el('circle',{cx:0,cy:0,r:4, fill:'var(--ring)', opacity:0.55}, hubG);
   }
 
+  // accent for the selected-ring edge lines = this theme's ring-tag colour (falls back to --ring-selected)
+  const selAccent = (()=>{ try{ const c = getComputedStyle(document.getElementById('ringTag')).borderTopColor; return c && c!=='rgba(0, 0, 0, 0)' ? c : '#fff6c8'; }catch(e){ return '#fff6c8'; } })();
   lvl.rings.forEach((ring, r)=>{
     const radius = ringRadius(r);
     const rot = gstate.rotations[r];
@@ -7704,7 +7750,22 @@ function renderPuzzleFull(){
         'stroke-dasharray':`${dsh.toFixed(2)} ${gp.toFixed(2)}`, transform:`rotate(${(-90+180/n-0.93*360/n).toFixed(2)})`}, g);
       el('circle',{cx:0,cy:0,r:radius-2.6, fill:'none', stroke:isSelected?NOIR_PALETTE.redHot:NOIR_PALETTE.redDim, 'stroke-width':1, opacity:isSelected?0.95:0.5}, g);
     } else {
-      const track = el('circle',{cx:0,cy:0,r:radius, fill:'none', stroke: isSelected?'var(--ring-selected)':'var(--ring-dim)', 'stroke-width': isSelected?2.2:1.5, opacity: isSelected?0.85:0.5}, g);
+      // DEFAULT (Space) TRACK -- a visible channel instead of a 1.5px line at 50% of a near-black
+      // colour: a soft band the width of a node, a centre rail, and one socket per slot so the
+      // discrete rotation steps read. The selected ring gets a warm band, edges and glow.
+      el('circle',{cx:0,cy:0,r:radius, fill:'none', stroke: isSelected?'rgba(255,246,200,0.11)':'rgba(127,231,255,0.06)', 'stroke-width': isSelected?18:14}, g);
+      if(isSelected){
+        el('circle',{cx:0,cy:0,r:radius, fill:'none', stroke:'var(--ring-selected)', 'stroke-width':8, opacity:0.16, filter:'url(#glowWide)'}, g);
+      }
+      el('circle',{cx:0,cy:0,r:radius, fill:'none', stroke: isSelected?'var(--ring-selected)':'#4f7d94', 'stroke-width': isSelected?1.2:1.3, opacity: isSelected?0.4:0.75}, g);
+      for(let s=0;s<n;s++){ const sa=slotToAngle(s,n);
+        el('circle',{cx:(Math.cos(sa)*radius).toFixed(2), cy:(Math.sin(sa)*radius).toFixed(2), r:isSelected?2:1.6, fill:isSelected?'var(--ring-selected)':'#6f9db4', opacity:isSelected?0.8:0.6}, g); }
+    }
+    // SELECTED RING (every theme): two crisp edge lines bracketing the track, in the same accent
+    // colour as this theme's "RING n/N" tag, so the ring under the player's control is unambiguous
+    // even in themes whose own selected styling is subtle. Purely decorative, ignores the pointer.
+    if(isSelected){
+      [radius-9, radius+9].forEach(rr=> el('circle',{cx:0,cy:0,r:rr, fill:'none', stroke:selAccent, 'stroke-width':1.3, opacity:0.85, 'pointer-events':'none'}, g));
     }
     const dragRing = el('circle',{cx:0,cy:0,r:radius, fill:'none', stroke:'transparent','stroke-width':28}, g);
     dragRing.style.cursor='pointer';
@@ -7719,7 +7780,9 @@ function renderPuzzleFull(){
     // itself, and everything about which ring is actually selected, is
     // completely untouched.
     const spokeColor = isSelected ? getControlledBeamColor() : getBackgroundBeamColor();
-    const spokeG = el('g',{transform:`rotate(${angleDeg})`}, g); RPS.spokeGs[r]=spokeG; RPS.applied[r]=rot;
+    // pointer-events:none -> sources, rotating gimmicks and wall bands no longer swallow the
+    // mousedown/touchstart meant for this ring's drag handle (dragRing, underneath).
+    const spokeG = el('g',{transform:`rotate(${angleDeg})`, 'pointer-events':'none'}, g); RPS.spokeGs[r]=spokeG; RPS.applied[r]=rot;
     if(_same && _pR && _pR[r]!==undefined && _pR[r]!==rot && !_noMo){
       // ring glide: ease from the previous angle with a small overshoot, then settle
       let d=((rot-_pR[r])%n+n)%n; if(d>n/2) d-=n; const st=360/n;
@@ -7791,25 +7854,23 @@ function renderPuzzleFull(){
 
         const a = (slot/n)*Math.PI*2 - Math.PI/2;
         // PINNED gimmicks live in `g` (this ring's non-rotating container),
-        // so their on-screen position never moves as the ring turns. If
-        // drawn at the exact same radius as the ring's own spokes (which
-        // DO rotate, in spokeG), a spoke can rotate into the same live
-        // slot as a pinned gimmick and sit exactly underneath it, making
-        // the beam-source dot disappear. Nudging pinned gimmicks slightly
-        // outward keeps them clear of that overlap at every rotation.
-        const pinnedRadiusOffset = 11;
-        // BLACK HOLE exception: a hole's mouths must sit exactly where the
-        // beams cross the ring (its axis can point any way, so a radial nudge
-        // would visibly pull the mouth off the beam line). Instead of being
-        // nudged, a pinned hole is drawn UNDER the ring's spoke markers, so a
-        // spoke that rotates onto it is never hidden.
+        // so their on-screen position never moves as the ring turns.
+        // VISUAL MILESTONE 1: every gimmick -- pinned or not -- is now drawn
+        // CENTRED ON THE RING, i.e. exactly where the tracer applies it (the
+        // beam turns/splits/stops at the ring crossing; see traceBeamBranch,
+        // RocketGame.liveGimmickPosition and PowerSys.listTargets, which all
+        // already use this point). Pinned glyphs used to be pushed 11 units
+        // outward so a spoke rotating onto the same slot would not be hidden;
+        // instead they are now drawn UNDER the ring's spoke markers (same
+        // approach the Black Hole already used), so a spoke sitting on a
+        // pinned gimmick stays visible on top of it.
         const isHole = type==='portal';
-        const drawRadius = (isPinned && !isHole) ? radius + pinnedRadiusOffset : radius;
+        const drawRadius = radius;
         const x = Math.cos(a)*drawRadius, y = Math.sin(a)*drawRadius;
         const parentG = isPinned ? g : spokeG;
-        const tip = el('g',{transform:`translate(${x},${y}) scale(${isHole?1:optScale('gimmickSize')})`}, parentG);
-        if(isPinned && isHole) g.insertBefore(tip, spokeG);
-        if(isPinned && !isHole) el('circle',{r:12,fill:'none',stroke:'#fff6c8','stroke-width':1.3,'stroke-dasharray':'2 3',opacity:0.9}, tip);
+        const tip = el('g',{transform:`translate(${x},${y}) scale(${isHole?1:optScale('gimmickSize')})`, 'pointer-events':'none'}, parentG);
+        if(isPinned) g.insertBefore(tip, spokeG);
+        if(isPinned && !isHole) el('circle',{r:type==='echo_portal'?14.5:17,fill:'none',stroke:'#fff6c8','stroke-width':1.3,'stroke-dasharray':'2 3',opacity:0.9}, tip);
         // WHITE BELL "animated when hit" state: the bell reads as active
         // (warm/glowing) for as long as the fog-clear window it just
         // opened is still running -- i.e. it was recently rung and is
@@ -7856,21 +7917,20 @@ function renderPuzzleFull(){
             // (Space) rendering, same scope boundary as drawGimmickGlyph
             // above. Only Ice reskins this band.
             const arcColor = isHalf ? (ICE?ICE_PALETTE.orange:'#ff9d4d') : (ICE?ICE_PALETTE.red:'#ff3b3b');
-            let d, strokeWidth, opacity;
-            if(isHalf){
-              d = wallCoilPath(radius, startSlot, endSlot, n, side);
-              strokeWidth = 4.2; opacity = 0.9;
-            } else {
-              d = fullRing
-                ? (()=>{ const r2=radius; return `M ${r2} 0 A ${r2} ${r2} 0 1 1 ${-r2} 0.001 A ${r2} ${r2} 0 1 1 ${r2} 0`; })()
-                : wallArcPath(radius, startSlot, endSlot, n);
-              strokeWidth = 11; opacity = 0.6;
+            if(!isHalf){
+              // BLOCK = a SOLID WALL SEGMENT: a filled annular slab covering exactly the run's
+              // slots (same angular extent as before), dark-red body, bright red outline, one
+              // brick seam between slots and a rivet on each slot. Replaces the translucent
+              // 11px stroke, which read as a decorative arc rather than an obstacle.
+              drawBlockSlab(parent, radius, startSlot, endSlot, n, fullRing, arcColor, ICE);
             }
-            el('path', {
-              d, fill:'none', stroke:arcColor, 'stroke-width':strokeWidth*optScale('gimmickSize'), opacity,
-              'stroke-linecap': isHalf ? 'round':'butt', 'stroke-linejoin': isHalf ? 'round':'miter',
-              'stroke-dasharray': isHalf ? (side==='in'?'7 5':'10 6') : 'none',
-            }, parent);
+            if(isHalf){
+              // Half-Block: unchanged in this milestone (one-way coil + side indicator)
+              el('path', {
+                d: wallCoilPath(radius, startSlot, endSlot, n, side), fill:'none', stroke:arcColor, 'stroke-width':4.2*optScale('gimmickSize'), opacity:0.9,
+                'stroke-linecap':'round', 'stroke-linejoin':'round', 'stroke-dasharray': side==='in'?'7 5':'10 6',
+              }, parent);
+            }
             if(ICE && !isHalf){
               // snow puffs sitting on top of the block band, matching the
               // reference photo's amber trough-with-snow-mounds prop.
@@ -8231,7 +8291,7 @@ function renderBeams(force){
       gh.forEach(k=>{ if(renderPuzzle._gh.has(k)) return; const [r,sl,ty]=k.split(':'), a=slotToAngle(+sl,n), rr=ringRadius(+r), x=Math.cos(a)*rr, y=Math.sin(a)*rr;
         Fx.ring(x,y,3,22,CC[ty],.38); Fx.burst(x,y,CC[ty],ty==='prism'?10:6); });
       (gstate.echoHits||[]).forEach(e=>{ const k=e.ringIdx+':'+e.slot+':'+e.mode; if((renderPuzzle._echo||[]).includes(k)) return;
-        const a=slotToAngle(e.slot,n), rr=ringRadius(e.ringIdx)+11, x=Math.cos(a)*rr, y=Math.sin(a)*rr;
+        const a=slotToAngle(e.slot,n), rr=ringRadius(e.ringIdx), x=Math.cos(a)*rr, y=Math.sin(a)*rr;   // satellite glyph now sits on the ring (was +11)
         if(e.mode==='kill'){ Fx.burst(x,y,'#ff6a5a',14); Fx.ring(x,y,4,28,'#ff6a5a',.4); Fx.shake(true); }
         else { Fx.ring(x,y,30,5,'#5df0ff',.45); Fx.burst(x,y,'#8ff6ff',10); } });
       if(_pS!==undefined && _pS!==gstate.selectedRing){ const tg=document.getElementById('ringTag'); if(tg){ tg.classList.remove('tagPop'); void tg.offsetWidth; tg.classList.add('tagPop'); } }
@@ -8498,10 +8558,9 @@ function drawIceGimmickGlyph(parent, type, raw, outwardAngle, active){
     // Mirror: same white/cyan gem-in-collar every node uses, with the
     // reflective diagonal drawn on the gem face -- keeps the orientation
     // cue (which way the surface leans) identical to the space version.
-    iceNode(parent, 10, { inner: P.cyanInner });
-    el('circle',{r:5.6, fill:'#ffffff', opacity:0.55}, parent);
-    if(type==='mirror_l') el('line',{x1:-4.4,y1:-4.4,x2:4.4,y2:4.4, stroke:P.cyanDeep,'stroke-width':2.6,'stroke-linecap':'round'}, parent);
-    else el('line',{x1:-4.4,y1:4.4,x2:4.4,y2:-4.4, stroke:P.cyanDeep,'stroke-width':2.6,'stroke-linecap':'round'}, parent);
+    // VISUAL MILESTONE 1: same quarter-turn sign as every other world (see mechTurnGlyph).
+    iceNode(parent, 11*MECH_SCALE, { inner: P.cyanInner });
+    mechTurnGlyph(parent, type==='mirror_l', outwardAngle, {disc:null, arrow:P.cyanDeep});
   }
   else if(type==='block'){
     // Block: a red gem -- danger still reads red, now as a faceted ruby
@@ -8513,9 +8572,9 @@ function drawIceGimmickGlyph(parent, type, raw, outwardAngle, active){
   else if(type==='amp'){
     // Amplifier: the reference's amber sun/star gem, same collar family
     // as the bonus lock but smaller and not scalloped (a "regular" node).
-    iceNode(parent, 9.5, { inner: P.goldInner });
-    el('path',{d:starPath(0,0,5.6,2.4,5), fill:P.gold, stroke:P.goldDeep, 'stroke-width':1, 'stroke-linejoin':'round'}, parent);
-    el('circle',{cx:-1.1,cy:-1.4,r:0.9, fill:'#ffffff', opacity:0.85}, parent);
+    // VISUAL MILESTONE 1: bolt (was a star -- too close to the coin/bonus vocabulary).
+    iceNode(parent, 11*MECH_SCALE, { inner: P.goldInner });
+    mechAmpGlyph(parent, {disc:null, bolt:P.gold, boltEdge:P.goldDeep});
   }
   else if(type==='portal'){
     // Black Hole: the same wormhole sprite as the space theme (white mouth,
@@ -8549,11 +8608,9 @@ function drawIceGimmickGlyph(parent, type, raw, outwardAngle, active){
     // Prism: a literal glass/ice triangle -- the most natural 1:1
     // translation of any mechanic into this world -- with a thin
     // refracted rainbow streak, in the pink-tinted collar family.
-    iceNode(parent, 9.5, { inner: P.pinkInner });
-    el('polygon',{points:'0,-5.4 4.7,3.6 -4.7,3.6', fill:'rgba(255,255,255,0.55)', stroke:P.pinkDeep,'stroke-width':1.1,'stroke-linejoin':'round'}, parent);
-    el('line',{x1:1.6,y1:0.8,x2:7,y2:2.2, stroke:P.pink,'stroke-width':1, opacity:0.75}, parent);
-    el('line',{x1:1.6,y1:1.6,x2:7,y2:4.6, stroke:P.cyan,'stroke-width':1, opacity:0.6}, parent);
-    el('line',{x1:1.6,y1:0,x2:7,y2:-1, stroke:P.gold,'stroke-width':1, opacity:0.6}, parent);
+    // VISUAL MILESTONE 1: same crystal + split fork as every other world (no round collar,
+    // so it can't be mistaken for the Amplifier).
+    mechPrismGlyph(parent, outwardAngle, {fill:'rgba(255,214,240,0.75)', edge:P.pinkDeep, fork:P.pinkDeep});
   }
   else if(type==='coin'){
     // Ring Coin: a gold snowflake gem instead of a plain "$" disc.
@@ -8596,20 +8653,112 @@ function drawUfoGlyph(p, active){
   el('ellipse',{cx:0,cy:1.4,rx:8.2,ry:2,fill:'#6a727b',opacity:0.8}, p);
   [-7,0,7].forEach(x=> el('circle',{cx:x,cy:1.2,r:1.15,fill:active?'#ffe27a':'#d7dde3'}, p));
 }
+/* =========================================================================
+   VISUAL MILESTONE 1 -- MECHANISM SHAPES (render-only; nothing here is read
+   by the tracer). Shared by the default glyphs and the Ice reskin so a
+   mechanism keeps the same silhouette in every world; only colours change.
+   Mirror/Amplifier/Prism glyphs are never rotated: their rules do not
+   depend on which side a beam arrives from. Only the Block glyph is turned
+   to lie along its ring (mechInwardFrame: local +y points to the centre).
+   ========================================================================= */
+// Mechanism glyphs are drawn at MECH_SCALE x their design size: at 11 units they were only
+// ~16px across on a 430px phone. Ring spacing (STEP=36) leaves room for ~1.3x without touching
+// a neighbouring track.
+const MECH_SCALE = 1.3;
+function mechInwardFrame(parent, outwardAngle){
+  return el('g',{transform:`rotate(${((outwardAngle||0)*180/Math.PI+90).toFixed(2)}) scale(${MECH_SCALE})`}, parent);
+}
+// MIRROR = "quarter-turn" sign. The tracer ALWAYS turns the beam exactly
+// 90deg -- mirror_l clockwise on screen, mirror_r counter-clockwise --
+// whatever direction the beam arrives from (traceBeamBranch, mirror branch).
+// The old glyph was a screen-fixed diagonal line, i.e. a physical mirror,
+// which predicted the OPPOSITE turn at the top and bottom of every ring.
+// The new glyph states the rule itself: a right-angle mark with a curved
+// arrow giving the turn's sense. Because the rule doesn't depend on the
+// arrival direction, neither does the glyph (it is never rotated), so
+// every clockwise Mirror on the board looks identical.
+function mechTurnGlyph(parent, cw, outwardAngle, C){
+  const g = el('g',{transform:`scale(${MECH_SCALE})`}, parent);
+  if(C.disc){
+    el('circle',{r:11, fill:C.disc, stroke:C.rim, 'stroke-width':1.8}, g);
+    el('circle',{r:8.4, fill:'none', stroke:C.rim, 'stroke-width':0.7, opacity:0.35}, g);
+  }
+  const m = el('g',{transform: cw ? '' : 'scale(-1,1)'}, g);   // mirror_r = mirror image of mirror_l
+  const k = el('g',{transform:'translate(1.8,2.3)'}, m);            // centres the mark below in the disc
+  // the "90deg": right-angle mark at O(-1,3), the centre of the arc
+  el('path',{d:'M -4.6 3 L -1 3 L -1 -0.6', fill:'none', stroke:C.arrow, 'stroke-width':1.2, 'stroke-linecap':'round', 'stroke-linejoin':'round', opacity:0.75}, k);
+  el('rect',{x:-2.7, y:1.3, width:1.7, height:1.7, fill:'none', stroke:C.arrow, 'stroke-width':0.8, opacity:0.75}, k);
+  // the turn's sense: clockwise quarter arc, 9 o'clock -> 12 o'clock around O, arrowhead heading on clockwise
+  el('path',{d:'M -8 3 A 7 7 0 0 1 -1 -4 L 0.4 -4', fill:'none', stroke:C.arrow, 'stroke-width':2.6, 'stroke-linecap':'round', 'stroke-linejoin':'round'}, k);
+  el('polygon',{points:'4.6,-4 0,-7.7 0,-0.3', fill:C.arrow, stroke:C.arrow, 'stroke-width':0.8, 'stroke-linejoin':'round'}, k);
+}
+// AMPLIFIER = round power cell with a lightning bolt.
+function mechAmpGlyph(parent, C){
+  parent = el('g',{transform:`scale(${MECH_SCALE})`}, parent);
+  if(C.disc){
+    el('circle',{r:11, fill:C.disc, stroke:C.rim, 'stroke-width':1.8}, parent);
+    el('circle',{r:8.2, fill:'none', stroke:C.rim, 'stroke-width':0.7, opacity:0.4}, parent);
+  }
+  el('polygon',{points:'1.9,-8.4 -5.4,1.3 -0.7,1.3 -2.3,8.6 5.6,-1.7 0.9,-1.7', fill:C.bolt, stroke:C.boltEdge, 'stroke-width':0.8, 'stroke-linejoin':'round'}, parent);
+}
+// PRISM = triangular glass crystal (no round node, so its silhouette can
+// never be confused with the Amplifier's) carrying a "split" fork: one line
+// becoming two. The tracer splits the beam into two at +/-45deg from
+// whichever direction it arrives, so -- like the Mirror -- the glyph does
+// not pretend to know the arrival side and is never rotated.
+function mechPrismGlyph(parent, outwardAngle, C){
+  const g = el('g',{transform:`scale(${MECH_SCALE})`}, parent);
+  el('polygon',{points:'0,-11 10.4,7 -10.4,7', fill:C.fill, stroke:C.edge, 'stroke-width':2, 'stroke-linejoin':'round'}, g);
+  el('polygon',{points:'-1,-6.6 -5.6,3 -2.6,3', fill:'#ffffff', opacity:0.35}, g);
+  el('path',{d:'M 0 -4.8 L 0 0 M 0 0 L -3.8 4 M 0 0 L 3.8 4', fill:'none', stroke:C.fork, 'stroke-width':1.9, 'stroke-linecap':'round', 'stroke-linejoin':'round'}, g);
+}
+// BLOCK (single pinned glyph -- only reachable outside the grouped wall band) = a small slab.
+function mechBlockGlyph(parent, outwardAngle, color, body){
+  const g = mechInwardFrame(parent, outwardAngle);
+  el('rect',{x:-9, y:-7.5, width:18, height:15, rx:2, fill:body, stroke:color, 'stroke-width':1.8}, g);
+  el('line',{x1:0, y1:-6, x2:0, y2:6, stroke:color, 'stroke-width':1, opacity:0.55}, g);
+  [-4.5,4.5].forEach(x=> el('circle',{cx:x, cy:0, r:1.7, fill:color, opacity:0.9}, g));
+}
+// BLOCK wall band: one solid annular slab per contiguous run of Block slots.
+function drawBlockSlab(parent, radius, s0, s1, n, fullRing, color, ice){
+  const hw = 8.5*optScale('gimmickSize'), rIn = radius-hw, rOut = radius+hw;
+  const body = ice ? '#5a1620' : '#3a0a0e';
+  const P = (r,a)=> `${(Math.cos(a)*r).toFixed(2)} ${(Math.sin(a)*r).toFixed(2)}`;
+  let d;
+  if(fullRing){
+    d = `M ${rOut} 0 A ${rOut} ${rOut} 0 1 1 ${-rOut} 0 A ${rOut} ${rOut} 0 1 1 ${rOut} 0 Z `
+      + `M ${rIn} 0 A ${rIn} ${rIn} 0 1 0 ${-rIn} 0 A ${rIn} ${rIn} 0 1 0 ${rIn} 0 Z`;
+  } else {
+    const a0 = slotToAngle(s0-0.5, n); let a1 = slotToAngle(s1+0.5, n);
+    while(a1 <= a0) a1 += Math.PI*2;
+    const lg = (a1-a0) > Math.PI ? 1 : 0;
+    d = `M ${P(rOut,a0)} A ${rOut} ${rOut} 0 ${lg} 1 ${P(rOut,a1)} L ${P(rIn,a1)} A ${rIn} ${rIn} 0 ${lg} 0 ${P(rIn,a0)} Z`;
+  }
+  el('path',{d, fill:'none', stroke:'#000', 'stroke-width':4, opacity:0.35, 'stroke-linejoin':'round'}, parent);      // contact shadow
+  el('path',{d, fill:body, 'fill-rule':'evenodd', stroke:color, 'stroke-width':1.6, 'stroke-linejoin':'round'}, parent);
+  const last = fullRing ? s0+n-1 : s1;
+  for(let s=s0; s<=last; s++){
+    const c = slotToAngle(s, n);
+    el('circle',{cx:(Math.cos(c)*radius).toFixed(2), cy:(Math.sin(c)*radius).toFixed(2), r:1.8, fill:color, opacity:0.9}, parent);   // rivet per slot
+    if(s<last || fullRing){ const b = slotToAngle(s+0.5, n);                                                                     // brick seam
+      el('path',{d:`M ${P(rIn+1.6,b)} L ${P(rOut-1.6,b)}`, stroke:color, 'stroke-width':1, opacity:0.5}, parent); }
+  }
+  // top-edge bevel highlight
+  if(!fullRing){ const a0 = slotToAngle(s0-0.5, n)+0.02; let a1 = slotToAngle(s1+0.5, n)-0.02; while(a1 <= a0) a1 += Math.PI*2;
+    el('path',{d:`M ${P(rOut-2.2,a0)} A ${rOut-2.2} ${rOut-2.2} 0 ${(a1-a0)>Math.PI?1:0} 1 ${P(rOut-2.2,a1)}`, fill:'none', stroke:'#ffb0b0', 'stroke-width':1, opacity:0.35}, parent); }
+}
+
 function drawGimmickGlyph(parent, type, raw, outwardAngle, active){
   if(type==='ufo') return drawUfoGlyph(parent, active);
   if(isIceTheme()) return drawIceGimmickGlyph(parent, type, raw, outwardAngle, active);
   const colors = {mirror_l:'#fff', mirror_r:'#fff', block:'#ff3b3b', half_block:'#ff9d4d', amp:'#ffd23f', prism:'#ff5ec4', portal:'#c77dff', echo_portal:'#5df0ff', coin:'#ffd23f'};
   const color = colors[type] || '#fff';
-  if(type==='mirror_l' || type==='mirror_r'){
-    el('circle',{r:9, fill:'rgba(0,0,0,.55)', stroke:color, 'stroke-width':1.9}, parent);
-  } else if(type!=='portal' && type!=='echo_portal' && type!=='block' && type!=='bell' && type!=='coin'){
+  if(type==='half_block'){
     el('circle',{r:7.5, fill:'rgba(0,0,0,.55)', stroke:color, 'stroke-width':1.7}, parent);
   }
-  if(type==='mirror_l') el('line',{x1:-7.5,y1:-7.5,x2:7.5,y2:7.5, stroke:color,'stroke-width':3.4,'stroke-linecap':'round'}, parent);
-  else if(type==='mirror_r') el('line',{x1:-7.5,y1:7.5,x2:7.5,y2:-7.5, stroke:color,'stroke-width':3.4,'stroke-linecap':'round'}, parent);
-  else if(type==='block') el('circle',{r:6.5, fill:color, stroke:'none'}, parent);
-  else if(type==='amp') el('path',{d:'M 0 -4 L 3.5 3.5 L -3.5 3.5 Z', fill:'none', stroke:color,'stroke-width':1.6,'stroke-linejoin':'round'}, parent);
+  if(type==='mirror_l' || type==='mirror_r') mechTurnGlyph(parent, type==='mirror_l', outwardAngle, {disc:'rgba(8,14,22,.9)', rim:'#e8f6ff', arrow:'#ffffff'});
+  else if(type==='block') mechBlockGlyph(parent, outwardAngle, color, '#3a0a0e');
+  else if(type==='amp') mechAmpGlyph(parent, {disc:'rgba(30,22,0,.9)', rim:color, bolt:color, boltEdge:'#fff3b0'});
   else if(type==='portal'){
     // BLACK HOLE: a little wormhole -- white mouth, black mouth, purple mesh
     // tunnel between them -- turned to face along the hole's own axis.
@@ -8633,7 +8782,7 @@ function drawGimmickGlyph(parent, type, raw, outwardAngle, active){
     const capPath = solidOuter ? 'M 0 -6.5 A 6.5 6.5 0 0 1 0 6.5 Z' : 'M 0 -6.5 A 6.5 6.5 0 0 0 0 6.5 Z';
     el('path',{d:capPath, fill:'#0a0a0d'}, gg);
   }
-  else if(type==='prism') el('path',{d:'M 0 -4.5 L 4 3.5 L -4 3.5 Z', fill:'rgba(255,94,196,.28)', stroke:color,'stroke-width':1.5,'stroke-linejoin':'round'}, parent);
+  else if(type==='prism') mechPrismGlyph(parent, outwardAngle, {fill:'rgba(255,94,196,.55)', edge:'#ffb0e4', fork:'#ffffff'});
   else if(type==='coin'){
     // COIN (Space Orchestra only): purely decorative and fully
     // transparent to beams -- it never blocks, bends, or duplicates
