@@ -1441,6 +1441,75 @@ body.modalOpen #bgParticles .bgp{animation-play-state:paused}
 body.theme-spore #bgCanvas { opacity:.24 !important; }
 body.theme-mistcosmos #bgCanvas,body.theme-mistjungle #bgCanvas,body.theme-virus #bgCanvas,body.theme-carnival #bgCanvas { opacity:.36 !important; }
 
+
+/* =====================================================================
+   THEMES V2 (theme-redesign milestone) -- cosmetic only
+   ===================================================================== */
+#v2Env{position:fixed; inset:0; z-index:0; overflow:hidden; pointer-events:none; display:none; contain:strict}
+body.theme-v2 #v2Env{display:block}
+body.theme-v2 #bgfx{display:none}
+body.theme-v2 svg#puzzle{position:relative; z-index:2; filter:none !important}
+#v2Env .v2L{position:absolute; inset:0; background-repeat:no-repeat; background-position:center; background-size:cover}
+/* tiled parallax layers: element is one tile larger than the screen and pans exactly one tile -> seamless loop */
+#v2Env .v2T{background-repeat:repeat; will-change:transform}
+#v2Env .v2PanA{inset:auto; left:0; top:0; width:calc(100% + 400px); height:calc(100% + 400px); animation:v2PanA 150s linear infinite}
+#v2Env .v2PanB{inset:auto; left:0; top:0; width:calc(100% + 600px); height:calc(100% + 600px); animation:v2PanB 110s linear infinite}
+@keyframes v2PanA{from{transform:translate3d(0,0,0)} to{transform:translate3d(-400px,-400px,0)}}
+@keyframes v2PanB{from{transform:translate3d(0,0,0)} to{transform:translate3d(-600px,-600px,0)}}
+/* slow light drift (window light, glints): transform + opacity only */
+#v2Env .v2Drift{inset:-5%; will-change:transform,opacity; animation:v2Drift 46s ease-in-out infinite alternate}
+@keyframes v2Drift{from{transform:translate3d(-1.6%,-1.2%,0); opacity:.72} to{transform:translate3d(1.8%,1.4%,0); opacity:1}}
+/* swaying leaf shade */
+#v2Env .v2Sway{inset:-6%; will-change:transform,opacity; animation:v2Sway 13s ease-in-out infinite alternate}
+@keyframes v2Sway{0%{transform:translate3d(-0.8%,0.3%,0) rotate(-0.6deg); opacity:.85} 50%{transform:translate3d(0.6%,-0.5%,0) rotate(0.3deg); opacity:1} 100%{transform:translate3d(1%,0.6%,0) rotate(0.8deg); opacity:.9}}
+/* corner props (anchored, so they survive any aspect ratio) */
+#v2Env .v2C{background-repeat:no-repeat}
+/* stage overlay between the baked arena and the puzzle */
+#v2StageFx{position:absolute; inset:8.6%; border-radius:50%; pointer-events:none; z-index:1; display:none; overflow:hidden}
+body.theme-v2 #v2StageFx{display:block}
+#v2StageFx.v2-sweep{background:conic-gradient(from 0deg, rgba(127,231,255,0) 0deg 292deg, rgba(127,231,255,.05) 340deg, rgba(210,246,255,.12) 357deg, rgba(127,231,255,0) 360deg); will-change:transform; animation:v2Spin 28s linear infinite}
+#v2StageFx.v2-gloss{background:radial-gradient(ellipse 40% 22% at 34% 26%, rgba(255,244,220,.10), rgba(255,244,220,0) 70%); will-change:transform,opacity; animation:v2Gloss 34s ease-in-out infinite alternate}
+@keyframes v2Spin{to{transform:rotate(360deg)}}
+@keyframes v2Gloss{from{transform:translate3d(-3%,-2%,0); opacity:.6} to{transform:translate3d(4%,3%,0); opacity:1}}
+/* win: the board's own light swells once */
+#v2StageFx::after{content:''; position:absolute; inset:-2%; border-radius:50%; opacity:0; background:radial-gradient(circle, rgba(255,255,255,0) 52%, var(--v2-win,rgba(160,255,210,.38)) 78%, rgba(255,255,255,0) 100%)}
+body.theme-v2 #stage.v2-win #v2StageFx::after{animation:v2WinGlow 1.3s ease-out}
+@keyframes v2WinGlow{0%{opacity:0; transform:scale(.7)} 25%{opacity:1} 100%{opacity:0; transform:scale(1.08)}}
+/* ambient motion pauses: after 30 s idle, under a modal, with reduced motion */
+body.v2-sleep #v2Env *, body.v2-sleep #v2StageFx, body.modalOpen #v2Env *, body.modalOpen #v2StageFx{animation-play-state:paused}
+body.reduceMotion #v2Env *, body.reduceMotion #v2StageFx{animation:none !important}
+@media (prefers-reduced-motion: reduce){ #v2Env *, #v2StageFx, #v2StageFx::after{animation:none !important} }
+/* idle puzzle = static: every legacy infinite decorative loop is off in v2 themes */
+body.theme-v2 #puzzleBeams, body.theme-v2 .node-halo, body.theme-v2 .gm-idle, body.theme-v2 .rim-wait,
+body.theme-v2 .beam-impact, body.theme-v2 .beam-core, body.theme-v2 .beam-packet, body.theme-v2 .bh-flow,
+body.theme-v2 .bh-in, body.theme-v2 .bh-out, body.theme-v2 .sat-flow, body.theme-v2 .sat-in, body.theme-v2 .sat-wave,
+body.theme-v2 .sat-kill-ring, body.theme-v2 .sat-spark{animation:none !important}
+/* the "new mechanism" chip pulse animates box-shadow (repaints every frame): three pulses, then rest */
+body.theme-v2 .gimmickChip.newGimmick{animation-iteration-count:3}
+/* HUD sits on a soft backing so it reads on any background */
+body.theme-v2 #gameTop{background:var(--v2-hud); border-radius:14px; margin-top:2px}
+body.theme-v2 #ringTag{color:var(--ring-selected); border-color:var(--ring-selected); background:var(--v2-hud)}
+body.theme-v2 .gimmickChip, body.theme-v2 #powerStatus, body.theme-v2 .orchBatteryChip{background:var(--v2-hud)}
+body.theme-v2 .modeCard, body.theme-v2 .levelCard, body.theme-v2 .panel{background:var(--v2-card); border-color:var(--panel-line)}
+body.theme-v2 .modeCard:hover:not(.locked), body.theme-v2 .levelCard:hover{border-color:var(--panel-line-bright)}
+body.theme-v2 #dpad button, body.theme-v2 .actBtn, body.theme-v2 .backBtn, body.theme-v2 .utilBtn, body.theme-v2 #muteBtn, body.theme-v2 .shopCornerBtn, body.theme-v2 .coinTally{background:var(--v2-btn); border-color:var(--panel-line)}
+body.theme-v2 #dpad button{color:var(--ring)}
+body.theme-v2 .modalBox{background:var(--v2-modal); border-color:var(--panel-line-bright)}
+body.theme-v2 .lvlLabel, body.theme-v2 .screenTitle, body.theme-v2 .logo{color:var(--ring)}
+body.theme-v2 .screenSub, body.theme-v2 #titleScreen .press, body.theme-v2 #gameTop .hudStat, body.theme-v2 #gameTop .lockStatus{text-shadow:0 1px 4px rgba(0,0,0,.6)}
+/* per-theme tokens */
+body.v2-space{--panel:#0a1222; --panel-line:#26395a; --panel-line-bright:#6f97c8; --ring:#a9dcff; --ring-dim:#2a4060; --ring-selected:#dff6ff;
+  --text0:#eaf3ff; --text1:#9bb2cf; --text2:#5b7696; --accent:#7fe7ff; --v2-hud:rgba(6,10,20,.62); --v2-card:linear-gradient(160deg,rgba(40,70,110,.32),rgba(6,10,20,.7));
+  --v2-btn:rgba(10,18,34,.72); --v2-modal:linear-gradient(160deg,rgba(14,24,44,.97),rgba(4,7,14,.98)); --v2-win:rgba(160,235,255,.4); background:#03050a !important}
+body.v2-ice{--panel:#221b13; --panel-line:#6a5639; --panel-line-bright:#e0b766; --ring:#f0dfbd; --ring-dim:#5a4630; --ring-selected:#f2c35a;
+  --text0:#f8f1e4; --text1:#d6c7ab; --text2:#9a8a70; --accent:#9fc7b2; --v2-hud:rgba(26,19,12,.66); --v2-card:linear-gradient(160deg,rgba(90,70,40,.38),rgba(24,18,11,.78));
+  --v2-btn:rgba(30,22,14,.74); --v2-modal:linear-gradient(160deg,rgba(44,33,20,.97),rgba(20,14,9,.98)); --v2-win:rgba(242,195,90,.42);
+  --font-display:'Palatino Linotype','Book Antiqua',Palatino,Georgia,serif; background:#3a362c !important}
+body.v2-ruin{--panel:#23261f; --panel-line:#6b6f60; --panel-line-bright:#e6dcb4; --ring:#f1ead0; --ring-dim:#5d6152; --ring-selected:#efe3b4;
+  --text0:#f6f3e8; --text1:#ddd8c6; --text2:#a7a28f; --accent:#b9cf7a; --v2-hud:rgba(28,30,25,.70); --v2-card:linear-gradient(160deg,rgba(70,74,62,.55),rgba(24,26,22,.82));
+  --v2-btn:rgba(30,32,27,.76); --v2-modal:linear-gradient(160deg,rgba(46,49,42,.97),rgba(22,24,20,.98)); --v2-win:rgba(239,227,180,.42);
+  --font-display:'Optima','Candara','Segoe UI',sans-serif; background:#6f6a60 !important}
+
 /* ===== VISUAL MILESTONE 1 -- mechanism idle motion =====
    The Mirror glyph is now a direction arrow; tilting it +/-6deg made the direction wobble. Pulse instead. */
 .gm-idle.gm-mirror_l,.gm-idle.gm-mirror_r{animation-name:gmBeat}
@@ -6770,7 +6839,7 @@ function loadLevel(mode, idx){
   gstate.timerInterval = setInterval(()=>{
     if(gstate.won) return;
     gstate.elapsed = (Date.now()-gstate.startTime)/1000;
-    document.getElementById('timeLabel').textContent = formatTime(gstate.elapsed);
+    { const tl = document.getElementById('timeLabel'), tx = formatTime(gstate.elapsed); if(tl.textContent !== tx) tl.textContent = tx; }
   }, 500);
   document.getElementById('gameLvlLabel').textContent = lvl.name;
   document.getElementById('movesLabel').textContent = '0 moves';
@@ -6990,10 +7059,12 @@ function finishLevel(withCoin){
   AudioSys.playBreach();
   document.getElementById('winSub').textContent = withCoin ? 'LEVEL COMPLETE \u2014 \u2605 STAR + \ud83c\udf81 GIFT BOX' : 'LEVEL COMPLETE \u2014 \u2605 STAR';
   document.getElementById('winStatsLine').textContent = `${gstate.moves} ${gstate.moves===1?'move':'moves'} \u00b7 ${formatTime(gstate.elapsed)}`;
-  document.getElementById('winBanner').classList.add('show');
-  spawnWinParticles(); Fx.celebrate(withCoin);
-  const app = document.getElementById('app');
-  app.classList.remove('winPulse'); void app.offsetWidth; app.classList.add('winPulse');
+  { const showWin = ()=>{
+      document.getElementById('winBanner').classList.add('show');
+      const app = document.getElementById('app');
+      app.classList.remove('winPulse'); void app.offsetWidth; app.classList.add('winPulse'); };
+    if(v2Cur()) v2Celebrate(withCoin, showWin);
+    else { showWin(); spawnWinParticles(); Fx.celebrate(withCoin); } }
   updateNextButtonUI();
   updateTopBar();
 
@@ -7399,6 +7470,8 @@ function renderPuzzleFull(){
   const VOID = isVoidTheme();
   const NOIR = isNoirTheme();
   const LAVA = isLavaTheme(), SAKURA = isSakuraTheme(), T3 = t3Id();
+  const V2C = v2Cur();
+  if(V2C) v2Defs(defs, V2C);
   [['flareGradLava','#ffd9a0','#ff6a1a'],['flareGradSakura','#ffe0ec','#ff9ac0']].forEach(([id,m,o])=>{ const gr = el('radialGradient',{id},defs); el('stop',{offset:'0%','stop-color':'#fff','stop-opacity':'0.95'},gr); el('stop',{offset:'30%','stop-color':m,'stop-opacity':'0.75'},gr); el('stop',{offset:'100%','stop-color':o,'stop-opacity':'0'},gr); });
   const flareId = ICE ? 'flareGradIce' : (ISLAND ? 'flareGradIsland' : 'flareGrad');
   // VOID: only the LOCK halos get a theme flare; source halos keep flareId (sources are not themed).
@@ -7416,11 +7489,11 @@ function renderPuzzleFull(){
 
   // PERF: themed arenas (disc, cracks, glows, vortex...) never change within a theme, so they are drawn ONCE into a
   // separate cached layer (#puzzleArena) instead of being rebuilt + repainted with every beam animation frame.
-  const THEMED_ARENA = ICE||ISLAND||RUIN||VOID||NOIR||LAVA||SAKURA||!!T3;
+  const THEMED_ARENA = ICE||ISLAND||RUIN||VOID||NOIR||LAVA||SAKURA||!!T3||!!V2C;
   const ASV = document.getElementById('puzzleArena');
   let _tsvg = svg, _tdefs = defs, _skipArena = false;
   if(THEMED_ARENA){
-    const aKey = ICE?'ice':ISLAND?'island':RUIN?'ruin':VOID?'void':NOIR?'noir':LAVA?'lava':SAKURA?'sakura':T3;
+    const aKey = V2C?('v2-'+V2C.id):ICE?'ice':ISLAND?'island':RUIN?'ruin':VOID?'void':NOIR?'noir':LAVA?'lava':SAKURA?'sakura':T3;
     if(renderPuzzle._arenaKey===aKey && (ASV.firstChild || ASV.dataset.baked===aKey)){ _skipArena = true; }
     else {
       renderPuzzle._arenaKey = aKey; ASV.innerHTML=''; ASV.style.backgroundImage=''; delete ASV.dataset.baked;
@@ -7436,7 +7509,9 @@ function renderPuzzleFull(){
     if(ASV.firstChild) ASV.innerHTML=''; ASV.style.backgroundImage=''; delete ASV.dataset.baked; ASV.style.display='none'; renderPuzzle._arenaKey=null; svg.classList.remove('arenaCached');
   }
   if(!_skipArena) (function(svg, defs){
-  if(ICE){
+  if(V2C){
+    V2C.arena(svg, defs);
+  } else if(ICE){
     // FROZEN-LAKE ICE DISC -- one solid, vividly-colored slab (sampled
     // directly from the reference photo's ice tones) filling the whole
     // puzzle area, with a handful of natural-looking fracture lines and
@@ -7639,7 +7714,9 @@ function renderPuzzleFull(){
   const rimG = el('g',{}, svg); RPS.rim = rimG; drawRimLocks(rimG);
 
   const hubG = el('g',{}, svg);
-  if(ICE){
+  if(V2C){
+    V2C.hub(hubG);
+  } else if(ICE){
     // Center hub reads as the little snowflake medallion from the
     // reference's ring-1 center, instead of a plain dot-in-a-ring.
     el('circle',{cx:0,cy:0,r:17, fill:'rgba(20,70,95,0.55)', stroke:'#eafcff', 'stroke-width':1.3, opacity:0.8}, hubG);
@@ -7698,7 +7775,9 @@ function renderPuzzleFull(){
     const angleDeg = (rot/n)*360;
     const isSelected = r===gstate.selectedRing;
     const g = el('g',{class: isSelected ? 'ring-group selected' : 'ring-group'}, svg);
-    if(ICE){
+    if(V2C){
+      V2C.track(g, radius, isSelected, n);
+    } else if(ICE){
       // ICE RING GROOVE: the reference's ring lines read as a subtle
       // CARVED groove in one continuous ice slab, not a separately
       // colored band -- a thin dark "shadow" line immediately paired
@@ -7764,7 +7843,7 @@ function renderPuzzleFull(){
     // SELECTED RING (every theme): two crisp edge lines bracketing the track, in the same accent
     // colour as this theme's "RING n/N" tag, so the ring under the player's control is unambiguous
     // even in themes whose own selected styling is subtle. Purely decorative, ignores the pointer.
-    if(isSelected){
+    if(isSelected && !V2C){
       [radius-9, radius+9].forEach(rr=> el('circle',{cx:0,cy:0,r:rr, fill:'none', stroke:selAccent, 'stroke-width':1.3, opacity:0.85, 'pointer-events':'none'}, g));
     }
     const dragRing = el('circle',{cx:0,cy:0,r:radius, fill:'none', stroke:'transparent','stroke-width':28}, g);
@@ -7797,7 +7876,9 @@ function renderPuzzleFull(){
       const hitsLock = beamResult && beamResult.result.hitLockSlots.length>0;
       const tip = el('g',{transform:`translate(${x},${y}) scale(${optScale('sourceSize')})`}, spokeG);
       // hit-halo is drawn by renderBeams() (beam layer)
-      if(ICE){
+      if(V2C){
+        v2Source(tip, isSelected, spokeColor);
+      } else if(ICE){
         // Beam source as a small blue gem-in-collar node -- the exact
         // same socket language as every lock/gimmick, just sized down and
         // colored to match the reference's plain little blue circle nodes.
@@ -7870,6 +7951,7 @@ function renderPuzzleFull(){
         const parentG = isPinned ? g : spokeG;
         const tip = el('g',{transform:`translate(${x},${y}) scale(${isHole?1:optScale('gimmickSize')})`, 'pointer-events':'none'}, parentG);
         if(isPinned) g.insertBefore(tip, spokeG);
+        if(V2C && !isHole && type!=='ufo' && type!=='coin') v2Socket(tip, type==='echo_portal' ? 15.5 : 16.5);
         if(isPinned && !isHole) el('circle',{r:type==='echo_portal'?14.5:17,fill:'none',stroke:'#fff6c8','stroke-width':1.3,'stroke-dasharray':'2 3',opacity:0.9}, tip);
         // WHITE BELL "animated when hit" state: the bell reads as active
         // (warm/glowing) for as long as the fog-clear window it just
@@ -8190,12 +8272,13 @@ function renderPuzzle(){
   try{
     const key = rpKey(lvl), echo = rpEcho();
     if(renderPuzzle._lvl===lvl && RPS.built===lvl && RPS.key===key && RPS.echo===echo){
-      let beams=false;
+      let beams=false, rimV2=false;
       lvl.rings.forEach((ring,r)=>{ if(RPS.applied[r]!==gstate.rotations[r]){ beams=true; rpFastRotate(lvl,r); } });
       const lit = rpLit(), hits = rpHits();
-      if(lit!==RPS.lit){ RPS.lit=lit; beams=true; lite(()=>drawRimLocks(RPS.rim)); }
+      if(lit!==RPS.lit){ RPS.lit=lit; beams=true; if(v2Cur()) rimV2=true; else lite(()=>drawRimLocks(RPS.rim)); }
       if(hits!==RPS.hits){ RPS.hits=hits; beams=true; }
       if(beams) renderBeams(true);
+      if(rimV2) v2ScheduleRim();
     } else {
       RPS.key=key; RPS.echo=echo; RPS.lit=rpLit(); RPS.hits=rpHits(); RPS.built=lvl;
       renderPuzzleFull();
@@ -8211,6 +8294,7 @@ function renderBeams(force){
   const _same=renderPuzzle._lvl===lvl, _pR=renderPuzzle._rots, _pL=renderPuzzle._lit, _pS=renderPuzzle._sel, _noMo=document.body.classList.contains('reduceMotion');
   if(!force && _same && _pR && _pR.every((v,i)=>v===gstate.rotations[i])) return;
   const _rotChanged=_same&&_pR&&_pR.some((v,i)=>v!==gstate.rotations[i]);
+  { const V2C = v2Cur(); if(V2C) return lite(()=>renderBeamsV2(V2C, {lvl, n, _same, _pR, _pL, _pS, _noMo, _rotChanged})); }
   const ICE = isIceTheme(), ISLAND = isIslandTheme();
   const coinLocks = currentMode==='special' || currentMode==='orchestra' || currentMode==='rocket';
   const svg = document.getElementById('puzzleBeams'); svg.innerHTML='';
@@ -10080,21 +10164,25 @@ function syncThemeToContext(){
 function applyTheme(themeId){
   if(applyTheme._last!==undefined && applyTheme._last!==themeId) themeFlash();
   applyTheme._last = themeId;
-  const ice = themeId === 'ice';
-  const island = themeId === 'island';
+  // THEMES V2: a redesigned theme replaces its legacy body class + environment entirely
+  const V2T = (typeof THEME_V2!=='undefined' && THEME_V2[themeId]) || null;
+  v2Activate(V2T);
+  const legacyId = V2T ? '' : themeId;
+  const ice = legacyId === 'ice';
+  const island = legacyId === 'island';
   document.body.classList.toggle('theme-ice', ice);
   document.body.classList.toggle('theme-island', island);
-  const ruin = themeId === 'ruin';
+  const ruin = legacyId === 'ruin';
   document.body.classList.toggle('theme-ruin', ruin);
-  const voidOn = themeId === 'void';
+  const voidOn = legacyId === 'void';
   document.body.classList.toggle('theme-void', voidOn);
-  const noirOn = themeId === 'noir';
+  const noirOn = legacyId === 'noir';
   document.body.classList.toggle('theme-noir', noirOn);
-  const lavaOn = themeId === 'lava', sakuraOn = themeId === 'sakura';
+  const lavaOn = legacyId === 'lava', sakuraOn = legacyId === 'sakura';
   document.body.classList.toggle('theme-lava', lavaOn);
   document.body.classList.toggle('theme-sakura', sakuraOn);
   if(lavaOn){ buildLavaEnvironment(); buildLavaStageEnvironment(); }
-  T3K.forEach(k=>{ const on = themeId===k; document.body.classList.toggle('theme-'+k, on); if(on) t3Build(k); });
+  T3K.forEach(k=>{ const on = legacyId===k; document.body.classList.toggle('theme-'+k, on); if(on) t3Build(k); });
   if(sakuraOn){ buildSakuraEnvironment(); buildSakuraStageEnvironment(); }
   if(noirOn){ buildNoirEnvironment(); buildNoirStageEnvironment(); }
   if(voidOn){ buildVoidEnvironment(); buildVoidStageEnvironment(); }
@@ -10425,11 +10513,16 @@ const GamepadNav = (function(){
       }
       prevButtons = btn;
     } else {
-      prevButtons = [];
+      // PERF: no pad -> stop polling (an always-on rAF loop kept the page rendering
+      // every frame even when idle). 'gamepadconnected' restarts it.
+      prevButtons = []; polling = false; return;
     }
     requestAnimationFrame(poll);
   }
-  requestAnimationFrame(poll);
+  let polling = false;
+  function startPolling(){ if(polling) return; polling = true; requestAnimationFrame(poll); }
+  window.addEventListener('gamepadconnected', startPolling);
+  { const pads = (navigator.getGamepads ? navigator.getGamepads() : []) || []; if(pads[0]) startPolling(); }
   return { refreshFocusList };
 })();
 
@@ -10975,8 +11068,11 @@ Object.assign(THEME_SWATCH_GRADIENT,{spore:'linear-gradient(135deg,#dca2f0,#6c38
 Object.assign(THEME_BADGE,{spore:{icon:'\ud83c\udf44',color:'#dca2f0'},crimson:{icon:'\ud83c\udff0',color:'#f69e61'},glacier:{icon:'\ud83e\uddca',color:'#bff6ff'},leviathan:{icon:'\ud83d\udc0b',color:'#7ff0e8'},halo:{icon:'\u2600\ufe0f',color:'#ffd88a'},mesa:{icon:'\ud83d\udc8e',color:'#3be0a0'}});
 
 
-/* ===== PERFORMANCE DIAGNOSTIC (temporary, no gameplay changes) ===== */
+/* ===== PERFORMANCE DIAGNOSTIC (temporary, no gameplay changes) =====
+   Opt-in only (append ?diag to the URL): it wraps renderPuzzle/recomputeFlow/checkWin and runs
+   its own perpetual rAF loop + a 1 s interval, which kept every screen rendering continuously. */
 (function(){
+if(!/[?&]diag\b/.test(location.search)) return;
 const D=window.__diag={noParticles:false,noPackets:false,noWin:false};
 let rafCalls=0; const _raf=window.requestAnimationFrame.bind(window);
 window.requestAnimationFrame=function(cb){rafCalls++;return _raf(cb);};
@@ -11276,6 +11372,566 @@ Object.assign(BGP, {
   virus:{dir:'up',spd:10,kind:'dot',cols:['77,255,154','45,255,138'],mix:.14,r:[.25,.7],a:[.04,.14]},
   carnival:{dir:'up',spd:8,kind:'dot',cols:['255,207,106','255,70,180'],mix:.15,r:[.25,.65],a:[.04,.15]}
 });
+
+
+/* =========================================================================
+   THEMES V2 -- redesigned worlds (theme-redesign milestone).
+   100% cosmetic: nothing here is read by the tracer, the win check, the
+   save or the reward system. A theme is "v2" when THEME_V2[id] exists; its
+   id, price, unlock and reward set are untouched (save compatibility).
+
+   PERFORMANCE MODEL (see the milestone report):
+   - Idle puzzle = zero running animations. Beams, mechanisms, locks and
+     tracks are static SVG once they settle; every legacy infinite loop
+     (halo pulse, gimmick wobble, beam dash flow, energy packets, lock
+     "wait" pulse, layer breathing) is switched off under body.theme-v2.
+   - Motion is EVENT-DRIVEN: a rotation re-traces the changed beams from
+     their sources (WAAPI on stroke-dashoffset, a few hundred ms), locks and
+     mechanisms react when the beam actually reaches them, then everything
+     stops again.
+   - Ambient life lives in the background only, as pre-rasterised image
+     layers moved by compositor-only transform/opacity animations (no
+     main-thread work, no repaint). It pauses after 30 s without input,
+     while a modal is open, and is off with Reduce Motion / OS reduced
+     motion.
+   - No SVG filters in v2 puzzle art (glows are layered strokes/gradients).
+   ========================================================================= */
+const V2 = { cur:null, envCache:{}, sleepTimer:0, rimTimer:0, newLitDelay:0, lockDoneAt:0, SPD:1.6 };
+function v2Cur(){ return V2.cur; }
+function v2Reduced(){
+  return document.body.classList.contains('reduceMotion') ||
+    !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+}
+function v2Rand(seed){ let a = seed>>>0; return ()=>{ a = (a + 0x6D2B79F5)|0; let t = Math.imul(a ^ (a>>>15), 1|a); t = (t + Math.imul(t ^ (t>>>7), 61|t)) ^ t; return ((t ^ (t>>>14))>>>0)/4294967296; }; }
+function v2Tag(t, a, inner){ let s = '<'+t; for(const k in a) s += ' '+k+'="'+a[k]+'"'; return inner===undefined ? s+'/>' : s+'>'+inner+'</'+t+'>'; }
+function v2SvgUrl(vb, par, body){
+  const xml = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="'+vb+'" preserveAspectRatio="'+par+'">'+body+'</svg>';
+  return URL.createObjectURL(new Blob([xml], {type:'image/svg+xml'}));
+}
+const f1 = v => (+v).toFixed(1);
+
+/* ---------- activation / environment ---------- */
+function v2Activate(spec){
+  V2.cur = spec;
+  const b = document.body;
+  [...b.classList].filter(c=>c.indexOf('v2-')===0 && c!=='v2-sleep').forEach(c=>b.classList.remove(c));
+  b.classList.toggle('theme-v2', !!spec);
+  if(!spec) return;
+  b.classList.add('v2-'+spec.id);
+  v2BuildEnv(spec);
+  v2Wake();
+}
+function v2BuildEnv(spec){
+  let host = document.getElementById('v2Env');
+  if(!host){ host = document.createElement('div'); host.id = 'v2Env'; document.body.insertBefore(host, document.getElementById('app')); }
+  let fx = document.getElementById('v2StageFx');
+  if(!fx){ fx = document.createElement('div'); fx.id = 'v2StageFx'; const ar = document.getElementById('puzzleArena'); ar.parentNode.insertBefore(fx, ar.nextSibling); }
+  fx.className = spec.stageFx || '';
+  if(host.dataset.theme === spec.id) return;
+  host.dataset.theme = spec.id; host.replaceChildren();
+  const layers = V2.envCache[spec.id] || (V2.envCache[spec.id] = spec.env().map(L=>Object.assign({}, L, {url: v2SvgUrl(L.vb||'0 0 1000 1000', L.par||'xMidYMid slice', L.svg)})));
+  layers.forEach(L=>{
+    const d = document.createElement('div');
+    d.className = 'v2L ' + (L.cls||'');
+    d.style.backgroundImage = 'url("'+L.url+'")';
+    if(L.size) d.style.backgroundSize = L.size;
+    if(L.pos) d.style.backgroundPosition = L.pos;
+    host.appendChild(d);
+  });
+}
+// Ambient sleep: background motion pauses after 30 s without input.
+function v2Wake(){
+  document.body.classList.remove('v2-sleep');
+  clearTimeout(V2.sleepTimer);
+  V2.sleepTimer = setTimeout(()=>document.body.classList.add('v2-sleep'), 30000);
+}
+['pointerdown','keydown','touchstart','wheel'].forEach(t=>window.addEventListener(t, ()=>{ if(V2.cur) v2Wake(); }, {passive:true}));
+
+/* ---------- shared puzzle-art helpers (drawn with el(), into #puzzle / #puzzleArena) ---------- */
+// light comes from the top-left in every v2 theme; shadows fall to the bottom-right
+const V2_SHADOW = {x:2.2, y:2.8};
+function v2Defs(defs, spec){
+  const P = spec.pal;
+  const lin = (id, stops, x1, y1, x2, y2)=>{ const g = el('linearGradient',{id, x1, y1, x2, y2}, defs); stops.forEach(([o,c,a])=>el('stop',{offset:o,'stop-color':c,'stop-opacity':a==null?1:a}, g)); };
+  const rad = (id, stops, cx, cy, r)=>{ const g = el('radialGradient',{id, cx:cx||'50%', cy:cy||'50%', r:r||'50%'}, defs); stops.forEach(([o,c,a])=>el('stop',{offset:o,'stop-color':c,'stop-opacity':a==null?1:a}, g)); };
+  lin('v2Sock', [['0',P.sockHi],['1',P.sockLo]], '0.15','0.1','0.85','0.9');
+  rad('v2SockIn', [['0',P.sockIn],['0.75',P.sockIn],['1',P.sockLo]], '58%','62%','60%');
+  rad('v2Lens', [['0','#ffffff',0.95],['0.35','#ffffff',0.25],['1','#ffffff',0]], '35%','32%','65%');
+}
+function v2Socket(g, R){
+  el('circle',{cx:V2_SHADOW.x, cy:V2_SHADOW.y, r:R, fill:'#000', opacity:0.32}, g);
+  el('circle',{r:R, fill:'url(#v2Sock)', stroke:V2.cur.pal.sockEdge, 'stroke-width':1}, g);
+  el('circle',{r:R-2.6, fill:'url(#v2SockIn)'}, g);
+}
+function v2Source(tip, sel, color){
+  v2Socket(tip, 10.5);
+  el('circle',{r:6.3, fill:color, stroke:sel?'#ffffff':'rgba(255,255,255,.55)', 'stroke-width':sel?1.6:1}, tip);
+  el('circle',{r:6.3, fill:'url(#v2Lens)'}, tip);
+}
+// engraved concentric groove: a dark stroke plus a light stroke nudged towards the light's far side
+function v2Groove(g, r, w, dark, light, darkOp, lightOp){
+  el('circle',{cx:0, cy:0, r, fill:'none', stroke:dark, 'stroke-width':w, opacity:darkOp}, g);
+  el('circle',{cx:0.9, cy:1.1, r, fill:'none', stroke:light, 'stroke-width':1, opacity:lightOp}, g);
+}
+function v2SlotMarks(g, r, n, len, color, op, width){
+  let d = '';
+  for(let s=0; s<n; s++){ const a = slotToAngle(s, n), c = Math.cos(a), si = Math.sin(a);
+    d += `M ${f1(c*(r-len))} ${f1(si*(r-len))} L ${f1(c*(r+len))} ${f1(si*(r+len))} `; }
+  el('path',{d, fill:'none', stroke:color, 'stroke-width':width||1, opacity:op, 'stroke-linecap':'round'}, g);
+}
+// contact shadow of the whole board on whatever it sits on (baked into the arena bitmap)
+function v2BoardShadow(svg, defs, op){
+  const g = el('radialGradient',{id:'v2BoardSh'}, defs);
+  el('stop',{offset:'0.86','stop-color':'#000','stop-opacity':op}, g);
+  el('stop',{offset:'1','stop-color':'#000','stop-opacity':0}, g);
+  el('circle',{cx:7, cy:10, r:RIM_R+29, fill:'url(#v2BoardSh)'}, svg);
+}
+
+/* ---------- v2 rim (used when the equipped rim cosmetic belongs to a v2 theme) ---------- */
+function drawRimV2(rimG, defs, n, states, M){
+  const rimHalf = RIM_BAND.half*optScale('rimSize');
+  const rIn = RIM_R - rimHalf, rOut = RIM_R + rimHalf;
+  const lin = (id, c0, c1)=>{ const g = el('linearGradient',{id, x1:'0.1', y1:'0', x2:'0.9', y2:'1'}, defs); el('stop',{offset:'0','stop-color':c0}, g); el('stop',{offset:'1','stop-color':c1}, g); };
+  lin('v2RimBase', M.base[0], M.base[1]);
+  { const U=lockPalette(false,false), L=lockPalette(true,false), CU=lockPalette(false,true), CL=lockPalette(true,true);
+    lin('v2RimRed', U.main, U.dark); lin('v2RimGreen', L.light, L.main); lin('v2RimCoinOff', CU.main, CU.dark); lin('v2RimCoinOn', CL.light, CL.main); }
+  lin('v2RimFog', '#e4edf4', '#aebccc');
+  el('circle',{cx:V2_SHADOW.x, cy:V2_SHADOW.y, r:rOut+1.5, fill:'none', stroke:'#000', 'stroke-width':4, opacity:0.35}, rimG);
+  const P = (r,a)=> `${f1(Math.cos(a)*r)} ${f1(Math.sin(a)*r)}`;
+  for(let s=0; s<n; s++){
+    const t = states[s];
+    el('path',{d:rimPanelPath(s, n, rIn, rOut, M.gap||2.4), fill:'url(#v2RimBase)', stroke:M.seam, 'stroke-width':1}, rimG);
+    const c = slotToAngle(s, n), st = Math.PI*2/n*0.36;
+    el('path',{d:`M ${P(rOut-2.2,c-st)} A ${rOut-2.2} ${rOut-2.2} 0 0 1 ${P(rOut-2.2,c+st)}`, fill:'none', stroke:M.hi, 'stroke-width':1.2, 'stroke-linecap':'round', opacity:0.5}, rimG);
+    if(M.fleck){ const r = v2Rand(s*97+11); for(let i=0;i<M.fleck.count;i++){ const rr = rIn+3+r()*(rOut-rIn-6), aa = c + (r()-0.5)*Math.PI*2/n*0.8;
+      el('circle',{cx:f1(Math.cos(aa)*rr), cy:f1(Math.sin(aa)*rr), r:f1(0.6+r()*1.4), fill:M.fleck.colors[i%M.fleck.colors.length], opacity:M.fleck.op}, rimG); } }
+    if(!t) continue;
+    let fill;
+    if(t.st==='fog') fill = 'v2RimFog';
+    else if(t.st==='dead') fill = null;
+    else if(t.kind==='bonus') fill = t.st==='lit' ? 'v2RimCoinOn' : 'v2RimCoinOff';
+    else fill = t.st==='lit' ? 'v2RimGreen' : 'v2RimRed';
+    if(!fill) continue;
+    // glazed inset tile carrying the lock state colour
+    const ins = 3.2;
+    el('path',{d:rimPanelPath(s, n, rIn+ins, rOut-ins, (M.gap||2.4)+ins*2.2), fill:`url(#${fill})`, stroke:'rgba(0,0,0,.45)', 'stroke-width':1}, rimG);
+    el('path',{d:`M ${P(rOut-ins-2,c-st*0.85)} A ${rOut-ins-2} ${rOut-ins-2} 0 0 1 ${P(rOut-ins-2,c+st*0.85)}`, fill:'none', stroke:'#ffffff', 'stroke-width':1.4, 'stroke-linecap':'round', opacity:t.st==='lit'?0.7:0.35}, rimG);
+  }
+  el('circle',{cx:0, cy:0, r:rOut+0.5, fill:'none', stroke:M.edge, 'stroke-width':1.6, opacity:0.9}, rimG);
+  el('circle',{cx:0, cy:0, r:rIn-0.5, fill:'none', stroke:M.inner, 'stroke-width':1.4, opacity:0.8}, rimG);
+}
+
+/* ---------- beams: static when idle, re-traced from the source when they change ---------- */
+// distance along the beam at which each segment starts (prism children start at their parent's end;
+// a black-hole exit continues from the entry segment)
+function v2SegStarts(segs){
+  const start = [], end = [];
+  segs.forEach((s,i)=>{
+    let d0 = 0;
+    if(i>0){
+      let j = -1;
+      for(let k=i-1;k>=0;k--){ if(Math.abs(segs[k].x2-s.x1)<0.5 && Math.abs(segs[k].y2-s.y1)<0.5){ j = k; break; } }
+      d0 = j>=0 ? end[j] : end[i-1];
+    }
+    start.push(d0); end.push(d0 + Math.hypot(s.x2-s.x1, s.y2-s.y1));
+  });
+  return {start, end};
+}
+function renderBeamsV2(V2C, c){
+  const {lvl, n, _same, _pL, _pS, _rotChanged} = c;
+  const reduced = c._noMo || v2Reduced();
+  const coinLocks = currentMode==='special' || currentMode==='orchestra' || currentMode==='rocket';
+  const svg = document.getElementById('puzzleBeams'); svg.innerHTML = '';
+  const layer = el('g',{}, svg);
+  const SPD = V2.SPD;
+  const base = _rotChanged ? 110 : 320;          // let the ring glide / the level intro start first
+  const prevSig = (_same && renderPuzzle._bsig) || {};
+  const sigs = {};
+  const lockAt = {};                               // rim slot -> ms until a beam reaches it
+  const hitAt = new Map();                         // "x,y" of a segment end -> ms until the beam gets there
+  const srcK = optScale('sourceSize');
+  // lit-source halos (static)
+  lvl.rings.forEach((ring,r)=>ring.spokeSlots.forEach(slot=>{
+    const br = gstate.beamResults.find(b=>b.ring===r && b.authoredSlot===slot);
+    if(!br || !br.result.hitLockSlots.length) return;
+    const a = slotToAngle((slot+gstate.rotations[r])%n, n), rad = ringRadius(r);
+    el('circle',{cx:f1(Math.cos(a)*rad), cy:f1(Math.sin(a)*rad), r:13*srcK, fill:'url(#flareGradLit)', opacity:0.75}, layer);
+  }));
+  const sorted = gstate.beamResults.slice().sort((a,b2)=>(a.ring===gstate.selectedRing?1:0)-(b2.ring===gstate.selectedRing?1:0));
+  const B = V2C.beam || {};
+  sorted.forEach(b=>{
+    const segs = b.result.segments; if(!segs.length) return;
+    const key = b.ring+':'+b.authoredSlot;
+    const sig = segs.map(s=>f1(s.x1)+','+f1(s.y1)+','+f1(s.x2)+','+f1(s.y2)+(segIsLit(s)?'L':'')).join(';');
+    sigs[key] = sig;
+    const animate = !reduced && (_rotChanged || !_same) && prevSig[key] !== sig;
+    const isC = b.ring === gstate.selectedRing;
+    const {start, end} = v2SegStarts(segs);
+    segs.forEach((s,i)=>{
+      const lit = segIsLit(s);
+      const col = lit ? beamColorFor(true) : (isC ? getControlledBeamColor() : getBackgroundBeamColor());
+      const len = end[i]-start[i];
+      const d = `M ${f1(s.x1)} ${f1(s.y1)} L ${f1(s.x2)} ${f1(s.y2)}`;
+      const cw = (isC?2.2:1.6)*srcK;
+      // glow = layered translucent strokes (no SVG filter); a lit beam gets a white-hot core
+      const strokes = [
+        [col, (isC?12:9)*srcK, isC?(B.haloC||0.16):(B.halo||0.09)],
+        [col, (isC?4.6:3.4)*srcK, isC?0.42:0.28],
+        ...(lit ? [[col, cw*1.5, 0.95], ['#ffffff', cw*0.6, 1]] : [[col, cw, isC?1:0.85]]),
+      ];
+      const delay = base + start[i]/SPD, dur = Math.max(16, len/SPD);
+      strokes.forEach(([sc,w,op])=>{
+        const p = el('path',{d, fill:'none', stroke:sc, 'stroke-width':w, opacity:op, 'stroke-linecap':'round'}, layer);
+        if(animate){
+          p.style.strokeDasharray = `${f1(len+1)} ${f1(len+2)}`;
+          p.animate([{strokeDashoffset:len+1},{strokeDashoffset:0}], {duration:dur, delay, fill:'backwards', easing:'linear'});
+        }
+      });
+      if(animate){                                     // the energy front travelling ahead of the trace
+        const sp = el('circle',{r:(isC?3.6:2.8)*srcK, fill:'#ffffff', opacity:0}, layer);
+        sp.animate([{opacity:1, transform:`translate(${f1(s.x1)}px,${f1(s.y1)}px)`},{opacity:1, transform:`translate(${f1(s.x2)}px,${f1(s.y2)}px)`}], {duration:dur, delay, easing:'linear'});
+      }
+      const arrive = animate ? delay + dur : 0;
+      hitAt.set(Math.round(s.x2)+','+Math.round(s.y2), Math.min(hitAt.get(Math.round(s.x2)+','+Math.round(s.y2)) ?? 1e9, arrive));
+      if(Math.hypot(s.x2,s.y2) > RIM_R-1){
+        const sl = angleToNearestSlot(Math.atan2(s.y2,s.x2), n);
+        lockAt[sl] = Math.min(lockAt[sl] ?? 1e9, arrive);
+      } else if(!segs.some(o=>o!==s && Math.hypot(o.x1-s.x2,o.y1-s.y2)<0.5)){
+        // the beam ends inside the board (block, half-block, satellite top, unpaired hole...)
+        el('circle',{cx:f1(s.x2), cy:f1(s.y2), r:2.6*srcK, fill:col, opacity:0.95}, layer);
+        if(animate){ const pg = el('circle',{cx:f1(s.x2), cy:f1(s.y2), r:4, fill:'none', stroke:col, 'stroke-width':1.6, opacity:0}, layer);
+          pg.style.transformBox = 'fill-box'; pg.style.transformOrigin = 'center';
+          pg.animate([{opacity:0.9, transform:'scale(.6)'},{opacity:0, transform:'scale(3)'}], {duration:420, delay:arrive, easing:'ease-out'}); }
+      }
+    });
+  });
+  // locks that just lit: react when the beam arrives
+  let newLit = 0;
+  if(_same && _pL){
+    const bl = lvl.bonusLockSlots||[];
+    [...lvl.lockSlots, ...bl].forEach(s=>{ if(gstate.litLocks.has(s) && !_pL.has(s)){
+      const t = Math.min(1500, lockAt[s] ?? 0); newLit = Math.max(newLit, t);
+      if(reduced) return;
+      const a = slotToAngle(s,n), x = Math.cos(a)*RIM_R, y = Math.sin(a)*RIM_R, bon = bl.includes(s)||coinLocks;
+      setTimeout(()=>{ const pc = lockPalette(true,bon); Fx.ring(x,y,6,bon?46:34,pc.main); Fx.burst(x,y,pc.light,bon?18:10); }, t);
+    } });
+    if(_pS!==undefined && _pS!==gstate.selectedRing) Fx.ring(0,0,ringRadius(gstate.selectedRing)-14,ringRadius(gstate.selectedRing)+14,'#fff6c8',.4);
+  }
+  V2.newLitDelay = newLit; V2.lockDoneAt = performance.now() + newLit;
+  // mechanisms react when the beam reaches them (same detection as the legacy layer)
+  { const CC={mirror_l:'#ffffff',mirror_r:'#ffffff',block:'#ff5a5a',amp:'#ffd23f',portal:'#c77dff',half_block:'#ff9d4d',prism:'#ff5ec4',bell:'#ffffff'};
+    const gh = new Map();
+    gstate.beamResults.forEach(b=>b.result.segments.forEach(s=>{ const rd = Math.hypot(s.x2,s.y2), sl = angleToNearestSlot(Math.atan2(s.y2,s.x2),n);
+      lvl.rings.forEach((ring,r)=>{ if(!ring.gimmicks || Math.abs(rd-ringRadius(r))>.6) return;
+        Object.keys(ring.gimmicks).forEach(k=>{ const raw = ring.gimmicks[k], ty = typeof raw==='string'?raw:raw.type; if(!CC[ty]) return;
+          const fx = (typeof raw==='object'&&raw.fixed===true)||ty==='bell', w = typeof raw==='string'?1:Math.max(1,raw.width||1);
+          for(let q=0;q<w;q++){ const live = fx?(parseInt(k,10)+q)%n:(parseInt(k,10)+q+gstate.rotations[r])%n;
+            if(live===sl){ const id = r+':'+sl+':'+ty; gh.set(id, Math.min(gh.get(id) ?? 1e9, hitAt.get(Math.round(s.x2)+','+Math.round(s.y2)) ?? 0)); } } }); }); }));
+    const eh = (gstate.echoHits||[]).map(e=>e.ringIdx+':'+e.slot+':'+e.mode);
+    if(_same && renderPuzzle._gh && !reduced){
+      gh.forEach((t,k)=>{ if(renderPuzzle._gh.has(k)) return; const [r,sl,ty] = k.split(':'), a = slotToAngle(+sl,n), rr = ringRadius(+r), x = Math.cos(a)*rr, y = Math.sin(a)*rr;
+        setTimeout(()=>{ Fx.ring(x,y,3,24,CC[ty],.42); Fx.burst(x,y,CC[ty],ty==='prism'?10:6); }, Math.min(1500,t)); });
+      (gstate.echoHits||[]).forEach(e=>{ const k = e.ringIdx+':'+e.slot+':'+e.mode; if((renderPuzzle._echo||[]).includes(k)) return;
+        const a = slotToAngle(e.slot,n), rr = ringRadius(e.ringIdx), x = Math.cos(a)*rr, y = Math.sin(a)*rr;
+        let t = 0; hitAt.forEach((v,kk)=>{ const [hx,hy] = kk.split(',').map(Number); if(Math.hypot(hx-x,hy-y)<2) t = Math.max(t, v); });
+        setTimeout(()=>{ if(e.mode==='kill'){ Fx.burst(x,y,'#ff6a5a',14); Fx.ring(x,y,4,28,'#ff6a5a',.4); Fx.shake(true); } else { Fx.ring(x,y,30,5,'#5df0ff',.45); Fx.burst(x,y,'#8ff6ff',10); } }, Math.min(1500,t)); });
+      if(_pS!==undefined && _pS!==gstate.selectedRing){ const tg = document.getElementById('ringTag'); if(tg){ tg.classList.remove('tagPop'); void tg.offsetWidth; tg.classList.add('tagPop'); } }
+    }
+    renderPuzzle._gh = new Set(gh.keys()); renderPuzzle._echo = eh;
+  }
+  renderPuzzle._bsig = sigs;
+  renderPuzzle._rots = gstate.rotations.slice(); renderPuzzle._lit = new Set(gstate.litLocks); renderPuzzle._sel = gstate.selectedRing; renderPuzzle._lvl = lvl;
+}
+// rim redraw for a v2 theme: newly lit locks turn on when their beam arrives, everything else immediately
+function v2ScheduleRim(){
+  clearTimeout(V2.rimTimer);
+  const go = ()=>{ if(RPS.rim && gstate.level) lite(()=>drawRimLocks(RPS.rim)); };
+  if(V2.newLitDelay > 20) V2.rimTimer = setTimeout(go, V2.newLitDelay); else go();
+}
+// win visuals for a v2 theme: wait for the last beam to land, then light the board
+function v2Celebrate(withCoin, show){
+  const run = ()=>{
+    show();
+    const st = document.getElementById('stage');
+    if(st && !v2Reduced()){ st.classList.remove('v2-win'); void st.offsetWidth; st.classList.add('v2-win'); setTimeout(()=>st.classList.remove('v2-win'), 1400); }
+    Fx.celebrate(withCoin);
+  };
+  // rotateRing() calls checkWin() before renderPuzzle(); wait one frame so the beam timing exists
+  requestAnimationFrame(()=>{ const wait = Math.max(0, V2.lockDoneAt - performance.now()); if(wait > 20) setTimeout(run, wait + 60); else run(); });
+}
+
+/* ---------- background-art helpers (SVG strings, rasterised once) ---------- */
+function v2Stars(tile, count, seed, rMin, rMax, opMin, opMax, colors, glow){
+  const R = v2Rand(seed); let s = '';
+  for(let i=0;i<count;i++){
+    const x = R()*tile, y = R()*tile, r = rMin + R()*(rMax-rMin), c = colors[Math.floor(R()*colors.length)], o = opMin + R()*(opMax-opMin);
+    if(glow && r > (rMin+rMax)/2) s += v2Tag('circle',{cx:f1(x),cy:f1(y),r:f1(r*3.2),fill:c,opacity:(o*0.12).toFixed(3)});
+    s += v2Tag('circle',{cx:f1(x),cy:f1(y),r:f1(r),fill:c,opacity:o.toFixed(2)});
+  }
+  return s;
+}
+function v2Grad(id, stops, kind, attrs){
+  return v2Tag(kind||'linearGradient', Object.assign({id}, attrs||{}), stops.map(([o,c,a])=>v2Tag('stop',{offset:o,'stop-color':c,'stop-opacity':a==null?1:a})).join(''));
+}
+function v2Speckle(count, seed, x0, y0, w, h, colors, rMin, rMax, opMin, opMax){
+  const R = v2Rand(seed); let s = '';
+  for(let i=0;i<count;i++) s += v2Tag('circle',{cx:f1(x0+R()*w), cy:f1(y0+R()*h), r:f1(rMin+R()*(rMax-rMin)), fill:colors[Math.floor(R()*colors.length)], opacity:(opMin+R()*(opMax-opMin)).toFixed(2)});
+  return s;
+}
+// irregular rounded blob (stones, moss) around (cx,cy)
+function v2Blob(cx, cy, r, seed, k){
+  const R = v2Rand(seed), N = 9, pts = [];
+  for(let i=0;i<N;i++){ const a = i/N*Math.PI*2, rr = r*(1 - (k||0.18) + R()*(k||0.18)*2); pts.push([cx+Math.cos(a)*rr*1.12, cy+Math.sin(a)*rr*0.86]); }
+  let d = '';
+  for(let i=0;i<N;i++){ const p = pts[i], q = pts[(i+1)%N], m = [(p[0]+q[0])/2, (p[1]+q[1])/2];
+    d += (i===0 ? `M ${f1((pts[N-1][0]+p[0])/2)} ${f1((pts[N-1][1]+p[1])/2)} ` : '') + `Q ${f1(p[0])} ${f1(p[1])} ${f1(m[0])} ${f1(m[1])} `; }
+  return d + 'Z';
+}
+
+/* =========================================================================
+   SAMPLE THEMES
+   ========================================================================= */
+const THEME_V2 = {};
+
+/* ---- SPACE -> "Deep Field": anodised instrument steel, cool key light, two
+   star depths drifting at different speeds (parallax), a slow scanner sweep. */
+THEME_V2.space = {
+  id:'space', name:'Deep Field', blurb:'Anodised instrument steel under a slowly drifting deep sky. The default world.',
+  pal:{ sockHi:'#55708f', sockLo:'#0e1828', sockIn:'#08101d', sockEdge:'#02050b' },
+  stageFx:'v2-sweep',
+  env(){
+    const base = v2Grad('bg',[['0','#0a1122'],['0.55','#050913'],['1','#020308']],'linearGradient',{x1:0,y1:0,x2:0.4,y2:1})
+      + v2Grad('pool',[['0','#2a4878',0.5],['1','#2a4878',0]],'radialGradient',{cx:0.18,cy:0.12,r:0.75})
+      + v2Grad('lane',[['0','#4a6ea8',0.12],['1','#4a6ea8',0]],'radialGradient',{})
+      + v2Grad('vig',[['0.55','#000',0],['1','#000',0.65]],'radialGradient',{});
+    return [
+      { svg: v2Tag('defs',{},base) + v2Tag('rect',{width:1000,height:1000,fill:'url(#bg)'}) + v2Tag('rect',{width:1000,height:1000,fill:'url(#pool)'})
+          + v2Tag('ellipse',{cx:560,cy:520,rx:760,ry:110,fill:'url(#lane)',transform:'rotate(-28 560 520)'})
+          + v2Stars(1000, 90, 7, 0.4, 0.9, 0.08, 0.3, ['#9fb8e0','#ffffff']) + v2Tag('rect',{width:1000,height:1000,fill:'url(#vig)'}) },
+      { cls:'v2T v2PanA', vb:'0 0 400 400', par:'none', size:'400px 400px', svg: v2Stars(400, 46, 21, 0.35, 0.95, 0.25, 0.7, ['#ffffff','#cfe0ff','#a9c4ff']) },
+      { cls:'v2T v2PanB', vb:'0 0 600 600', par:'none', size:'600px 600px', svg: v2Stars(600, 11, 33, 0.9, 1.7, 0.55, 0.95, ['#ffffff','#e3ecff','#ffe9c4'], true) },
+    ];
+  },
+  arena(svg, defs){
+    v2BoardShadow(svg, defs, 0.65);
+    const g = (id, stops, attrs, kind)=>{ const gr = el(kind||'radialGradient', Object.assign({id}, attrs||{}), defs); stops.forEach(([o,c,a])=>el('stop',{offset:o,'stop-color':c,'stop-opacity':a==null?1:a}, gr)); };
+    g('v2spDisc', [['0','#1d2f4d'],['0.6','#132139'],['1','#0a1322']]);
+    g('v2spBevel', [['0','#a8cdf2'],['0.5','#2b4466'],['1','#03060c']], {x1:0.15,y1:0.1,x2:0.85,y2:0.9}, 'linearGradient');
+    g('v2spAniso', [['0','#ffffff',0],['0.3','#ffffff',0.11],['1','#ffffff',0]], {cx:0, cy:0, r:RIM_R+24, gradientUnits:'userSpaceOnUse'});
+    el('circle',{r:RIM_R+24, fill:'url(#v2spDisc)'}, svg);
+    // concentric "turned" finish: two paths of many fine circles
+    let dl = '', dd = '';
+    for(let i=0;i<110;i++){ const r = 14 + i*2.1; const arc = `M ${r} 0 A ${r} ${r} 0 1 0 ${-r} 0 A ${r} ${r} 0 1 0 ${r} 0 `; if(i%2) dl += arc; else dd += arc; }
+    el('path',{d:dl, fill:'none', stroke:'#ffffff', 'stroke-width':0.6, opacity:0.035}, svg);
+    el('path',{d:dd, fill:'none', stroke:'#000000', 'stroke-width':0.6, opacity:0.12}, svg);
+    // anisotropic highlight of a turned surface: a bow-tie aligned with the light
+    [-135, 45].forEach((deg,k)=>{ const a = deg*Math.PI/180, w = 0.24, R = RIM_R+24;
+      el('path',{d:`M 0 0 L ${f1(Math.cos(a-w)*R)} ${f1(Math.sin(a-w)*R)} A ${R} ${R} 0 0 1 ${f1(Math.cos(a+w)*R)} ${f1(Math.sin(a+w)*R)} Z`, fill:'url(#v2spAniso)', opacity:k?0.45:1}, svg); });
+    el('circle',{r:RIM_R+23, fill:'none', stroke:'url(#v2spBevel)', 'stroke-width':2.2}, svg);
+    el('circle',{r:RIM_R-19, fill:'none', stroke:'#000', 'stroke-width':4, opacity:0.45}, svg);
+    el('circle',{r:46, fill:'#000', opacity:0.18}, svg);
+  },
+  hub(h){
+    const d = el('defs',{}, h);
+    const gr = el('linearGradient',{id:'v2spHub', x1:0.15, y1:0.1, x2:0.85, y2:0.9}, d); el('stop',{offset:0,'stop-color':'#7d98bb'}, gr); el('stop',{offset:1,'stop-color':'#17243a'}, gr);
+    const gc = el('radialGradient',{id:'v2spCap', cx:'38%', cy:'34%', r:'70%'}, d); el('stop',{offset:0,'stop-color':'#e9f6ff'}, gc); el('stop',{offset:1,'stop-color':'#33507a'}, gc);
+    el('circle',{cx:2.5, cy:3, r:18, fill:'#000', opacity:0.42}, h);
+    el('circle',{r:17, fill:'url(#v2spHub)', stroke:'#060b14', 'stroke-width':1}, h);
+    el('circle',{r:12.5, fill:'none', stroke:'#ffffff', 'stroke-width':0.7, opacity:0.14}, h);
+    el('circle',{r:7.5, fill:'url(#v2spCap)'}, h);
+    el('circle',{cx:-2.6, cy:-3, r:1.8, fill:'#fff', opacity:0.75}, h);
+  },
+  track(g, r, sel, n){
+    if(sel){
+      el('circle',{r, fill:'none', stroke:'#7fe7ff', 'stroke-width':17, opacity:0.10}, g);
+      v2Groove(g, r, 7, '#01040a', '#a9e4ff', 0.6, 0.55);
+      [r-7.6, r+7.6].forEach(rr=>el('circle',{r:rr, fill:'none', stroke:'#c8f4ff', 'stroke-width':1.1, opacity:0.85}, g));
+      v2SlotMarks(g, r, n, 4.2, '#e8faff', 0.75, 1.3);
+    } else {
+      v2Groove(g, r, 7, '#02050b', '#5f84b0', 0.55, 0.3);
+      v2SlotMarks(g, r, n, 3.2, '#7fa6d6', 0.38, 1);
+    }
+  },
+  beam:{ halo:0.10, haloC:0.17 },
+  rim:null,                                      // Space keeps whatever rim is equipped (default: Classic Glass)
+};
+
+/* ---- ICE -> "Tenmoku": a dark iron-glazed tea bowl with hare's-fur streaks and a
+   kintsugi seam marking the selected ring, celadon details, on linen under warm
+   afternoon window light that slowly shifts. */
+THEME_V2.ice = {
+  id:'ice', name:'Tenmoku', blurb:'A glazed tea bowl with a kintsugi seam, on linen in shifting afternoon window light.',
+  pal:{ sockHi:'#cfe3d5', sockLo:'#4a6e5e', sockIn:'#1a0f08', sockEdge:'#2b4236' },
+  stageFx:'v2-gloss',
+  env(){
+    const R = v2Rand(5);
+    let weave = '';
+    for(let y=0;y<1000;y+=7) weave += `M 0 ${y+R()*1.4} L 1000 ${y+R()*1.4} `;
+    let weaveV = '';
+    for(let x=0;x<1000;x+=7) weaveV += `M ${x+R()*1.4} 0 L ${x+R()*1.4} 1000 `;
+    const defs = v2Grad('lin',[['0','#57513f'],['0.5','#423d31'],['1','#2a2720']],'linearGradient',{x1:0,y1:0,x2:0.7,y2:1})
+      + v2Grad('fold',[['0','#ffffff',0.07],['1','#ffffff',0]],'radialGradient',{})
+      + v2Grad('foldS',[['0','#000',0.16],['1','#000',0]],'radialGradient',{})
+      + v2Grad('vig',[['0.5','#000',0],['1','#000',0.55]],'radialGradient',{});
+    const panes = (()=>{ let s = ''; for(let i=0;i<2;i++) for(let j=0;j<2;j++){ s += v2Tag('rect',{x:120+i*196, y:90+j*176, width:180, height:160, rx:5, fill:'#ffe0a8', opacity:0.2}); } return s; })();
+    return [
+      { svg: v2Tag('defs',{},defs) + v2Tag('rect',{width:1000,height:1000,fill:'url(#lin)'})
+          + v2Tag('path',{d:weave, stroke:'#000', 'stroke-width':1, opacity:0.07, fill:'none'}) + v2Tag('path',{d:weaveV, stroke:'#fff', 'stroke-width':1, opacity:0.03, fill:'none'})
+          + v2Tag('ellipse',{cx:300,cy:760,rx:520,ry:60,fill:'url(#fold)',transform:'rotate(-24 300 760)'})
+          + v2Tag('ellipse',{cx:330,cy:820,rx:520,ry:70,fill:'url(#foldS)',transform:'rotate(-24 330 820)'})
+          + v2Tag('ellipse',{cx:780,cy:230,rx:440,ry:50,fill:'url(#foldS)',transform:'rotate(-24 780 230)'})
+          + v2Tag('rect',{width:1000,height:1000,fill:'url(#vig)'}) },
+      // the window's light on the cloth: four panes, soft-edged, skewed by the low sun
+      { cls:'v2Drift', svg: v2Tag('defs',{}, v2Tag('filter',{id:'b',x:'-20%',y:'-20%',width:'140%',height:'140%'}, v2Tag('feGaussianBlur',{stdDeviation:7})))
+          + v2Tag('g',{filter:'url(#b)', transform:'translate(40 30) skewX(-22) rotate(-8 500 500)'}, panes) },
+      { cls:'v2T v2PanA', vb:'0 0 400 400', par:'none', size:'400px 400px', svg: v2Stars(400, 18, 77, 0.5, 1.4, 0.10, 0.32, ['#ffe9c4','#fff6e0']) },
+    ];
+  },
+  arena(svg, defs){
+    v2BoardShadow(svg, defs, 0.6);
+    const g = (id, stops, attrs, kind)=>{ const gr = el(kind||'radialGradient', Object.assign({id}, attrs||{}), defs); stops.forEach(([o,c,a])=>el('stop',{offset:o,'stop-color':c,'stop-opacity':a==null?1:a}, gr)); };
+    g('v2tmLip', [['0','#d3e6d9'],['0.45','#8fb5a1'],['1','#3f6353']], {x1:0.15,y1:0.1,x2:0.85,y2:0.95}, 'linearGradient');
+    g('v2tmGlaze', [['0','#0f0703'],['0.35','#22120a'],['0.78','#3b2212'],['1','#4d2d15']]);
+    g('v2tmGloss', [['0','#ffffff',0.16],['1','#ffffff',0]]);
+    el('circle',{r:RIM_R+24, fill:'url(#v2tmLip)'}, svg);
+    el('circle',{r:RIM_R+2, fill:'url(#v2tmGlaze)'}, svg);
+    // hare's-fur: fine iron streaks running down the bowl wall
+    const R = v2Rand(91); let d1 = '', d2 = '', d3 = '';
+    for(let i=0;i<420;i++){ const a = R()*Math.PI*2, r0 = 40 + R()*110, r1 = Math.min(RIM_R+1, r0 + 50 + R()*120), bend = (R()-0.5)*0.05;
+      const seg = `M ${f1(Math.cos(a)*r0)} ${f1(Math.sin(a)*r0)} L ${f1(Math.cos(a+bend)*r1)} ${f1(Math.sin(a+bend)*r1)} `;
+      const k = R(); if(k<0.45) d1 += seg; else if(k<0.8) d2 += seg; else d3 += seg; }
+    el('path',{d:d1, stroke:'#a65a29', 'stroke-width':0.8, opacity:0.16, fill:'none'}, svg);
+    el('path',{d:d2, stroke:'#c98a45', 'stroke-width':0.6, opacity:0.12, fill:'none'}, svg);
+    el('path',{d:d3, stroke:'#e2b46a', 'stroke-width':0.5, opacity:0.09, fill:'none'}, svg);
+    el('circle',{r:64, fill:'#000', opacity:0.32}, svg);
+    // glaze gloss + the window reflected in it (same light as the cloth)
+    el('ellipse',{cx:-80, cy:-112, rx:112, ry:44, fill:'url(#v2tmGloss)', transform:'rotate(-38 -80 -112)'}, svg);
+    const rg = el('g',{transform:'translate(-138 -150) skewX(-22) rotate(-8)', opacity:0.16}, svg);
+    [[0,0],[22,0],[0,19],[22,19]].forEach(([x,y])=>el('rect',{x, y, width:19, height:16, rx:2, fill:'#fff6e4'}, rg));
+    el('circle',{r:RIM_R-19, fill:'none', stroke:'#000', 'stroke-width':4, opacity:0.5}, svg);
+    el('circle',{r:RIM_R+23, fill:'none', stroke:'#f3faf5', 'stroke-width':1, opacity:0.5}, svg);
+  },
+  hub(h){
+    const d = el('defs',{}, h);
+    const gc = el('radialGradient',{id:'v2tmKnob', cx:'36%', cy:'32%', r:'72%'}, d);
+    [['0','#eef6ef'],['0.45','#9fc3b0'],['1','#45695a']].forEach(([o,c])=>el('stop',{offset:o,'stop-color':c}, gc));
+    el('circle',{cx:2.5, cy:3, r:17, fill:'#000', opacity:0.45}, h);
+    el('circle',{r:16, fill:'url(#v2tmKnob)', stroke:'#2b4236', 'stroke-width':1}, h);
+    el('circle',{r:9.5, fill:'none', stroke:'#2b4236', 'stroke-width':0.8, opacity:0.45}, h);
+    el('circle',{cx:-4, cy:-4.6, r:2.4, fill:'#fff', opacity:0.8}, h);
+  },
+  track(g, r, sel, n){
+    if(sel){
+      // kintsugi: a gold seam
+      el('circle',{r, fill:'none', stroke:'#f3c560', 'stroke-width':12, opacity:0.12}, g);
+      el('circle',{r, fill:'none', stroke:'#8a6420', 'stroke-width':4, opacity:0.9}, g);
+      el('circle',{r, fill:'none', stroke:'#f2c35a', 'stroke-width':2.4, opacity:1}, g);
+      el('circle',{cx:-0.5, cy:-0.6, r, fill:'none', stroke:'#fff3cf', 'stroke-width':0.7, opacity:0.85}, g);
+      v2SlotMarks(g, r, n, 2.2, '#ffe7a3', 0.9, 2.6);
+    } else {
+      v2Groove(g, r, 4, '#070302', '#d9c39c', 0.6, 0.16);
+      el('circle',{r, fill:'none', stroke:'#e6d3ad', 'stroke-width':1.2, opacity:0.4}, g);
+      v2SlotMarks(g, r, n, 1.4, '#e6d3ad', 0.42, 2.4);
+    }
+  },
+  beam:{ halo:0.11, haloC:0.18 },
+  rim:{ base:['#c5dccd','#5a8270'], seam:'#2b4236', hi:'#ffffff', edge:'#eef6f0', inner:'#1d2d25', gap:2.2, fleck:{count:3, colors:['#ffffff','#8fb3a1'], op:0.25} },
+};
+
+/* ---- RUIN -> "Stone Garden": raked gravel seen from above, two mossed stones in
+   the corners with their own ripple rakes, a slate basin, and maple-leaf shade
+   that sways slowly across the gravel. */
+THEME_V2.ruin = {
+  id:'ruin', name:'Stone Garden', blurb:'Raked gravel, mossed stones and a slate basin under slowly swaying leaf shade.',
+  pal:{ sockHi:'#b0b4a8', sockLo:'#3d413b', sockIn:'#141716', sockEdge:'#1a1d1b' },
+  stageFx:'',
+  env(){
+    const BASE = '#6f6a60', GR = ['#8b8578','#55514a','#9d978a','#635f56','#7b766b','#a9a397'];
+    // shallow raked furrows: a shadow line and a lit ridge 2.4 units below it, gently wandering
+    const rakes = (()=>{ const R = v2Rand(8); let dk = '', lt = ''; for(let y=-30;y<1050;y+=17){ const ph = R()*6; let a = `M -20 ${y} `, b = `M -20 ${y+2.4} `;
+      for(let x=0;x<=1040;x+=20){ const yy = y + Math.sin(x/115 + y/520)*9 + Math.sin(x/37 + ph)*0.6 + (R()-0.5)*0.5; a += `L ${x} ${f1(yy)} `; b += `L ${x} ${f1(yy+2.4)} `; } dk += a; lt += b; } return {dk, lt}; })();
+    const stone = (cx, cy, r, seed, rot)=>{
+      let s = '';
+      // concentric rakes around the stone, fading into the straight rakes
+      for(let rr=r+26; rr<r+190; rr+=24){ const fade = Math.max(0, 1-(rr-r)/190);
+        s += v2Tag('circle',{cx, cy, r:rr, fill:'none', stroke:'#45413a', 'stroke-width':2.4, opacity:(0.45*fade).toFixed(2)});
+        s += v2Tag('circle',{cx, cy:cy+2.4, r:rr, fill:'none', stroke:'#b2ac9e', 'stroke-width':1.5, opacity:(0.42*fade).toFixed(2)}); }
+      s += v2Tag('path',{d:v2Blob(cx+10, cy+14, r*1.02, seed, 0.16), fill:'#000', opacity:0.35});           // contact shadow
+      s += v2Tag('path',{d:v2Blob(cx, cy, r, seed, 0.16), fill:'url(#st)', stroke:'#2e2d29', 'stroke-width':1.5});
+      s += v2Tag('path',{d:v2Blob(cx-r*0.18, cy-r*0.22, r*0.62, seed+3, 0.24), fill:'url(#moss)', opacity:0.95});
+      s += v2Speckle(70, seed*7, cx-r*0.7, cy-r*0.65, r*1.1, r*0.8, ['#8fae52','#3f5524','#a8c46a'], 0.8, 2.2, 0.35, 0.8);
+      return s;
+    };
+    const sdefs = v2Grad('st',[['0','#9a978d'],['0.55','#5e5c55'],['1','#2f2e2a']],'linearGradient',{x1:0.1,y1:0.05,x2:0.85,y2:0.95})
+      + v2Grad('moss',[['0','#7f9b47'],['1','#3a5021']],'linearGradient',{x1:0.1,y1:0,x2:0.8,y2:1})
+      + v2Grad('pad',[['0.62',BASE,1],['1',BASE,0]],'radialGradient',{});
+    const pad = (cx,cy,r)=> v2Tag('circle',{cx, cy, r, fill:'url(#pad)'}) + v2Speckle(Math.round(r*r/40), cx+cy, cx-r, cy-r, r*2, r*2, GR, 0.8, 2, 0.3, 0.7);
+    return [
+      { svg: v2Tag('rect',{width:1000,height:1000,fill:BASE})
+          + v2Speckle(4200, 3, 0, 0, 1000, 1000, GR, 0.7, 1.9, 0.5, 0.95)
+          + v2Tag('path',{d:rakes.dk, fill:'none', stroke:'#45413a', 'stroke-width':2.4, opacity:0.45})
+          + v2Tag('path',{d:rakes.lt, fill:'none', stroke:'#b2ac9e', 'stroke-width':1.5, opacity:0.42})
+          + v2Tag('rect',{width:1000,height:1000,fill:'url(#v)'}) + v2Tag('defs',{}, v2Grad('v',[['0.5','#000',0],['1','#000',0.42]],'radialGradient',{})) },
+      { cls:'v2C', vb:'0 0 600 600', par:'xMinYMax meet', pos:'left bottom', size:'min(72vmin,600px) min(72vmin,600px)',
+        svg: v2Tag('defs',{}, sdefs) + pad(130,470,260) + stone(130, 470, 92, 17) },
+      { cls:'v2C', vb:'0 0 600 600', par:'xMaxYMin meet', pos:'right top', size:'min(56vmin,480px) min(56vmin,480px)',
+        svg: v2Tag('defs',{}, sdefs) + pad(470,140,220) + stone(470, 140, 70, 29) },
+      // dappled maple shade, swaying
+      { cls:'v2Sway', svg: v2Tag('defs',{}, v2Tag('filter',{id:'b',x:'-30%',y:'-30%',width:'160%',height:'160%'}, v2Tag('feGaussianBlur',{stdDeviation:16})))
+          + v2Tag('g',{filter:'url(#b)', fill:'#1d2a1a'}, (()=>{ const R = v2Rand(44); let s = ''; for(let i=0;i<26;i++){ const x = R()*1000, y = R()*1000; for(let j=0;j<4;j++) s += v2Tag('ellipse',{cx:f1(x+(R()-0.5)*90), cy:f1(y+(R()-0.5)*70), rx:f1(24+R()*46), ry:f1(16+R()*30), opacity:(0.10+R()*0.10).toFixed(2), transform:`rotate(${f1(R()*180)} ${f1(x)} ${f1(y)})`}); } return s; })()) },
+    ];
+  },
+  arena(svg, defs){
+    v2BoardShadow(svg, defs, 0.55);
+    const g = (id, stops, attrs, kind)=>{ const gr = el(kind||'radialGradient', Object.assign({id}, attrs||{}), defs); stops.forEach(([o,c,a])=>el('stop',{offset:o,'stop-color':c,'stop-opacity':a==null?1:a}, gr)); };
+    g('v2sgEdge', [['0','#9ea397'],['0.5','#5a5f57'],['1','#1e211d']], {x1:0.15,y1:0.1,x2:0.85,y2:0.92}, 'linearGradient');
+    g('v2sgSlate', [['0','#3c423e'],['0.7','#2b302d'],['1','#1e2220']]);
+    el('circle',{r:RIM_R+24, fill:'url(#v2sgEdge)'}, svg);
+    el('circle',{r:RIM_R+2, fill:'url(#v2sgSlate)'}, svg);
+    const cp = el('clipPath',{id:'v2sgClip'}, defs); el('circle',{r:RIM_R+1}, cp);
+    const st = el('g',{'clip-path':'url(#v2sgClip)'}, svg);
+    const R = v2Rand(12); let lt = '', dk = '';
+    for(let i=0;i<9;i++){ const y = -230 + i*56 + R()*20; let p = `M -260 ${f1(y)} `; for(let x=-260;x<=260;x+=26) p += `L ${x} ${f1(y + Math.sin(x/60 + i)*6 + (x/260)*18)} `; if(i%2) lt += p; else dk += p; }
+    el('path',{d:lt, fill:'none', stroke:'#56605a', 'stroke-width':1.1, opacity:0.4}, st);
+    el('path',{d:dk, fill:'none', stroke:'#121513', 'stroke-width':1.4, opacity:0.4}, st);
+    let sp = ''; for(let i=0;i<320;i++){ const a = R()*Math.PI*2, r = Math.sqrt(R())*RIM_R; sp += `M ${f1(Math.cos(a)*r)} ${f1(Math.sin(a)*r)} h 0.01 `; }
+    el('path',{d:sp, stroke:'#9aa59c', 'stroke-width':1.6, 'stroke-linecap':'round', opacity:0.14, fill:'none'}, st);
+    el('circle',{r:RIM_R-19, fill:'none', stroke:'#000', 'stroke-width':5, opacity:0.4}, svg);
+    el('circle',{r:RIM_R+23, fill:'none', stroke:'#c9cdbf', 'stroke-width':1, opacity:0.45}, svg);
+  },
+  hub(h){
+    const d = el('defs',{}, h);
+    const gc = el('radialGradient',{id:'v2sgPeb', cx:'36%', cy:'30%', r:'75%'}, d);
+    [['0','#d6d8cf'],['0.5','#8b8e85'],['1','#3c3f39']].forEach(([o,c])=>el('stop',{offset:o,'stop-color':c}, gc));
+    el('ellipse',{cx:2.5, cy:3.2, rx:18, ry:15.5, fill:'#000', opacity:0.42, transform:'rotate(-18 2.5 3.2)'}, h);
+    el('ellipse',{rx:17.5, ry:15, fill:'url(#v2sgPeb)', stroke:'#2b2e29', 'stroke-width':0.8, transform:'rotate(-18)'}, h);
+    el('ellipse',{cx:-5, cy:-5.5, rx:4.5, ry:2.4, fill:'#fff', opacity:0.35, transform:'rotate(-30 -5 -5.5)'}, h);
+  },
+  track(g, r, sel, n){
+    if(sel){
+      el('circle',{r, fill:'none', stroke:'#efe6c4', 'stroke-width':15, opacity:0.10}, g);
+      v2Groove(g, r, 5.5, '#0b0d0c', '#c9cfbf', 0.6, 0.45);
+      el('circle',{r, fill:'none', stroke:'#e6dcb4', 'stroke-width':2.2, opacity:0.95}, g);
+      [r-7.2, r+7.2].forEach(rr=>el('circle',{r:rr, fill:'none', stroke:'#efe6c4', 'stroke-width':1, opacity:0.7}, g));
+      v2SlotMarks(g, r, n, 1.6, '#fbf4d8', 0.85, 2.8);
+    } else {
+      v2Groove(g, r, 5.5, '#0e100f', '#9fa597', 0.6, 0.32);
+      el('circle',{r, fill:'none', stroke:'#7e8578', 'stroke-width':0.8, opacity:0.4}, g);
+      v2SlotMarks(g, r, n, 1.4, '#b9bfae', 0.5, 2.6);
+    }
+  },
+  beam:{ halo:0.10, haloC:0.17 },
+  rim:{ base:['#8f9288','#484c45'], seam:'#1e211d', hi:'#e3e6d8', edge:'#b3b7aa', inner:'#121513', gap:3.4, fleck:{count:8, colors:['#6f8a3c','#55702c','#c9ccbf','#8fae52'], op:0.6} },
+};
+
+/* ---- registration: names, shop swatches, level-select badges, rims ---- */
+Object.keys(THEME_V2).forEach(id=>{
+  const T = THEME_V2[id], row = THEME_LIST.find(t=>t.id===id);
+  if(row){ row.name = T.name; row.blurb = T.blurb; }
+  if(T.rim){ RIM_BAND_FNS[id] = (a,b,c,d)=>drawRimV2(a,b,c,d,T.rim); }
+});
+Object.assign(THEME_SWATCH_GRADIENT, { ice:'linear-gradient(135deg,#c5dccd,#3b2212 55%,#f2c35a)', ruin:'linear-gradient(135deg,#8c877c,#2b302d 55%,#7f9b47)' });
+Object.assign(THEME_BADGE, { ice:{icon:'🍵', color:'#f2c35a'}, ruin:{icon:'🪨', color:'#c9cdbf'} });
 
 
 /* Boot */
