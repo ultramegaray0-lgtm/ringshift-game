@@ -1441,6 +1441,129 @@ body.modalOpen #bgParticles .bgp{animation-play-state:paused}
 body.theme-spore #bgCanvas { opacity:.24 !important; }
 body.theme-mistcosmos #bgCanvas,body.theme-mistjungle #bgCanvas,body.theme-virus #bgCanvas,body.theme-carnival #bgCanvas { opacity:.36 !important; }
 
+
+/* =====================================================================
+   THEMES V2 (theme-redesign milestone) -- cosmetic only
+   ===================================================================== */
+#v2Env{position:fixed; inset:0; z-index:0; overflow:hidden; pointer-events:none; display:none; contain:strict}
+body.theme-v2 #v2Env{display:block}
+body.theme-v2 #bgfx{display:none}
+body.theme-v2 svg#puzzle{position:relative; z-index:2; filter:none !important}
+#v2Env .v2L{position:absolute; inset:0; background-repeat:no-repeat; background-position:center; background-size:cover}
+/* tiled parallax layers: element is one tile larger than the screen and pans exactly one tile -> seamless loop */
+#v2Env .v2T{background-repeat:repeat; will-change:transform}
+#v2Env .v2PanA{inset:auto; left:0; top:0; width:calc(100% + 400px); height:calc(100% + 400px); animation:v2PanA 150s linear infinite}
+#v2Env .v2PanB{inset:auto; left:0; top:0; width:calc(100% + 600px); height:calc(100% + 600px); animation:v2PanB 110s linear infinite}
+@keyframes v2PanA{from{transform:translate3d(0,0,0)} to{transform:translate3d(-400px,-400px,0)}}
+@keyframes v2PanB{from{transform:translate3d(0,0,0)} to{transform:translate3d(-600px,-600px,0)}}
+/* slow light drift (window light, glints): transform + opacity only */
+#v2Env .v2Drift{inset:-5%; will-change:transform,opacity; animation:v2Drift 46s ease-in-out infinite alternate}
+@keyframes v2Drift{from{transform:translate3d(-1.6%,-1.2%,0); opacity:.72} to{transform:translate3d(1.8%,1.4%,0); opacity:1}}
+/* swaying leaf shade */
+#v2Env .v2Sway{inset:-6%; will-change:transform,opacity; animation:v2Sway 13s ease-in-out infinite alternate}
+@keyframes v2Sway{0%{transform:translate3d(-0.8%,0.3%,0) rotate(-0.6deg); opacity:.85} 50%{transform:translate3d(0.6%,-0.5%,0) rotate(0.3deg); opacity:1} 100%{transform:translate3d(1%,0.6%,0) rotate(0.8deg); opacity:.9}}
+/* corner props (anchored, so they survive any aspect ratio) */
+#v2Env .v2C{background-repeat:no-repeat}
+
+/* more compositor-only ambient motions (transform / opacity only) */
+#v2Env .v2PanUp{inset:auto; left:0; top:0; width:100%; height:calc(100% + 300px); animation:v2PanUp 70s linear infinite; will-change:transform}
+#v2Env .v2PanDown{inset:auto; left:0; top:-400px; width:100%; height:calc(100% + 400px); animation:v2PanDown 9s linear infinite; will-change:transform}
+#v2Env .v2PanX{inset:auto; left:0; top:0; width:calc(100% + 600px); height:100%; animation:v2PanX 26s linear infinite; will-change:transform}
+@keyframes v2PanUp{from{transform:translate3d(0,0,0)} to{transform:translate3d(0,-300px,0)}}
+@keyframes v2PanDown{from{transform:translate3d(0,0,0)} to{transform:translate3d(0,400px,0)}}
+@keyframes v2PanX{from{transform:translate3d(0,0,0)} to{transform:translate3d(-600px,0,0)}}
+#v2Env .v2Twinkle{will-change:opacity; animation:v2Twinkle 3.8s ease-in-out infinite alternate}
+#v2Env .v2Twinkle2{will-change:opacity; animation:v2Twinkle 5.3s ease-in-out -2s infinite alternate}
+@keyframes v2Twinkle{from{opacity:.25} to{opacity:1}}
+#v2Env .v2Pulse{will-change:transform,opacity; animation:v2Pulse 6.5s ease-in-out infinite alternate}
+@keyframes v2Pulse{from{opacity:.7; transform:scale(1)} to{opacity:1; transform:scale(1.03)}}
+#v2Env .v2Breath{will-change:opacity; animation:v2Breath 11s ease-in-out infinite alternate}
+@keyframes v2Breath{from{opacity:.55} to{opacity:1}}
+#v2Env .v2Swing{will-change:transform; animation:v2Swing 3.2s ease-in-out infinite alternate}
+@keyframes v2Swing{from{transform:rotate(-62deg)} to{transform:rotate(62deg)}}
+#v2Env .v2Slide{inset:-6%; will-change:transform; animation:v2Slide 60s ease-in-out infinite alternate}
+@keyframes v2Slide{from{transform:translate3d(-2.5%,-1%,0)} to{transform:translate3d(2.5%,1%,0)}}
+#v2Env .v2Curtain{will-change:transform; transform-origin:50% 0; animation:v2Curtain 9s ease-in-out infinite alternate}
+@keyframes v2Curtain{from{transform:skewX(-0.6deg) scaleX(1)} to{transform:skewX(0.8deg) scaleX(1.015)}}
+#v2Env .v2Bob{will-change:transform; animation:v2Bob 10s ease-in-out infinite alternate}
+@keyframes v2Bob{from{transform:translate3d(0,-0.6%,0)} to{transform:translate3d(0,0.8%,0)}}
+/* stage overlays */
+#v2StageFx .v2fxIn{position:absolute; left:0; top:0; width:calc(100% + 300px); height:calc(100% + 300px); background-repeat:repeat; will-change:transform; animation:v2FxSnow 40s linear infinite; opacity:.55}
+@keyframes v2FxSnow{from{transform:translate3d(0,-300px,0)} to{transform:translate3d(-60px,0,0)}}
+#v2StageFx.v2-spot{background:radial-gradient(circle at 50% 42%, rgba(255,228,170,.16), rgba(255,228,170,0) 62%); will-change:opacity; animation:v2Breath 8s ease-in-out infinite alternate}
+#v2StageFx.v2-sheen{background:linear-gradient(115deg, rgba(255,255,255,0) 38%, rgba(255,255,255,.07) 46%, rgba(255,255,255,0) 54%); background-size:200% 100%; will-change:transform; animation:v2Sheen 22s ease-in-out infinite alternate}
+@keyframes v2Sheen{from{transform:translate3d(-12%,0,0)} to{transform:translate3d(12%,0,0)}}
+#v2StageFx.v2-warmgloss{background:radial-gradient(ellipse 42% 22% at 32% 24%, rgba(255,214,190,.09), rgba(255,214,190,0) 70%); will-change:transform,opacity; animation:v2Gloss 30s ease-in-out infinite alternate}
+/* stage overlay between the baked arena and the puzzle */
+#v2StageFx{position:absolute; inset:8.6%; border-radius:50%; pointer-events:none; z-index:1; display:none; overflow:hidden}
+body.theme-v2 #v2StageFx{display:block}
+#v2StageFx.v2-sweep{background:conic-gradient(from 0deg, rgba(127,231,255,0) 0deg 292deg, rgba(127,231,255,.05) 340deg, rgba(210,246,255,.12) 357deg, rgba(127,231,255,0) 360deg); will-change:transform; animation:v2Spin 28s linear infinite}
+#v2StageFx.v2-gloss{background:radial-gradient(ellipse 40% 22% at 34% 26%, rgba(255,244,220,.10), rgba(255,244,220,0) 70%); will-change:transform,opacity; animation:v2Gloss 34s ease-in-out infinite alternate}
+@keyframes v2Spin{to{transform:rotate(360deg)}}
+@keyframes v2Gloss{from{transform:translate3d(-3%,-2%,0); opacity:.6} to{transform:translate3d(4%,3%,0); opacity:1}}
+/* win: the board's own light swells once */
+#v2StageFx::after{content:''; position:absolute; inset:-2%; border-radius:50%; opacity:0; background:radial-gradient(circle, rgba(255,255,255,0) 52%, var(--v2-win,rgba(160,255,210,.38)) 78%, rgba(255,255,255,0) 100%)}
+body.theme-v2 #stage.v2-win #v2StageFx::after{animation:v2WinGlow 1.3s ease-out}
+@keyframes v2WinGlow{0%{opacity:0; transform:scale(.7)} 25%{opacity:1} 100%{opacity:0; transform:scale(1.08)}}
+/* ambient motion pauses: after 30 s idle, under a modal, with reduced motion */
+body.v2-sleep #v2Env *, body.v2-sleep #v2StageFx, body.v2-sleep #v2StageFx *, body.modalOpen #v2Env *, body.modalOpen #v2StageFx, body.modalOpen #v2StageFx *{animation-play-state:paused}
+body.reduceMotion #v2Env *, body.reduceMotion #v2StageFx, body.reduceMotion #v2StageFx *{animation:none !important}
+@media (prefers-reduced-motion: reduce){ #v2Env *, #v2StageFx, #v2StageFx *, #v2StageFx::after{animation:none !important} }
+/* idle puzzle = static: every legacy infinite decorative loop is off in v2 themes */
+body.theme-v2 #puzzleBeams, body.theme-v2 .node-halo, body.theme-v2 .gm-idle, body.theme-v2 .rim-wait,
+body.theme-v2 .beam-impact, body.theme-v2 .beam-core, body.theme-v2 .beam-packet, body.theme-v2 .bh-flow,
+body.theme-v2 .bh-in, body.theme-v2 .bh-out, body.theme-v2 .sat-flow, body.theme-v2 .sat-in, body.theme-v2 .sat-wave,
+body.theme-v2 .sat-kill-ring, body.theme-v2 .sat-spark{animation:none !important}
+/* the "new mechanism" chip pulse animates box-shadow (repaints every frame): three pulses, then rest */
+body.theme-v2 .gimmickChip.newGimmick{animation-iteration-count:3}
+/* HUD sits on a soft backing so it reads on any background */
+body.theme-v2 #gameTop{background:var(--v2-hud); border-radius:14px; margin-top:2px}
+body.theme-v2 #ringTag{color:var(--ring-selected); border-color:var(--ring-selected); background:var(--v2-hud)}
+body.theme-v2 .gimmickChip, body.theme-v2 #powerStatus, body.theme-v2 .orchBatteryChip{background:var(--v2-hud)}
+body.theme-v2 .modeCard, body.theme-v2 .levelCard, body.theme-v2 .panel{background:var(--v2-card); border-color:var(--panel-line)}
+body.theme-v2 .modeCard:hover:not(.locked), body.theme-v2 .levelCard:hover{border-color:var(--panel-line-bright)}
+body.theme-v2 #dpad button, body.theme-v2 .actBtn, body.theme-v2 .backBtn, body.theme-v2 .utilBtn, body.theme-v2 #muteBtn, body.theme-v2 .shopCornerBtn, body.theme-v2 .coinTally{background:var(--v2-btn); border-color:var(--panel-line)}
+body.theme-v2 #dpad button{color:var(--ring)}
+body.theme-v2 .modalBox{background:var(--v2-modal); border-color:var(--panel-line-bright)}
+body.theme-v2 .lvlLabel, body.theme-v2 .screenTitle, body.theme-v2 .logo{color:var(--ring)}
+body.theme-v2 .screenSub, body.theme-v2 #titleScreen .press, body.theme-v2 #gameTop .hudStat, body.theme-v2 #gameTop .lockStatus{text-shadow:0 1px 4px rgba(0,0,0,.6)}
+/* per-theme tokens are generated from THEME_V2[id].ui (see v2UiCss) */
+
+/* ===== VISUAL MILESTONE 1 -- mechanism idle motion =====
+   The Mirror glyph is now a direction arrow; tilting it +/-6deg made the direction wobble. Pulse instead. */
+.gm-idle.gm-mirror_l,.gm-idle.gm-mirror_r{animation-name:gmBeat}
+
+/* ===== VISUAL MILESTONE 1 -- HUD LAYOUT (cosmetic only) =====
+   The fixed utility buttons (#utilityBtns: x 14..144px, y 14..52px) used to sit on top of
+   "◀ LEVELS" and the level title at every width below ~1400px, and on wide screens the
+   stage overflowed into the top bar and the d-pad. */
+/* the two HUD wrappers are layout-transparent by default -> one row, exactly as before */
+#gameTop .hudRow1, #gameTop .hudStats{display:contents}
+#gameTop .lockStatus, #gameTop .hudStat, #gameTop .coinStatus{white-space:nowrap}
+#gameTop .backBtn{flex:none; white-space:nowrap}
+#gameTop .lvlLabel{flex:0 1 auto; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
+/* wide/tablet: keep one row, but start it to the right of the utility buttons */
+@media (min-width:641px) and (max-width:899px){ body.inGame #gameTop{padding-left:150px} }
+@media (min-width:900px){ body.inGame #gameTop{padding-left:max(10px, calc(156px - max(32px, (100vw - 1100px) / 2)))} }
+/* phones: row 1 = [utility buttons] ◀ LEVELS · title, row 2 = the stats */
+@media (max-width:640px){
+  #gameTop{flex-direction:column; align-items:stretch; gap:4px; padding:4px 6px}
+  #gameTop .hudRow1{display:flex; align-items:center; gap:10px; min-height:40px; padding-left:136px; min-width:0}
+  #gameTop .hudRow1 .backBtn{flex:none; white-space:nowrap}
+  #gameTop .hudRow1 .lvlLabel{flex:1 1 auto; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; text-align:right}
+  #gameTop .hudStats{display:flex; align-items:center; justify-content:space-between; gap:8px; flex-wrap:wrap; padding:0 2px}
+}
+/* RING tag: out of the disc (it used to cover the 12-o'clock Lock) into the stage's empty top-left corner */
+#ringTag{top:0; left:0; transform:none; transform-origin:left center; z-index:4}
+@media (max-width:359px){ #ringTag{font-size:9px; letter-spacing:1px; padding:2px 6px} }
+@media (min-width:360px) and (max-width:399px){ #ringTag{font-size:10px; letter-spacing:1px; padding:2px 8px} }
+/* stage: size to the space actually left between the top bar and the d-pad */
+@supports (width:1cqh){
+  #gameCenter{container-type:size}
+  #stage{width:min(92cqw,100cqh,520px); height:min(92cqw,100cqh,520px)}
+  @media (min-width:900px){ #stage{width:min(52vw,100cqh,620px); height:min(52vw,100cqh,620px)} }
+}
+
 </style>
 </head>
 <body>
@@ -1673,8 +1796,11 @@ body.theme-mistcosmos #bgCanvas,body.theme-mistjungle #bgCanvas,body.theme-virus
   <!-- GAME -->
   <div id="gameScreen" class="screen">
     <div id="gameTop">
+      <div class="hudRow1">
       <div class="backBtn" id="backToLevelsBtn" style="position:static;">◀ LEVELS</div>
       <div class="lvlLabel" id="gameLvlLabel">LEVEL 1</div>
+      </div>
+      <div class="hudStats">
       <div class="lockStatus">LOCKS <b id="lockCountLabel">0/0</b></div>
       <div class="hudStat" id="movesLabel">0 moves</div>
       <div class="hudStat" id="timeLabel">00:00</div>
@@ -1691,6 +1817,7 @@ body.theme-mistcosmos #bgCanvas,body.theme-mistjungle #bgCanvas,body.theme-virus
       </div>
       <div id="rocketHud">
         <span id="rocketHudText">—</span>
+      </div>
       </div>
     </div>
     <div id="gameLegendChips"></div>
@@ -5473,7 +5600,7 @@ function defaultSave(){
     // COSMETIC SHOP: purely visual beam-color unlocks/equips (see the
     // COSMETIC SHOP script section below isModeUnlocked). 'default' is
     // always unlocked and free in both categories.
-    cosmetics: { controlledUnlocked:['default'], backgroundUnlocked:['default'], controlledEquipped:'default', backgroundEquipped:'default', litUnlocked:['green'], litEquipped:'green', rimUnlocked:['default','mesa'], rimEquipped:'default' },
+    cosmetics: { controlledUnlocked:['default'], backgroundUnlocked:['default'], controlledEquipped:'default', backgroundEquipped:'default', litUnlocked:['green'], litEquipped:'green', rimUnlocked:['default','mesa','deepfield'], rimEquipped:'deepfield', rimByTheme:{} },
     // WORLD THEMES (see THEME_SHOWCASE_LEVEL): 'space' is always unlocked
     // and free. Other themes unlock only by clearing their designated
     // showcase level (forced on during that level, regardless of what's
@@ -5536,6 +5663,10 @@ function loadSave(){
         litEquipped: typeof pc.litEquipped==='string' ? pc.litEquipped : 'green',
         rimUnlocked: Array.isArray(pc.rimUnlocked) ? pc.rimUnlocked.filter(x=>typeof x==='string') : ['default','mesa'],
         rimEquipped: typeof pc.rimEquipped==='string' ? pc.rimEquipped : 'default',
+        // THEME-RIM PAIRING (theme-redesign): the rim the player chose for each theme. Optional;
+        // undefined in saves made before this field existed -> migrated in ensureCosmeticsShape().
+        rimByTheme: (pc.rimByTheme && typeof pc.rimByTheme==='object' && !Array.isArray(pc.rimByTheme))
+          ? Object.fromEntries(Object.entries(pc.rimByTheme).filter(([k,v])=>typeof k==='string' && typeof v==='string')) : undefined,
       };
       if(!fresh.cosmetics.controlledUnlocked.includes('default')) fresh.cosmetics.controlledUnlocked.unshift('default');
       if(!fresh.cosmetics.backgroundUnlocked.includes('default')) fresh.cosmetics.backgroundUnlocked.unshift('default');
@@ -5667,12 +5798,47 @@ function ensureCosmeticsShape(){
   c.controlledUnlocked = uniq(['default'], c.controlledUnlocked, CONTROLLED_COSMETICS.map(x=>x.id));
   c.backgroundUnlocked = uniq(['default'], c.backgroundUnlocked, BACKGROUND_COSMETICS.map(x=>x.id));
   c.litUnlocked = uniq(['green'], c.litUnlocked, LIT_COLOR_OPTIONS.map(x=>x.id));
-  c.rimUnlocked = uniq(['default','mesa'], c.rimUnlocked, RIM_IDS);
+  c.rimUnlocked = uniq(['default','mesa','deepfield'], c.rimUnlocked, RIM_IDS);
   const eq = (k, ok, valid, def)=>{ if(typeof c[k] !== 'string' || !valid.includes(c[k]) || !(dbg || ok.includes(c[k]))) c[k] = def; };
   eq('controlledEquipped', c.controlledUnlocked, CONTROLLED_COSMETICS.map(x=>x.id), 'default');
   eq('backgroundEquipped', c.backgroundUnlocked, BACKGROUND_COSMETICS.map(x=>x.id), 'default');
   eq('litEquipped', c.litUnlocked, LIT_COLOR_OPTIONS.map(x=>x.id), 'green');
-  eq('rimEquipped', c.rimUnlocked, RIM_IDS, 'default');
+  if(typeof c.rimEquipped !== 'string' || !RIM_IDS.includes(c.rimEquipped) || !(dbg || rimUsable(c.rimEquipped))) c.rimEquipped = 'default';
+  // THEME-RIM PAIRING migration (one-time, additive): a save from before per-theme rims records
+  // its current rim as the choice for its current theme. Only the untouched default rim is
+  // upgraded to the theme's matching rim; any other selection is kept exactly as it was.
+  if(!c.rimByTheme || typeof c.rimByTheme !== 'object' || Array.isArray(c.rimByTheme)){
+    c.rimByTheme = {};
+    const t = (save.themeState && typeof save.themeState.equipped==='string') ? save.themeState.equipped : 'space';
+    if(c.rimEquipped === 'default'){ const m = themeMatchingRim(t); if(m && (dbg || rimUsable(m))) c.rimEquipped = m; }
+    c.rimByTheme[t] = c.rimEquipped;
+  }
+}
+// ---- THEME-RIM PAIRING helpers (theme-redesign) ----
+function themeMatchingRim(tid){
+  if(tid==='space') return 'deepfield';
+  const st = (typeof THEME_SETS!=='undefined') ? THEME_SETS[tid] : null;
+  if(st && st.rim) return st.rim;
+  return RIM_IDS.includes(tid) ? tid : null;
+}
+// free rims, rims won from gift boxes, and the matching rim of every owned theme (the rim is
+// usable with ownership of its theme; it is NOT added to rimUnlocked, so gift-box rewards are unchanged)
+function rimUsable(id){
+  if(!RIM_IDS.includes(id)) return false;
+  if(id==='default' || id==='mesa' || id==='deepfield') return true;
+  const c = save.cosmetics || {};
+  if(Array.isArray(c.rimUnlocked) && c.rimUnlocked.includes(id)) return true;
+  const ts = save.themeState;
+  return !!(ts && Array.isArray(ts.owned) && ts.owned.some(t=>themeMatchingRim(t)===id));
+}
+function rimForTheme(tid){
+  const c = save.cosmetics, dbg = !!(save.options && save.options.debugMode);
+  const ok = id => typeof id==='string' && RIM_IDS.includes(id) && (dbg || rimUsable(id));
+  const chosen = c.rimByTheme && c.rimByTheme[tid];
+  if(ok(chosen)) return chosen;
+  const m = themeMatchingRim(tid);
+  if(ok(m)) return m;
+  return c.rimEquipped;
 }
 // The only two functions renderPuzzle() actually calls -- everything else
 // in this section exists purely to let the player change what these
@@ -5701,12 +5867,13 @@ function invState(kind){
   return ({source:{owned:c.controlledUnlocked, eq:c.controlledEquipped}, background:{owned:c.backgroundUnlocked, eq:c.backgroundEquipped},
     rim:{owned:c.rimUnlocked, eq:c.rimEquipped}, theme:{owned:save.themeState.owned, eq:save.themeState.equipped}, lit:{owned:c.litUnlocked, eq:c.litEquipped}})[kind];
 }
-function invOwned(kind,id){ return !!(save.options && save.options.debugMode) || invState(kind).owned.includes(id); }
+function invOwned(kind,id){ return !!(save.options && save.options.debugMode) || (kind==='rim' ? (ensureCosmeticsShape(), rimUsable(id)) : invState(kind).owned.includes(id)); }
 function invEquip(kind,id,quiet){
   if(!invOwned(kind,id)){ AudioSys.playError(); return false; }
   const c = save.cosmetics;
   if(kind==='source') c.controlledEquipped = id; else if(kind==='background') c.backgroundEquipped = id;
-  else if(kind==='rim') c.rimEquipped = id; else if(kind==='lit'){ c.litEquipped = id; applyLitColors(); }
+  else if(kind==='rim'){ c.rimEquipped = id; ensureThemeShape(); (c.rimByTheme || (c.rimByTheme = {}))[save.themeState.equipped] = id; }
+  else if(kind==='lit'){ c.litEquipped = id; applyLitColors(); }
   else if(kind==='theme') save.themeState.equipped = id;
   persistSave();
   if(!quiet){
@@ -5720,8 +5887,10 @@ function invEquip(kind,id,quiet){
 function equipSet(tid){
   const st = THEME_SETS[tid] || {};
   const items = [['theme',tid]];
-  ['rim','source','background'].forEach(sl=>{ const p=parseSetVal(sl,st[sl]); if(p) items.push([p.kind,p.val]); });
+  ['source','background'].forEach(sl=>{ const p=parseSetVal(sl,st[sl]); if(p && p.kind!=='rim') items.push([p.kind,p.val]); });
   items.forEach(([k,id])=>{ if(invOwned(k,id)) invEquip(k,id,true); });
+  // THEME-RIM PAIRING: the rim this player last chose for this theme, else the theme's own rim
+  if(save.themeState.equipped===tid){ const rim = rimForTheme(tid); if(rim && invOwned('rim',rim)) invEquip('rim', rim, true); }
   AudioSys.playMenuBlip(); syncThemeToContext(); renderShop();
   if(document.body.classList.contains('inGame') && gstate.level) renderPuzzle();
 }
@@ -5742,8 +5911,9 @@ function invList(wrapId, kind, items){
     const row = document.createElement('div'); row.className = 'shopItem'+(eq?' equipped':'')+(owned?'':' invLocked');
     const sw = document.createElement('div'); sw.className = 'shopSwatch'; sw.style.background = it.bg; row.appendChild(sw);
     const info = document.createElement('div'); info.className = 'shopItemInfo';
-    const free = (kind==='theme' && THEME_LIST.find(t=>t.id===it.id)||{}).free || it.id==='default' || (kind==='rim' && it.id==='mesa');
-    info.innerHTML = `<div class="shopItemName">${it.name}</div><div class="shopItemPrice">${owned ? (eq?'Equipped':'Owned') : '\ud83d\udd12 '+invSourceText(kind,it.id)}</div>${it.note?`<div class="invNote">${it.note}</div>`:''}`;
+    const free = (kind==='theme' && THEME_LIST.find(t=>t.id===it.id)||{}).free || it.id==='default' || (kind==='rim' && (it.id==='mesa' || it.id==='deepfield'));
+    const incl = kind==='rim' && owned && !(save.cosmetics.rimUnlocked||[]).includes(it.id);
+    info.innerHTML = `<div class="shopItemName">${it.name}</div><div class="shopItemPrice">${owned ? (eq?'Equipped':(incl?'Included with its theme':'Owned')) : '\ud83d\udd12 '+invSourceText(kind,it.id)}</div>${it.note?`<div class="invNote">${it.note}</div>`:''}`;
     row.appendChild(info);
     const btn = document.createElement('button');
     btn.className = 'shopItemBtn'+(eq?' equipped':'');
@@ -6133,6 +6303,12 @@ let toastTimer = null;
 function showNewGimmickToast(msg){
   const el2 = document.getElementById('newGimmickToast');
   el2.textContent = msg;
+  // Sit just BELOW the mechanism chips (the message says "tap the chip above") instead of
+  // on top of them at a fixed 64px. Cosmetic only.
+  // (deferred one frame: on level load this runs before the game screen is shown/laid out)
+  const placeToast = ()=>{ const ch = document.getElementById('gameLegendChips'), r = ch && ch.getBoundingClientRect();
+    el2.style.top = (r && r.height && document.body.classList.contains('inGame')) ? Math.round(Math.max(64, r.bottom + 4))+'px' : ''; };
+  placeToast(); requestAnimationFrame(placeToast);
   el2.classList.add('show');
   if(toastTimer) clearTimeout(toastTimer);
   toastTimer = setTimeout(()=> el2.classList.remove('show'), 4200);
@@ -6726,7 +6902,7 @@ function loadLevel(mode, idx){
   gstate.timerInterval = setInterval(()=>{
     if(gstate.won) return;
     gstate.elapsed = (Date.now()-gstate.startTime)/1000;
-    document.getElementById('timeLabel').textContent = formatTime(gstate.elapsed);
+    { const tl = document.getElementById('timeLabel'), tx = formatTime(gstate.elapsed); if(tl.textContent !== tx) tl.textContent = tx; }
   }, 500);
   document.getElementById('gameLvlLabel').textContent = lvl.name;
   document.getElementById('movesLabel').textContent = '0 moves';
@@ -6946,10 +7122,12 @@ function finishLevel(withCoin){
   AudioSys.playBreach();
   document.getElementById('winSub').textContent = withCoin ? 'LEVEL COMPLETE \u2014 \u2605 STAR + \ud83c\udf81 GIFT BOX' : 'LEVEL COMPLETE \u2014 \u2605 STAR';
   document.getElementById('winStatsLine').textContent = `${gstate.moves} ${gstate.moves===1?'move':'moves'} \u00b7 ${formatTime(gstate.elapsed)}`;
-  document.getElementById('winBanner').classList.add('show');
-  spawnWinParticles(); Fx.celebrate(withCoin);
-  const app = document.getElementById('app');
-  app.classList.remove('winPulse'); void app.offsetWidth; app.classList.add('winPulse');
+  { const showWin = ()=>{
+      document.getElementById('winBanner').classList.add('show');
+      const app = document.getElementById('app');
+      app.classList.remove('winPulse'); void app.offsetWidth; app.classList.add('winPulse'); };
+    if(v2Cur()) v2Celebrate(withCoin, showWin);
+    else { showWin(); spawnWinParticles(); Fx.celebrate(withCoin); } }
   updateNextButtonUI();
   updateTopBar();
 
@@ -7355,6 +7533,8 @@ function renderPuzzleFull(){
   const VOID = isVoidTheme();
   const NOIR = isNoirTheme();
   const LAVA = isLavaTheme(), SAKURA = isSakuraTheme(), T3 = t3Id();
+  const V2C = v2Cur();
+  if(V2C) v2Defs(defs, V2C);
   [['flareGradLava','#ffd9a0','#ff6a1a'],['flareGradSakura','#ffe0ec','#ff9ac0']].forEach(([id,m,o])=>{ const gr = el('radialGradient',{id},defs); el('stop',{offset:'0%','stop-color':'#fff','stop-opacity':'0.95'},gr); el('stop',{offset:'30%','stop-color':m,'stop-opacity':'0.75'},gr); el('stop',{offset:'100%','stop-color':o,'stop-opacity':'0'},gr); });
   const flareId = ICE ? 'flareGradIce' : (ISLAND ? 'flareGradIsland' : 'flareGrad');
   // VOID: only the LOCK halos get a theme flare; source halos keep flareId (sources are not themed).
@@ -7372,11 +7552,11 @@ function renderPuzzleFull(){
 
   // PERF: themed arenas (disc, cracks, glows, vortex...) never change within a theme, so they are drawn ONCE into a
   // separate cached layer (#puzzleArena) instead of being rebuilt + repainted with every beam animation frame.
-  const THEMED_ARENA = ICE||ISLAND||RUIN||VOID||NOIR||LAVA||SAKURA||!!T3;
+  const THEMED_ARENA = ICE||ISLAND||RUIN||VOID||NOIR||LAVA||SAKURA||!!T3||!!V2C;
   const ASV = document.getElementById('puzzleArena');
   let _tsvg = svg, _tdefs = defs, _skipArena = false;
   if(THEMED_ARENA){
-    const aKey = ICE?'ice':ISLAND?'island':RUIN?'ruin':VOID?'void':NOIR?'noir':LAVA?'lava':SAKURA?'sakura':T3;
+    const aKey = V2C?('v2-'+V2C.id):ICE?'ice':ISLAND?'island':RUIN?'ruin':VOID?'void':NOIR?'noir':LAVA?'lava':SAKURA?'sakura':T3;
     if(renderPuzzle._arenaKey===aKey && (ASV.firstChild || ASV.dataset.baked===aKey)){ _skipArena = true; }
     else {
       renderPuzzle._arenaKey = aKey; ASV.innerHTML=''; ASV.style.backgroundImage=''; delete ASV.dataset.baked;
@@ -7392,7 +7572,9 @@ function renderPuzzleFull(){
     if(ASV.firstChild) ASV.innerHTML=''; ASV.style.backgroundImage=''; delete ASV.dataset.baked; ASV.style.display='none'; renderPuzzle._arenaKey=null; svg.classList.remove('arenaCached');
   }
   if(!_skipArena) (function(svg, defs){
-  if(ICE){
+  if(V2C){
+    V2C.arena(svg, defs);
+  } else if(ICE){
     // FROZEN-LAKE ICE DISC -- one solid, vividly-colored slab (sampled
     // directly from the reference photo's ice tones) filling the whole
     // puzzle area, with a handful of natural-looking fracture lines and
@@ -7595,7 +7777,9 @@ function renderPuzzleFull(){
   const rimG = el('g',{}, svg); RPS.rim = rimG; drawRimLocks(rimG);
 
   const hubG = el('g',{}, svg);
-  if(ICE){
+  if(V2C){
+    V2C.hub(hubG);
+  } else if(ICE){
     // Center hub reads as the little snowflake medallion from the
     // reference's ring-1 center, instead of a plain dot-in-a-ring.
     el('circle',{cx:0,cy:0,r:17, fill:'rgba(20,70,95,0.55)', stroke:'#eafcff', 'stroke-width':1.3, opacity:0.8}, hubG);
@@ -7646,13 +7830,17 @@ function renderPuzzleFull(){
     el('circle',{cx:0,cy:0,r:4, fill:'var(--ring)', opacity:0.55}, hubG);
   }
 
+  // accent for the selected-ring edge lines = this theme's ring-tag colour (falls back to --ring-selected)
+  const selAccent = (()=>{ try{ const c = getComputedStyle(document.getElementById('ringTag')).borderTopColor; return c && c!=='rgba(0, 0, 0, 0)' ? c : '#fff6c8'; }catch(e){ return '#fff6c8'; } })();
   lvl.rings.forEach((ring, r)=>{
     const radius = ringRadius(r);
     const rot = gstate.rotations[r];
     const angleDeg = (rot/n)*360;
     const isSelected = r===gstate.selectedRing;
     const g = el('g',{class: isSelected ? 'ring-group selected' : 'ring-group'}, svg);
-    if(ICE){
+    if(V2C){
+      V2C.track(g, radius, isSelected, n);
+    } else if(ICE){
       // ICE RING GROOVE: the reference's ring lines read as a subtle
       // CARVED groove in one continuous ice slab, not a separately
       // colored band -- a thin dark "shadow" line immediately paired
@@ -7704,7 +7892,22 @@ function renderPuzzleFull(){
         'stroke-dasharray':`${dsh.toFixed(2)} ${gp.toFixed(2)}`, transform:`rotate(${(-90+180/n-0.93*360/n).toFixed(2)})`}, g);
       el('circle',{cx:0,cy:0,r:radius-2.6, fill:'none', stroke:isSelected?NOIR_PALETTE.redHot:NOIR_PALETTE.redDim, 'stroke-width':1, opacity:isSelected?0.95:0.5}, g);
     } else {
-      const track = el('circle',{cx:0,cy:0,r:radius, fill:'none', stroke: isSelected?'var(--ring-selected)':'var(--ring-dim)', 'stroke-width': isSelected?2.2:1.5, opacity: isSelected?0.85:0.5}, g);
+      // DEFAULT (Space) TRACK -- a visible channel instead of a 1.5px line at 50% of a near-black
+      // colour: a soft band the width of a node, a centre rail, and one socket per slot so the
+      // discrete rotation steps read. The selected ring gets a warm band, edges and glow.
+      el('circle',{cx:0,cy:0,r:radius, fill:'none', stroke: isSelected?'rgba(255,246,200,0.11)':'rgba(127,231,255,0.06)', 'stroke-width': isSelected?18:14}, g);
+      if(isSelected){
+        el('circle',{cx:0,cy:0,r:radius, fill:'none', stroke:'var(--ring-selected)', 'stroke-width':8, opacity:0.16, filter:'url(#glowWide)'}, g);
+      }
+      el('circle',{cx:0,cy:0,r:radius, fill:'none', stroke: isSelected?'var(--ring-selected)':'#4f7d94', 'stroke-width': isSelected?1.2:1.3, opacity: isSelected?0.4:0.75}, g);
+      for(let s=0;s<n;s++){ const sa=slotToAngle(s,n);
+        el('circle',{cx:(Math.cos(sa)*radius).toFixed(2), cy:(Math.sin(sa)*radius).toFixed(2), r:isSelected?2:1.6, fill:isSelected?'var(--ring-selected)':'#6f9db4', opacity:isSelected?0.8:0.6}, g); }
+    }
+    // SELECTED RING (every theme): two crisp edge lines bracketing the track, in the same accent
+    // colour as this theme's "RING n/N" tag, so the ring under the player's control is unambiguous
+    // even in themes whose own selected styling is subtle. Purely decorative, ignores the pointer.
+    if(isSelected && !V2C){
+      [radius-9, radius+9].forEach(rr=> el('circle',{cx:0,cy:0,r:rr, fill:'none', stroke:selAccent, 'stroke-width':1.3, opacity:0.85, 'pointer-events':'none'}, g));
     }
     const dragRing = el('circle',{cx:0,cy:0,r:radius, fill:'none', stroke:'transparent','stroke-width':28}, g);
     dragRing.style.cursor='pointer';
@@ -7719,7 +7922,9 @@ function renderPuzzleFull(){
     // itself, and everything about which ring is actually selected, is
     // completely untouched.
     const spokeColor = isSelected ? getControlledBeamColor() : getBackgroundBeamColor();
-    const spokeG = el('g',{transform:`rotate(${angleDeg})`}, g); RPS.spokeGs[r]=spokeG; RPS.applied[r]=rot;
+    // pointer-events:none -> sources, rotating gimmicks and wall bands no longer swallow the
+    // mousedown/touchstart meant for this ring's drag handle (dragRing, underneath).
+    const spokeG = el('g',{transform:`rotate(${angleDeg})`, 'pointer-events':'none'}, g); RPS.spokeGs[r]=spokeG; RPS.applied[r]=rot;
     if(_same && _pR && _pR[r]!==undefined && _pR[r]!==rot && !_noMo){
       // ring glide: ease from the previous angle with a small overshoot, then settle
       let d=((rot-_pR[r])%n+n)%n; if(d>n/2) d-=n; const st=360/n;
@@ -7734,7 +7939,9 @@ function renderPuzzleFull(){
       const hitsLock = beamResult && beamResult.result.hitLockSlots.length>0;
       const tip = el('g',{transform:`translate(${x},${y}) scale(${optScale('sourceSize')})`}, spokeG);
       // hit-halo is drawn by renderBeams() (beam layer)
-      if(ICE){
+      if(V2C){
+        v2Source(tip, isSelected, spokeColor);
+      } else if(ICE){
         // Beam source as a small blue gem-in-collar node -- the exact
         // same socket language as every lock/gimmick, just sized down and
         // colored to match the reference's plain little blue circle nodes.
@@ -7791,25 +7998,24 @@ function renderPuzzleFull(){
 
         const a = (slot/n)*Math.PI*2 - Math.PI/2;
         // PINNED gimmicks live in `g` (this ring's non-rotating container),
-        // so their on-screen position never moves as the ring turns. If
-        // drawn at the exact same radius as the ring's own spokes (which
-        // DO rotate, in spokeG), a spoke can rotate into the same live
-        // slot as a pinned gimmick and sit exactly underneath it, making
-        // the beam-source dot disappear. Nudging pinned gimmicks slightly
-        // outward keeps them clear of that overlap at every rotation.
-        const pinnedRadiusOffset = 11;
-        // BLACK HOLE exception: a hole's mouths must sit exactly where the
-        // beams cross the ring (its axis can point any way, so a radial nudge
-        // would visibly pull the mouth off the beam line). Instead of being
-        // nudged, a pinned hole is drawn UNDER the ring's spoke markers, so a
-        // spoke that rotates onto it is never hidden.
+        // so their on-screen position never moves as the ring turns.
+        // VISUAL MILESTONE 1: every gimmick -- pinned or not -- is now drawn
+        // CENTRED ON THE RING, i.e. exactly where the tracer applies it (the
+        // beam turns/splits/stops at the ring crossing; see traceBeamBranch,
+        // RocketGame.liveGimmickPosition and PowerSys.listTargets, which all
+        // already use this point). Pinned glyphs used to be pushed 11 units
+        // outward so a spoke rotating onto the same slot would not be hidden;
+        // instead they are now drawn UNDER the ring's spoke markers (same
+        // approach the Black Hole already used), so a spoke sitting on a
+        // pinned gimmick stays visible on top of it.
         const isHole = type==='portal';
-        const drawRadius = (isPinned && !isHole) ? radius + pinnedRadiusOffset : radius;
+        const drawRadius = radius;
         const x = Math.cos(a)*drawRadius, y = Math.sin(a)*drawRadius;
         const parentG = isPinned ? g : spokeG;
-        const tip = el('g',{transform:`translate(${x},${y}) scale(${isHole?1:optScale('gimmickSize')})`}, parentG);
-        if(isPinned && isHole) g.insertBefore(tip, spokeG);
-        if(isPinned && !isHole) el('circle',{r:12,fill:'none',stroke:'#fff6c8','stroke-width':1.3,'stroke-dasharray':'2 3',opacity:0.9}, tip);
+        const tip = el('g',{transform:`translate(${x},${y}) scale(${isHole?1:optScale('gimmickSize')})`, 'pointer-events':'none'}, parentG);
+        if(isPinned) g.insertBefore(tip, spokeG);
+        if(V2C && !isHole && type!=='ufo' && type!=='coin') v2Socket(tip, type==='echo_portal' ? 15.5 : 16.5);
+        if(isPinned && !isHole) el('circle',{r:type==='echo_portal'?14.5:17,fill:'none',stroke:'#fff6c8','stroke-width':1.3,'stroke-dasharray':'2 3',opacity:0.9}, tip);
         // WHITE BELL "animated when hit" state: the bell reads as active
         // (warm/glowing) for as long as the fog-clear window it just
         // opened is still running -- i.e. it was recently rung and is
@@ -7856,21 +8062,20 @@ function renderPuzzleFull(){
             // (Space) rendering, same scope boundary as drawGimmickGlyph
             // above. Only Ice reskins this band.
             const arcColor = isHalf ? (ICE?ICE_PALETTE.orange:'#ff9d4d') : (ICE?ICE_PALETTE.red:'#ff3b3b');
-            let d, strokeWidth, opacity;
-            if(isHalf){
-              d = wallCoilPath(radius, startSlot, endSlot, n, side);
-              strokeWidth = 4.2; opacity = 0.9;
-            } else {
-              d = fullRing
-                ? (()=>{ const r2=radius; return `M ${r2} 0 A ${r2} ${r2} 0 1 1 ${-r2} 0.001 A ${r2} ${r2} 0 1 1 ${r2} 0`; })()
-                : wallArcPath(radius, startSlot, endSlot, n);
-              strokeWidth = 11; opacity = 0.6;
+            if(!isHalf){
+              // BLOCK = a SOLID WALL SEGMENT: a filled annular slab covering exactly the run's
+              // slots (same angular extent as before), dark-red body, bright red outline, one
+              // brick seam between slots and a rivet on each slot. Replaces the translucent
+              // 11px stroke, which read as a decorative arc rather than an obstacle.
+              drawBlockSlab(parent, radius, startSlot, endSlot, n, fullRing, arcColor, ICE);
             }
-            el('path', {
-              d, fill:'none', stroke:arcColor, 'stroke-width':strokeWidth*optScale('gimmickSize'), opacity,
-              'stroke-linecap': isHalf ? 'round':'butt', 'stroke-linejoin': isHalf ? 'round':'miter',
-              'stroke-dasharray': isHalf ? (side==='in'?'7 5':'10 6') : 'none',
-            }, parent);
+            if(isHalf){
+              // Half-Block: unchanged in this milestone (one-way coil + side indicator)
+              el('path', {
+                d: wallCoilPath(radius, startSlot, endSlot, n, side), fill:'none', stroke:arcColor, 'stroke-width':4.2*optScale('gimmickSize'), opacity:0.9,
+                'stroke-linecap':'round', 'stroke-linejoin':'round', 'stroke-dasharray': side==='in'?'7 5':'10 6',
+              }, parent);
+            }
             if(ICE && !isHalf){
               // snow puffs sitting on top of the block band, matching the
               // reference photo's amber trough-with-snow-mounds prop.
@@ -8130,12 +8335,13 @@ function renderPuzzle(){
   try{
     const key = rpKey(lvl), echo = rpEcho();
     if(renderPuzzle._lvl===lvl && RPS.built===lvl && RPS.key===key && RPS.echo===echo){
-      let beams=false;
+      let beams=false, rimV2=false;
       lvl.rings.forEach((ring,r)=>{ if(RPS.applied[r]!==gstate.rotations[r]){ beams=true; rpFastRotate(lvl,r); } });
       const lit = rpLit(), hits = rpHits();
-      if(lit!==RPS.lit){ RPS.lit=lit; beams=true; lite(()=>drawRimLocks(RPS.rim)); }
+      if(lit!==RPS.lit){ RPS.lit=lit; beams=true; if(v2Cur()) rimV2=true; else lite(()=>drawRimLocks(RPS.rim)); }
       if(hits!==RPS.hits){ RPS.hits=hits; beams=true; }
       if(beams) renderBeams(true);
+      if(rimV2) v2ScheduleRim();
     } else {
       RPS.key=key; RPS.echo=echo; RPS.lit=rpLit(); RPS.hits=rpHits(); RPS.built=lvl;
       renderPuzzleFull();
@@ -8151,6 +8357,7 @@ function renderBeams(force){
   const _same=renderPuzzle._lvl===lvl, _pR=renderPuzzle._rots, _pL=renderPuzzle._lit, _pS=renderPuzzle._sel, _noMo=document.body.classList.contains('reduceMotion');
   if(!force && _same && _pR && _pR.every((v,i)=>v===gstate.rotations[i])) return;
   const _rotChanged=_same&&_pR&&_pR.some((v,i)=>v!==gstate.rotations[i]);
+  { const V2C = v2Cur(); if(V2C) return lite(()=>renderBeamsV2(V2C, {lvl, n, _same, _pR, _pL, _pS, _noMo, _rotChanged})); }
   const ICE = isIceTheme(), ISLAND = isIslandTheme();
   const coinLocks = currentMode==='special' || currentMode==='orchestra' || currentMode==='rocket';
   const svg = document.getElementById('puzzleBeams'); svg.innerHTML='';
@@ -8231,7 +8438,7 @@ function renderBeams(force){
       gh.forEach(k=>{ if(renderPuzzle._gh.has(k)) return; const [r,sl,ty]=k.split(':'), a=slotToAngle(+sl,n), rr=ringRadius(+r), x=Math.cos(a)*rr, y=Math.sin(a)*rr;
         Fx.ring(x,y,3,22,CC[ty],.38); Fx.burst(x,y,CC[ty],ty==='prism'?10:6); });
       (gstate.echoHits||[]).forEach(e=>{ const k=e.ringIdx+':'+e.slot+':'+e.mode; if((renderPuzzle._echo||[]).includes(k)) return;
-        const a=slotToAngle(e.slot,n), rr=ringRadius(e.ringIdx)+11, x=Math.cos(a)*rr, y=Math.sin(a)*rr;
+        const a=slotToAngle(e.slot,n), rr=ringRadius(e.ringIdx), x=Math.cos(a)*rr, y=Math.sin(a)*rr;   // satellite glyph now sits on the ring (was +11)
         if(e.mode==='kill'){ Fx.burst(x,y,'#ff6a5a',14); Fx.ring(x,y,4,28,'#ff6a5a',.4); Fx.shake(true); }
         else { Fx.ring(x,y,30,5,'#5df0ff',.45); Fx.burst(x,y,'#8ff6ff',10); } });
       if(_pS!==undefined && _pS!==gstate.selectedRing){ const tg=document.getElementById('ringTag'); if(tg){ tg.classList.remove('tagPop'); void tg.offsetWidth; tg.classList.add('tagPop'); } }
@@ -8498,10 +8705,9 @@ function drawIceGimmickGlyph(parent, type, raw, outwardAngle, active){
     // Mirror: same white/cyan gem-in-collar every node uses, with the
     // reflective diagonal drawn on the gem face -- keeps the orientation
     // cue (which way the surface leans) identical to the space version.
-    iceNode(parent, 10, { inner: P.cyanInner });
-    el('circle',{r:5.6, fill:'#ffffff', opacity:0.55}, parent);
-    if(type==='mirror_l') el('line',{x1:-4.4,y1:-4.4,x2:4.4,y2:4.4, stroke:P.cyanDeep,'stroke-width':2.6,'stroke-linecap':'round'}, parent);
-    else el('line',{x1:-4.4,y1:4.4,x2:4.4,y2:-4.4, stroke:P.cyanDeep,'stroke-width':2.6,'stroke-linecap':'round'}, parent);
+    // VISUAL MILESTONE 1: same quarter-turn sign as every other world (see mechTurnGlyph).
+    iceNode(parent, 11*MECH_SCALE, { inner: P.cyanInner });
+    mechTurnGlyph(parent, type==='mirror_l', outwardAngle, {disc:null, arrow:P.cyanDeep});
   }
   else if(type==='block'){
     // Block: a red gem -- danger still reads red, now as a faceted ruby
@@ -8513,9 +8719,9 @@ function drawIceGimmickGlyph(parent, type, raw, outwardAngle, active){
   else if(type==='amp'){
     // Amplifier: the reference's amber sun/star gem, same collar family
     // as the bonus lock but smaller and not scalloped (a "regular" node).
-    iceNode(parent, 9.5, { inner: P.goldInner });
-    el('path',{d:starPath(0,0,5.6,2.4,5), fill:P.gold, stroke:P.goldDeep, 'stroke-width':1, 'stroke-linejoin':'round'}, parent);
-    el('circle',{cx:-1.1,cy:-1.4,r:0.9, fill:'#ffffff', opacity:0.85}, parent);
+    // VISUAL MILESTONE 1: bolt (was a star -- too close to the coin/bonus vocabulary).
+    iceNode(parent, 11*MECH_SCALE, { inner: P.goldInner });
+    mechAmpGlyph(parent, {disc:null, bolt:P.gold, boltEdge:P.goldDeep});
   }
   else if(type==='portal'){
     // Black Hole: the same wormhole sprite as the space theme (white mouth,
@@ -8549,11 +8755,9 @@ function drawIceGimmickGlyph(parent, type, raw, outwardAngle, active){
     // Prism: a literal glass/ice triangle -- the most natural 1:1
     // translation of any mechanic into this world -- with a thin
     // refracted rainbow streak, in the pink-tinted collar family.
-    iceNode(parent, 9.5, { inner: P.pinkInner });
-    el('polygon',{points:'0,-5.4 4.7,3.6 -4.7,3.6', fill:'rgba(255,255,255,0.55)', stroke:P.pinkDeep,'stroke-width':1.1,'stroke-linejoin':'round'}, parent);
-    el('line',{x1:1.6,y1:0.8,x2:7,y2:2.2, stroke:P.pink,'stroke-width':1, opacity:0.75}, parent);
-    el('line',{x1:1.6,y1:1.6,x2:7,y2:4.6, stroke:P.cyan,'stroke-width':1, opacity:0.6}, parent);
-    el('line',{x1:1.6,y1:0,x2:7,y2:-1, stroke:P.gold,'stroke-width':1, opacity:0.6}, parent);
+    // VISUAL MILESTONE 1: same crystal + split fork as every other world (no round collar,
+    // so it can't be mistaken for the Amplifier).
+    mechPrismGlyph(parent, outwardAngle, {fill:'rgba(255,214,240,0.75)', edge:P.pinkDeep, fork:P.pinkDeep});
   }
   else if(type==='coin'){
     // Ring Coin: a gold snowflake gem instead of a plain "$" disc.
@@ -8596,20 +8800,112 @@ function drawUfoGlyph(p, active){
   el('ellipse',{cx:0,cy:1.4,rx:8.2,ry:2,fill:'#6a727b',opacity:0.8}, p);
   [-7,0,7].forEach(x=> el('circle',{cx:x,cy:1.2,r:1.15,fill:active?'#ffe27a':'#d7dde3'}, p));
 }
+/* =========================================================================
+   VISUAL MILESTONE 1 -- MECHANISM SHAPES (render-only; nothing here is read
+   by the tracer). Shared by the default glyphs and the Ice reskin so a
+   mechanism keeps the same silhouette in every world; only colours change.
+   Mirror/Amplifier/Prism glyphs are never rotated: their rules do not
+   depend on which side a beam arrives from. Only the Block glyph is turned
+   to lie along its ring (mechInwardFrame: local +y points to the centre).
+   ========================================================================= */
+// Mechanism glyphs are drawn at MECH_SCALE x their design size: at 11 units they were only
+// ~16px across on a 430px phone. Ring spacing (STEP=36) leaves room for ~1.3x without touching
+// a neighbouring track.
+const MECH_SCALE = 1.3;
+function mechInwardFrame(parent, outwardAngle){
+  return el('g',{transform:`rotate(${((outwardAngle||0)*180/Math.PI+90).toFixed(2)}) scale(${MECH_SCALE})`}, parent);
+}
+// MIRROR = "quarter-turn" sign. The tracer ALWAYS turns the beam exactly
+// 90deg -- mirror_l clockwise on screen, mirror_r counter-clockwise --
+// whatever direction the beam arrives from (traceBeamBranch, mirror branch).
+// The old glyph was a screen-fixed diagonal line, i.e. a physical mirror,
+// which predicted the OPPOSITE turn at the top and bottom of every ring.
+// The new glyph states the rule itself: a right-angle mark with a curved
+// arrow giving the turn's sense. Because the rule doesn't depend on the
+// arrival direction, neither does the glyph (it is never rotated), so
+// every clockwise Mirror on the board looks identical.
+function mechTurnGlyph(parent, cw, outwardAngle, C){
+  const g = el('g',{transform:`scale(${MECH_SCALE})`}, parent);
+  if(C.disc){
+    el('circle',{r:11, fill:C.disc, stroke:C.rim, 'stroke-width':1.8}, g);
+    el('circle',{r:8.4, fill:'none', stroke:C.rim, 'stroke-width':0.7, opacity:0.35}, g);
+  }
+  const m = el('g',{transform: cw ? '' : 'scale(-1,1)'}, g);   // mirror_r = mirror image of mirror_l
+  const k = el('g',{transform:'translate(1.8,2.3)'}, m);            // centres the mark below in the disc
+  // the "90deg": right-angle mark at O(-1,3), the centre of the arc
+  el('path',{d:'M -4.6 3 L -1 3 L -1 -0.6', fill:'none', stroke:C.arrow, 'stroke-width':1.2, 'stroke-linecap':'round', 'stroke-linejoin':'round', opacity:0.75}, k);
+  el('rect',{x:-2.7, y:1.3, width:1.7, height:1.7, fill:'none', stroke:C.arrow, 'stroke-width':0.8, opacity:0.75}, k);
+  // the turn's sense: clockwise quarter arc, 9 o'clock -> 12 o'clock around O, arrowhead heading on clockwise
+  el('path',{d:'M -8 3 A 7 7 0 0 1 -1 -4 L 0.4 -4', fill:'none', stroke:C.arrow, 'stroke-width':2.6, 'stroke-linecap':'round', 'stroke-linejoin':'round'}, k);
+  el('polygon',{points:'4.6,-4 0,-7.7 0,-0.3', fill:C.arrow, stroke:C.arrow, 'stroke-width':0.8, 'stroke-linejoin':'round'}, k);
+}
+// AMPLIFIER = round power cell with a lightning bolt.
+function mechAmpGlyph(parent, C){
+  parent = el('g',{transform:`scale(${MECH_SCALE})`}, parent);
+  if(C.disc){
+    el('circle',{r:11, fill:C.disc, stroke:C.rim, 'stroke-width':1.8}, parent);
+    el('circle',{r:8.2, fill:'none', stroke:C.rim, 'stroke-width':0.7, opacity:0.4}, parent);
+  }
+  el('polygon',{points:'1.9,-8.4 -5.4,1.3 -0.7,1.3 -2.3,8.6 5.6,-1.7 0.9,-1.7', fill:C.bolt, stroke:C.boltEdge, 'stroke-width':0.8, 'stroke-linejoin':'round'}, parent);
+}
+// PRISM = triangular glass crystal (no round node, so its silhouette can
+// never be confused with the Amplifier's) carrying a "split" fork: one line
+// becoming two. The tracer splits the beam into two at +/-45deg from
+// whichever direction it arrives, so -- like the Mirror -- the glyph does
+// not pretend to know the arrival side and is never rotated.
+function mechPrismGlyph(parent, outwardAngle, C){
+  const g = el('g',{transform:`scale(${MECH_SCALE})`}, parent);
+  el('polygon',{points:'0,-11 10.4,7 -10.4,7', fill:C.fill, stroke:C.edge, 'stroke-width':2, 'stroke-linejoin':'round'}, g);
+  el('polygon',{points:'-1,-6.6 -5.6,3 -2.6,3', fill:'#ffffff', opacity:0.35}, g);
+  el('path',{d:'M 0 -4.8 L 0 0 M 0 0 L -3.8 4 M 0 0 L 3.8 4', fill:'none', stroke:C.fork, 'stroke-width':1.9, 'stroke-linecap':'round', 'stroke-linejoin':'round'}, g);
+}
+// BLOCK (single pinned glyph -- only reachable outside the grouped wall band) = a small slab.
+function mechBlockGlyph(parent, outwardAngle, color, body){
+  const g = mechInwardFrame(parent, outwardAngle);
+  el('rect',{x:-9, y:-7.5, width:18, height:15, rx:2, fill:body, stroke:color, 'stroke-width':1.8}, g);
+  el('line',{x1:0, y1:-6, x2:0, y2:6, stroke:color, 'stroke-width':1, opacity:0.55}, g);
+  [-4.5,4.5].forEach(x=> el('circle',{cx:x, cy:0, r:1.7, fill:color, opacity:0.9}, g));
+}
+// BLOCK wall band: one solid annular slab per contiguous run of Block slots.
+function drawBlockSlab(parent, radius, s0, s1, n, fullRing, color, ice){
+  const hw = 8.5*optScale('gimmickSize'), rIn = radius-hw, rOut = radius+hw;
+  const body = ice ? '#5a1620' : '#3a0a0e';
+  const P = (r,a)=> `${(Math.cos(a)*r).toFixed(2)} ${(Math.sin(a)*r).toFixed(2)}`;
+  let d;
+  if(fullRing){
+    d = `M ${rOut} 0 A ${rOut} ${rOut} 0 1 1 ${-rOut} 0 A ${rOut} ${rOut} 0 1 1 ${rOut} 0 Z `
+      + `M ${rIn} 0 A ${rIn} ${rIn} 0 1 0 ${-rIn} 0 A ${rIn} ${rIn} 0 1 0 ${rIn} 0 Z`;
+  } else {
+    const a0 = slotToAngle(s0-0.5, n); let a1 = slotToAngle(s1+0.5, n);
+    while(a1 <= a0) a1 += Math.PI*2;
+    const lg = (a1-a0) > Math.PI ? 1 : 0;
+    d = `M ${P(rOut,a0)} A ${rOut} ${rOut} 0 ${lg} 1 ${P(rOut,a1)} L ${P(rIn,a1)} A ${rIn} ${rIn} 0 ${lg} 0 ${P(rIn,a0)} Z`;
+  }
+  el('path',{d, fill:'none', stroke:'#000', 'stroke-width':4, opacity:0.35, 'stroke-linejoin':'round'}, parent);      // contact shadow
+  el('path',{d, fill:body, 'fill-rule':'evenodd', stroke:color, 'stroke-width':1.6, 'stroke-linejoin':'round'}, parent);
+  const last = fullRing ? s0+n-1 : s1;
+  for(let s=s0; s<=last; s++){
+    const c = slotToAngle(s, n);
+    el('circle',{cx:(Math.cos(c)*radius).toFixed(2), cy:(Math.sin(c)*radius).toFixed(2), r:1.8, fill:color, opacity:0.9}, parent);   // rivet per slot
+    if(s<last || fullRing){ const b = slotToAngle(s+0.5, n);                                                                     // brick seam
+      el('path',{d:`M ${P(rIn+1.6,b)} L ${P(rOut-1.6,b)}`, stroke:color, 'stroke-width':1, opacity:0.5}, parent); }
+  }
+  // top-edge bevel highlight
+  if(!fullRing){ const a0 = slotToAngle(s0-0.5, n)+0.02; let a1 = slotToAngle(s1+0.5, n)-0.02; while(a1 <= a0) a1 += Math.PI*2;
+    el('path',{d:`M ${P(rOut-2.2,a0)} A ${rOut-2.2} ${rOut-2.2} 0 ${(a1-a0)>Math.PI?1:0} 1 ${P(rOut-2.2,a1)}`, fill:'none', stroke:'#ffb0b0', 'stroke-width':1, opacity:0.35}, parent); }
+}
+
 function drawGimmickGlyph(parent, type, raw, outwardAngle, active){
   if(type==='ufo') return drawUfoGlyph(parent, active);
   if(isIceTheme()) return drawIceGimmickGlyph(parent, type, raw, outwardAngle, active);
   const colors = {mirror_l:'#fff', mirror_r:'#fff', block:'#ff3b3b', half_block:'#ff9d4d', amp:'#ffd23f', prism:'#ff5ec4', portal:'#c77dff', echo_portal:'#5df0ff', coin:'#ffd23f'};
   const color = colors[type] || '#fff';
-  if(type==='mirror_l' || type==='mirror_r'){
-    el('circle',{r:9, fill:'rgba(0,0,0,.55)', stroke:color, 'stroke-width':1.9}, parent);
-  } else if(type!=='portal' && type!=='echo_portal' && type!=='block' && type!=='bell' && type!=='coin'){
+  if(type==='half_block'){
     el('circle',{r:7.5, fill:'rgba(0,0,0,.55)', stroke:color, 'stroke-width':1.7}, parent);
   }
-  if(type==='mirror_l') el('line',{x1:-7.5,y1:-7.5,x2:7.5,y2:7.5, stroke:color,'stroke-width':3.4,'stroke-linecap':'round'}, parent);
-  else if(type==='mirror_r') el('line',{x1:-7.5,y1:7.5,x2:7.5,y2:-7.5, stroke:color,'stroke-width':3.4,'stroke-linecap':'round'}, parent);
-  else if(type==='block') el('circle',{r:6.5, fill:color, stroke:'none'}, parent);
-  else if(type==='amp') el('path',{d:'M 0 -4 L 3.5 3.5 L -3.5 3.5 Z', fill:'none', stroke:color,'stroke-width':1.6,'stroke-linejoin':'round'}, parent);
+  if(type==='mirror_l' || type==='mirror_r') mechTurnGlyph(parent, type==='mirror_l', outwardAngle, {disc:'rgba(8,14,22,.9)', rim:'#e8f6ff', arrow:'#ffffff'});
+  else if(type==='block') mechBlockGlyph(parent, outwardAngle, color, '#3a0a0e');
+  else if(type==='amp') mechAmpGlyph(parent, {disc:'rgba(30,22,0,.9)', rim:color, bolt:color, boltEdge:'#fff3b0'});
   else if(type==='portal'){
     // BLACK HOLE: a little wormhole -- white mouth, black mouth, purple mesh
     // tunnel between them -- turned to face along the hole's own axis.
@@ -8633,7 +8929,7 @@ function drawGimmickGlyph(parent, type, raw, outwardAngle, active){
     const capPath = solidOuter ? 'M 0 -6.5 A 6.5 6.5 0 0 1 0 6.5 Z' : 'M 0 -6.5 A 6.5 6.5 0 0 0 0 6.5 Z';
     el('path',{d:capPath, fill:'#0a0a0d'}, gg);
   }
-  else if(type==='prism') el('path',{d:'M 0 -4.5 L 4 3.5 L -4 3.5 Z', fill:'rgba(255,94,196,.28)', stroke:color,'stroke-width':1.5,'stroke-linejoin':'round'}, parent);
+  else if(type==='prism') mechPrismGlyph(parent, outwardAngle, {fill:'rgba(255,94,196,.55)', edge:'#ffb0e4', fork:'#ffffff'});
   else if(type==='coin'){
     // COIN (Space Orchestra only): purely decorative and fully
     // transparent to beams -- it never blocks, bends, or duplicates
@@ -9931,21 +10227,25 @@ function syncThemeToContext(){
 function applyTheme(themeId){
   if(applyTheme._last!==undefined && applyTheme._last!==themeId) themeFlash();
   applyTheme._last = themeId;
-  const ice = themeId === 'ice';
-  const island = themeId === 'island';
+  // THEMES V2: a redesigned theme replaces its legacy body class + environment entirely
+  const V2T = (typeof THEME_V2!=='undefined' && THEME_V2[themeId]) || null;
+  v2Activate(V2T);
+  const legacyId = V2T ? '' : themeId;
+  const ice = legacyId === 'ice';
+  const island = legacyId === 'island';
   document.body.classList.toggle('theme-ice', ice);
   document.body.classList.toggle('theme-island', island);
-  const ruin = themeId === 'ruin';
+  const ruin = legacyId === 'ruin';
   document.body.classList.toggle('theme-ruin', ruin);
-  const voidOn = themeId === 'void';
+  const voidOn = legacyId === 'void';
   document.body.classList.toggle('theme-void', voidOn);
-  const noirOn = themeId === 'noir';
+  const noirOn = legacyId === 'noir';
   document.body.classList.toggle('theme-noir', noirOn);
-  const lavaOn = themeId === 'lava', sakuraOn = themeId === 'sakura';
+  const lavaOn = legacyId === 'lava', sakuraOn = legacyId === 'sakura';
   document.body.classList.toggle('theme-lava', lavaOn);
   document.body.classList.toggle('theme-sakura', sakuraOn);
   if(lavaOn){ buildLavaEnvironment(); buildLavaStageEnvironment(); }
-  T3K.forEach(k=>{ const on = themeId===k; document.body.classList.toggle('theme-'+k, on); if(on) t3Build(k); });
+  T3K.forEach(k=>{ const on = legacyId===k; document.body.classList.toggle('theme-'+k, on); if(on) t3Build(k); });
   if(sakuraOn){ buildSakuraEnvironment(); buildSakuraStageEnvironment(); }
   if(noirOn){ buildNoirEnvironment(); buildNoirStageEnvironment(); }
   if(voidOn){ buildVoidEnvironment(); buildVoidStageEnvironment(); }
@@ -10017,7 +10317,7 @@ const THEME_SETS = {
   halo:{source:'lit:gold',background:'amber',rim:'halo'},
 };
 function parseSetVal(slot,v){ if(!v) return null; const i=v.indexOf(':'); return i>0 ? {kind:v.slice(0,i), val:v.slice(i+1)} : {kind:slot, val:v}; }
-const RIM_IDS = ['default','mesa','ice','island','ruin','void','noir','lava','sakura','carnival','archive','rail','spore','crimson','glacier','leviathan','halo','mistcosmos','mistjungle','volcano','virus','ufonight','ufodesert'];
+const RIM_IDS = ['default','deepfield','mesa','ice','island','ruin','void','noir','lava','sakura','carnival','archive','rail','spore','crimson','glacier','leviathan','halo','mistcosmos','mistjungle','volcano','virus','ufonight','ufodesert'];
 const RIM_BAND_FNS = {ruin:drawRimBandRuin, void:drawRimBandVoid, noir:drawRimBandNoir, lava:drawRimBandLava, sakura:drawRimBandSakura};
 function rimEquippedId(){ return (save.cosmetics && save.cosmetics.rimEquipped) || 'default'; }
 function rimBandFn(id){
@@ -10025,7 +10325,7 @@ function rimBandFn(id){
   if(typeof RIM_T3 !== 'undefined' && RIM_T3[id]) return (a,b,c,d)=>drawRimThemed(a,b,c,d,RIM_T3[id]);
   return drawRimBand;
 }
-function rimName(id){ return id==='default' ? 'Classic Glass Rim' : ((THEME_LIST.find(t=>t.id===id)||{name:id}).name + ' Rim'); }
+function rimName(id){ return id==='default' ? 'Classic Glass Rim' : id==='deepfield' ? 'Deep Field Rim' : ((THEME_LIST.find(t=>t.id===id)||{name:id}).name + ' Rim'); }
 function colorName(kind,id){ const l = kind==='source'?CONTROLLED_COSMETICS:BACKGROUND_COSMETICS; const x = l.find(q=>q.id===id); return x?x.name:id; }
 function litName(id){ const x = LIT_COLOR_OPTIONS.find(q=>q.id===id); return x?x.name:id; }
 function themeName(id){ return (THEME_LIST.find(t=>t.id===id)||{name:id}).name; }
@@ -10276,11 +10576,16 @@ const GamepadNav = (function(){
       }
       prevButtons = btn;
     } else {
-      prevButtons = [];
+      // PERF: no pad -> stop polling (an always-on rAF loop kept the page rendering
+      // every frame even when idle). 'gamepadconnected' restarts it.
+      prevButtons = []; polling = false; return;
     }
     requestAnimationFrame(poll);
   }
-  requestAnimationFrame(poll);
+  let polling = false;
+  function startPolling(){ if(polling) return; polling = true; requestAnimationFrame(poll); }
+  window.addEventListener('gamepadconnected', startPolling);
+  { const pads = (navigator.getGamepads ? navigator.getGamepads() : []) || []; if(pads[0]) startPolling(); }
   return { refreshFocusList };
 })();
 
@@ -10826,8 +11131,11 @@ Object.assign(THEME_SWATCH_GRADIENT,{spore:'linear-gradient(135deg,#dca2f0,#6c38
 Object.assign(THEME_BADGE,{spore:{icon:'\ud83c\udf44',color:'#dca2f0'},crimson:{icon:'\ud83c\udff0',color:'#f69e61'},glacier:{icon:'\ud83e\uddca',color:'#bff6ff'},leviathan:{icon:'\ud83d\udc0b',color:'#7ff0e8'},halo:{icon:'\u2600\ufe0f',color:'#ffd88a'},mesa:{icon:'\ud83d\udc8e',color:'#3be0a0'}});
 
 
-/* ===== PERFORMANCE DIAGNOSTIC (temporary, no gameplay changes) ===== */
+/* ===== PERFORMANCE DIAGNOSTIC (temporary, no gameplay changes) =====
+   Opt-in only (append ?diag to the URL): it wraps renderPuzzle/recomputeFlow/checkWin and runs
+   its own perpetual rAF loop + a 1 s interval, which kept every screen rendering continuously. */
 (function(){
+if(!/[?&]diag\b/.test(location.search)) return;
 const D=window.__diag={noParticles:false,noPackets:false,noWin:false};
 let rafCalls=0; const _raf=window.requestAnimationFrame.bind(window);
 window.requestAnimationFrame=function(cb){rafCalls++;return _raf(cb);};
@@ -11127,6 +11435,1528 @@ Object.assign(BGP, {
   virus:{dir:'up',spd:10,kind:'dot',cols:['77,255,154','45,255,138'],mix:.14,r:[.25,.7],a:[.04,.14]},
   carnival:{dir:'up',spd:8,kind:'dot',cols:['255,207,106','255,70,180'],mix:.15,r:[.25,.65],a:[.04,.15]}
 });
+
+
+/* =========================================================================
+   THEMES V2 -- redesigned worlds (theme-redesign milestone).
+   100% cosmetic: nothing here is read by the tracer, the win check, the
+   save or the reward system. A theme is "v2" when THEME_V2[id] exists; its
+   id, price, unlock and reward set are untouched (save compatibility).
+
+   PERFORMANCE MODEL (see the milestone report):
+   - Idle puzzle = zero running animations. Beams, mechanisms, locks and
+     tracks are static SVG once they settle; every legacy infinite loop
+     (halo pulse, gimmick wobble, beam dash flow, energy packets, lock
+     "wait" pulse, layer breathing) is switched off under body.theme-v2.
+   - Motion is EVENT-DRIVEN: a rotation re-traces the changed beams from
+     their sources (WAAPI on stroke-dashoffset, a few hundred ms), locks and
+     mechanisms react when the beam actually reaches them, then everything
+     stops again.
+   - Ambient life lives in the background only, as pre-rasterised image
+     layers moved by compositor-only transform/opacity animations (no
+     main-thread work, no repaint). It pauses after 30 s without input,
+     while a modal is open, and is off with Reduce Motion / OS reduced
+     motion.
+   - No SVG filters in v2 puzzle art (glows are layered strokes/gradients).
+   ========================================================================= */
+const V2 = { cur:null, envCache:{}, sleepTimer:0, rimTimer:0, newLitDelay:0, lockDoneAt:0, SPD:2.25 };   // px/ms: a full-board beam (~400) re-traces in ~180 ms after the 120 ms glide
+function v2Cur(){ return V2.cur; }
+function v2Reduced(){
+  return document.body.classList.contains('reduceMotion') ||
+    !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+}
+function v2Rand(seed){ let a = seed>>>0; return ()=>{ a = (a + 0x6D2B79F5)|0; let t = Math.imul(a ^ (a>>>15), 1|a); t = (t + Math.imul(t ^ (t>>>7), 61|t)) ^ t; return ((t ^ (t>>>14))>>>0)/4294967296; }; }
+function v2Tag(t, a, inner){ let s = '<'+t; for(const k in a) s += ' '+k+'="'+a[k]+'"'; return inner===undefined ? s+'/>' : s+'>'+inner+'</'+t+'>'; }
+function v2SvgUrl(vb, par, body){
+  const xml = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="'+vb+'" preserveAspectRatio="'+par+'">'+body+'</svg>';
+  return URL.createObjectURL(new Blob([xml], {type:'image/svg+xml'}));
+}
+const f1 = v => (+v).toFixed(1);
+
+/* ---------- activation / environment ---------- */
+function v2Activate(spec){
+  V2.cur = spec;
+  const b = document.body;
+  [...b.classList].filter(c=>c.indexOf('v2-')===0 && c!=='v2-sleep').forEach(c=>b.classList.remove(c));
+  b.classList.toggle('theme-v2', !!spec);
+  if(!spec) return;
+  b.classList.add('v2-'+spec.id);
+  v2BuildEnv(spec);
+  v2Wake();
+}
+function v2BuildEnv(spec){
+  let host = document.getElementById('v2Env');
+  if(!host){ host = document.createElement('div'); host.id = 'v2Env'; document.body.insertBefore(host, document.getElementById('app')); }
+  let fx = document.getElementById('v2StageFx');
+  if(!fx){ fx = document.createElement('div'); fx.id = 'v2StageFx'; const ar = document.getElementById('puzzleArena'); ar.parentNode.insertBefore(fx, ar.nextSibling); }
+  fx.className = spec.stageFx || '';
+  if(fx.dataset.theme !== spec.id){
+    fx.dataset.theme = spec.id; fx.replaceChildren();
+    const SL = spec.stageLayer;                                   // optional texture moving over the board (compositor only)
+    if(SL){ const u = V2.envCache['fx:'+spec.id] || (V2.envCache['fx:'+spec.id] = v2SvgUrl(SL.vb||'0 0 300 300','none',SL.svg));
+      const d = document.createElement('div'); d.className = 'v2fxIn '+(SL.cls||''); d.style.backgroundImage = 'url("'+u+'")'; d.style.backgroundSize = SL.size||'300px 300px'; fx.appendChild(d); }
+  }
+  if(host.dataset.theme === spec.id) return;
+  host.dataset.theme = spec.id; host.replaceChildren();
+  const layers = V2.envCache[spec.id] || (V2.envCache[spec.id] = spec.env().map(L=>Object.assign({}, L, L.svg!=null ? {url: v2SvgUrl(L.vb||'0 0 1000 1000', L.par||'xMidYMid slice', L.svg)} : {})));
+  layers.forEach(L=>{
+    const d = document.createElement('div');
+    d.className = 'v2L ' + (L.cls||'');
+    if(L.url) d.style.backgroundImage = 'url("'+L.url+'")';
+    if(L.css) d.style.cssText += ';' + L.css;                     // pure-CSS layer (frames, inlays): rasterised once, static
+    if(L.size) d.style.backgroundSize = L.size;
+    if(L.pos) d.style.backgroundPosition = L.pos;
+    if(L.box){ const {inset, ...rest} = L.box; d.style.inset = 'auto'; Object.assign(d.style, rest); }   // sized/positioned box (e.g. something that swings about its own centre)
+    host.appendChild(d);
+  });
+}
+/* ---- generic builders shared by the redesigned themes ---- */
+function v2G(defs, id, stops, attrs, kind){
+  const gr = el(kind||'radialGradient', Object.assign({id}, attrs||{}), defs);
+  stops.forEach(([o,c,a])=>el('stop',{offset:o,'stop-color':c,'stop-opacity':a==null?1:a}, gr));
+  return `url(#${id})`;
+}
+const V2_TLBR = {x1:0.15, y1:0.1, x2:0.85, y2:0.92};
+// the board: contact shadow, outer lip, inner field, optional texture (clipped), gloss, inner shadow, edge light
+function v2Arena(svg, defs, o){
+  v2BoardShadow(svg, defs, o.shadow==null ? 0.55 : o.shadow);
+  el('circle',{r:RIM_R+24, fill:v2G(defs,'v2aLip',o.lip,V2_TLBR,'linearGradient')}, svg);
+  el('circle',{r:RIM_R+2, fill:v2G(defs,'v2aField',o.field,o.fieldAt||{})}, svg);
+  if(o.tex){ const cp = el('clipPath',{id:'v2aClip'}, defs); el('circle',{r:RIM_R+1}, cp); o.tex(el('g',{'clip-path':'url(#v2aClip)'}, svg), defs); }
+  if(o.gloss) el('ellipse',{cx:-82, cy:-110, rx:118, ry:46, fill:v2G(defs,'v2aGloss',[['0','#ffffff',o.gloss],['1','#ffffff',0]]), transform:'rotate(-38 -82 -110)'}, svg);
+  el('circle',{r:RIM_R-19, fill:'none', stroke:'#000', 'stroke-width':4.5, opacity:o.inner==null ? 0.45 : o.inner}, svg);
+  el('circle',{r:RIM_R+23, fill:'none', stroke:o.edge||'#ffffff', 'stroke-width':1, opacity:o.edgeOp==null ? 0.4 : o.edgeOp}, svg);
+  if(o.after) o.after(svg, defs);
+}
+// ring track: o = {groove:[dark,light,w], line:[c,w,op], mark:[c,len,w,op], double:[c,op], sel:{glow:[c,w,op], under:[c,w], main:[c,w], hi, edges:[c,op], mark:[c,op]}}
+function v2TrackStd(g, r, sel, n, o){
+  if(sel){
+    const S = o.sel;
+    el('circle',{r, fill:'none', stroke:S.glow[0], 'stroke-width':S.glow[1], opacity:S.glow[2]}, g);
+    if(o.groove) v2Groove(g, r, o.groove[2], o.groove[0], o.groove[1], 0.6, 0.45);
+    if(S.under) el('circle',{r, fill:'none', stroke:S.under[0], 'stroke-width':S.under[1], opacity:0.9}, g);
+    el('circle',{r, fill:'none', stroke:S.main[0], 'stroke-width':S.main[1], opacity:1}, g);
+    if(S.hi) el('circle',{cx:-0.5, cy:-0.6, r, fill:'none', stroke:S.hi, 'stroke-width':0.7, opacity:0.8}, g);
+    if(S.edges) [r-7.4, r+7.4].forEach(rr=>el('circle',{r:rr, fill:'none', stroke:S.edges[0], 'stroke-width':1.1, opacity:S.edges[1]}, g));
+    v2SlotMarks(g, r, n, o.mark ? o.mark[1]+0.6 : 2, S.mark[0], S.mark[1], o.mark ? o.mark[2]+0.3 : 2.4);
+  } else {
+    if(o.groove) v2Groove(g, r, o.groove[2], o.groove[0], o.groove[1], 0.6, 0.3);
+    if(o.line) el('circle',{r, fill:'none', stroke:o.line[0], 'stroke-width':o.line[1], opacity:o.line[2]}, g);
+    if(o.double) [r-1.8, r+1.8].forEach(rr=>el('circle',{r:rr, fill:'none', stroke:o.double[0], 'stroke-width':0.8, opacity:o.double[1]}, g));
+    if(o.mark) v2SlotMarks(g, r, n, o.mark[1], o.mark[0], o.mark[3], o.mark[2]);
+  }
+}
+// centre hub: o = {stops:[[off,col]...], edge, shape:'circle'|'hex'|'oct'|'square'|'gem'|'star8', r, ring, dot}
+function v2HubStd(h, o){
+  const d = el('defs',{}, h), gr = el('radialGradient',{id:'v2hub', cx:'36%', cy:'32%', r:'72%'}, d);
+  o.stops.forEach(([of,c])=>el('stop',{offset:of,'stop-color':c}, gr));
+  const R = o.r||16;
+  const poly = (k, rot, rr)=>Array.from({length:k},(_,i)=>{ const a = (i/k)*Math.PI*2 + rot; return f1(Math.cos(a)*rr)+','+f1(Math.sin(a)*rr); }).join(' ');
+  const star = rr=>Array.from({length:16},(_,i)=>{ const a = (i/16)*Math.PI*2 - Math.PI/2, q = i%2 ? rr*0.62 : rr; return f1(Math.cos(a)*q)+','+f1(Math.sin(a)*q); }).join(' ');
+  const shape = (attrs, rr, dx, dy)=>{ const t = `translate(${dx||0} ${dy||0})`;
+    if(o.shape==='hex') return el('polygon',Object.assign({points:poly(6,Math.PI/6,rr), transform:t},attrs), h);
+    if(o.shape==='oct') return el('polygon',Object.assign({points:poly(8,Math.PI/8,rr), transform:t},attrs), h);
+    if(o.shape==='square') return el('rect',Object.assign({x:-rr*0.82, y:-rr*0.82, width:rr*1.64, height:rr*1.64, rx:rr*0.18, transform:t},attrs), h);
+    if(o.shape==='gem') return el('polygon',Object.assign({points:poly(4,-Math.PI/2,rr*1.08), transform:t},attrs), h);
+    if(o.shape==='star8') return el('polygon',Object.assign({points:star(rr*1.12), transform:t},attrs), h);
+    return el('circle',Object.assign({r:rr, transform:t},attrs), h); };
+  shape({fill:'#000', opacity:0.42}, R+1, 2.5, 3);
+  shape({fill:'url(#v2hub)', stroke:o.edge||'#000', 'stroke-width':1}, R);
+  if(o.ring) shape({fill:'none', stroke:o.ring, 'stroke-width':0.8, opacity:0.5}, R*0.6);
+  if(o.dot) el('circle',{r:R*0.32, fill:o.dot}, h);
+  el('circle',{cx:-R*0.28, cy:-R*0.3, r:R*0.13, fill:'#fff', opacity:0.75}, h);
+}
+// per-theme UI tokens -> one generated stylesheet
+function v2UiCss(id, u){
+  return `body.v2-${id}{--panel:${u.panel};--panel-line:${u.line};--panel-line-bright:${u.bright};--ring:${u.ring};--ring-dim:${u.dim};--ring-selected:${u.sel};`+
+    `--text0:${u.t0};--text1:${u.t1};--text2:${u.t2};--accent:${u.accent};--v2-hud:${u.hud};--v2-card:${u.card};--v2-btn:${u.btn};--v2-modal:${u.modal};--v2-win:${u.win};`+
+    (u.font?`--font-display:${u.font};`:'')+`background:${u.bg} !important}`;
+}
+// Ambient sleep: background motion pauses after 30 s without input.
+function v2Wake(){
+  document.body.classList.remove('v2-sleep');
+  clearTimeout(V2.sleepTimer);
+  V2.sleepTimer = setTimeout(()=>document.body.classList.add('v2-sleep'), 30000);
+}
+['pointerdown','keydown','touchstart','wheel'].forEach(t=>window.addEventListener(t, ()=>{ if(V2.cur) v2Wake(); }, {passive:true}));
+
+/* ---------- shared puzzle-art helpers (drawn with el(), into #puzzle / #puzzleArena) ---------- */
+// light comes from the top-left in every v2 theme; shadows fall to the bottom-right
+const V2_SHADOW = {x:2.2, y:2.8};
+function v2Defs(defs, spec){
+  const P = spec.pal;
+  const lin = (id, stops, x1, y1, x2, y2)=>{ const g = el('linearGradient',{id, x1, y1, x2, y2}, defs); stops.forEach(([o,c,a])=>el('stop',{offset:o,'stop-color':c,'stop-opacity':a==null?1:a}, g)); };
+  const rad = (id, stops, cx, cy, r)=>{ const g = el('radialGradient',{id, cx:cx||'50%', cy:cy||'50%', r:r||'50%'}, defs); stops.forEach(([o,c,a])=>el('stop',{offset:o,'stop-color':c,'stop-opacity':a==null?1:a}, g)); };
+  lin('v2Sock', [['0',P.sockHi],['1',P.sockLo]], '0.15','0.1','0.85','0.9');
+  rad('v2SockIn', [['0',P.sockIn],['0.75',P.sockIn],['1',P.sockLo]], '58%','62%','60%');
+  rad('v2Lens', [['0','#ffffff',0.95],['0.35','#ffffff',0.25],['1','#ffffff',0]], '35%','32%','65%');
+}
+function v2Socket(g, R){
+  el('circle',{cx:V2_SHADOW.x, cy:V2_SHADOW.y, r:R, fill:'#000', opacity:0.32}, g);
+  el('circle',{r:R, fill:'url(#v2Sock)', stroke:V2.cur.pal.sockEdge, 'stroke-width':1}, g);
+  el('circle',{r:R-2.6, fill:'url(#v2SockIn)'}, g);
+}
+function v2Source(tip, sel, color){
+  v2Socket(tip, 10.5);
+  el('circle',{r:6.3, fill:color, stroke:sel?'#ffffff':'rgba(255,255,255,.55)', 'stroke-width':sel?1.6:1}, tip);
+  el('circle',{r:6.3, fill:'url(#v2Lens)'}, tip);
+}
+// engraved concentric groove: a dark stroke plus a light stroke nudged towards the light's far side
+function v2Groove(g, r, w, dark, light, darkOp, lightOp){
+  el('circle',{cx:0, cy:0, r, fill:'none', stroke:dark, 'stroke-width':w, opacity:darkOp}, g);
+  el('circle',{cx:0.9, cy:1.1, r, fill:'none', stroke:light, 'stroke-width':1, opacity:lightOp}, g);
+}
+function v2SlotMarks(g, r, n, len, color, op, width){
+  let d = '';
+  for(let s=0; s<n; s++){ const a = slotToAngle(s, n), c = Math.cos(a), si = Math.sin(a);
+    d += `M ${f1(c*(r-len))} ${f1(si*(r-len))} L ${f1(c*(r+len))} ${f1(si*(r+len))} `; }
+  el('path',{d, fill:'none', stroke:color, 'stroke-width':width||1, opacity:op, 'stroke-linecap':'round'}, g);
+}
+// contact shadow of the whole board on whatever it sits on (baked into the arena bitmap)
+function v2BoardShadow(svg, defs, op){
+  const g = el('radialGradient',{id:'v2BoardSh'}, defs);
+  el('stop',{offset:'0.86','stop-color':'#000','stop-opacity':op}, g);
+  el('stop',{offset:'1','stop-color':'#000','stop-opacity':0}, g);
+  el('circle',{cx:7, cy:10, r:RIM_R+29, fill:'url(#v2BoardSh)'}, svg);
+}
+
+/* ---------- v2 rim (used when the equipped rim cosmetic belongs to a v2 theme) ---------- */
+function drawRimV2(rimG, defs, n, states, M){
+  const rimHalf = RIM_BAND.half*optScale('rimSize');
+  const rIn = RIM_R - rimHalf, rOut = RIM_R + rimHalf;
+  const lin = (id, c0, c1)=>{ const g = el('linearGradient',{id, x1:'0.1', y1:'0', x2:'0.9', y2:'1'}, defs); el('stop',{offset:'0','stop-color':c0}, g); el('stop',{offset:'1','stop-color':c1}, g); };
+  lin('v2RimBase', M.base[0], M.base[1]);
+  (M.alt||[]).forEach((pr,i)=>lin('v2RimAlt'+i, pr[0], pr[1]));
+  { const U=lockPalette(false,false), L=lockPalette(true,false), CU=lockPalette(false,true), CL=lockPalette(true,true);
+    lin('v2RimRed', U.main, U.dark); lin('v2RimGreen', L.light, L.main); lin('v2RimCoinOff', CU.main, CU.dark); lin('v2RimCoinOn', CL.light, CL.main); }
+  lin('v2RimFog', '#e4edf4', '#aebccc');
+  el('circle',{cx:V2_SHADOW.x, cy:V2_SHADOW.y, r:rOut+1.5, fill:'none', stroke:'#000', 'stroke-width':4, opacity:0.35}, rimG);
+  const P = (r,a)=> `${f1(Math.cos(a)*r)} ${f1(Math.sin(a)*r)}`;
+  for(let s=0; s<n; s++){
+    const t = states[s];
+    el('path',{d:rimPanelPath(s, n, rIn, rOut, M.gap||2.4), fill:M.alt ? `url(#v2RimAlt${s%M.alt.length})` : 'url(#v2RimBase)', stroke:M.seam, 'stroke-width':M.seamW||1}, rimG);
+    const c = slotToAngle(s, n), st = Math.PI*2/n*0.36;
+    el('path',{d:`M ${P(rOut-2.2,c-st)} A ${rOut-2.2} ${rOut-2.2} 0 0 1 ${P(rOut-2.2,c+st)}`, fill:'none', stroke:M.hi, 'stroke-width':1.2, 'stroke-linecap':'round', opacity:0.5}, rimG);
+    if(M.fleck){ const r = v2Rand(s*97+11); for(let i=0;i<M.fleck.count;i++){ const rr = rIn+3+r()*(rOut-rIn-6), aa = c + (r()-0.5)*Math.PI*2/n*0.8;
+      el('circle',{cx:f1(Math.cos(aa)*rr), cy:f1(Math.sin(aa)*rr), r:f1(0.6+r()*1.4), fill:M.fleck.colors[i%M.fleck.colors.length], opacity:M.fleck.op}, rimG); } }
+    if(M.deco) M.deco(rimG, s, n, rIn, rOut, c, t);
+    if(!t) continue;
+    let fill;
+    if(t.st==='fog') fill = 'v2RimFog';
+    else if(t.st==='dead') fill = null;
+    else if(t.kind==='bonus') fill = t.st==='lit' ? 'v2RimCoinOn' : 'v2RimCoinOff';
+    else fill = t.st==='lit' ? 'v2RimGreen' : 'v2RimRed';
+    if(!fill) continue;
+    // glazed inset tile carrying the lock state colour
+    const ins = 3.2;
+    el('path',{d:rimPanelPath(s, n, rIn+ins, rOut-ins, (M.gap||2.4)+ins*2.2), fill:`url(#${fill})`, stroke:'rgba(0,0,0,.45)', 'stroke-width':1}, rimG);
+    el('path',{d:`M ${P(rOut-ins-2,c-st*0.85)} A ${rOut-ins-2} ${rOut-ins-2} 0 0 1 ${P(rOut-ins-2,c+st*0.85)}`, fill:'none', stroke:'#ffffff', 'stroke-width':1.4, 'stroke-linecap':'round', opacity:t.st==='lit'?0.7:0.35}, rimG);
+  }
+  if(M.after) M.after(rimG, n, rIn, rOut);
+  el('circle',{cx:0, cy:0, r:rOut+0.5, fill:'none', stroke:M.edge, 'stroke-width':1.6, opacity:0.9}, rimG);
+  el('circle',{cx:0, cy:0, r:rIn-0.5, fill:'none', stroke:M.inner, 'stroke-width':1.4, opacity:0.8}, rimG);
+}
+// small helpers for rim decorations
+function v2RimDot(rimG, a, r, rad, fill, op){ el('circle',{cx:f1(Math.cos(a)*r), cy:f1(Math.sin(a)*r), r:rad, fill, opacity:op==null?1:op}, rimG); }
+
+/* ---------- beams: static when idle, re-traced from the source when they change ---------- */
+// distance along the beam at which each segment starts (prism children start at their parent's end;
+// a black-hole exit continues from the entry segment)
+function v2SegStarts(segs){
+  const start = [], end = [];
+  segs.forEach((s,i)=>{
+    let d0 = 0;
+    if(i>0){
+      let j = -1;
+      for(let k=i-1;k>=0;k--){ if(Math.abs(segs[k].x2-s.x1)<0.5 && Math.abs(segs[k].y2-s.y1)<0.5){ j = k; break; } }
+      d0 = j>=0 ? end[j] : end[i-1];
+    }
+    start.push(d0); end.push(d0 + Math.hypot(s.x2-s.x1, s.y2-s.y1));
+  });
+  return {start, end};
+}
+function renderBeamsV2(V2C, c){
+  const {lvl, n, _same, _pL, _pS, _rotChanged} = c;
+  const reduced = c._noMo || v2Reduced();
+  const coinLocks = currentMode==='special' || currentMode==='orchestra' || currentMode==='rocket';
+  const svg = document.getElementById('puzzleBeams'); svg.innerHTML = '';
+  const layer = el('g',{}, svg);
+  // TIMING: the ring glide is 200 ms (overshoot peaks at 62% = 124 ms), so a re-trace starts as the
+  // ring reaches its new slot (120 ms) and each beam's speed is scaled to its own length: ordinary
+  // paths finish at ~250-350 ms after the input, the longest are capped at 450 ms. While dragging,
+  // or when inputs arrive faster than a trace can finish, beams are drawn at once instead.
+  const now = performance.now();
+  const rapid = _rotChanged && (now - (V2.lastTrace||-1e9) < 240);
+  const instant = reduced || (typeof _drag!=='undefined' && _drag.on) || rapid;
+  if(_rotChanged && !instant) V2.lastTrace = now;
+  const base = _rotChanged ? 120 : 320;          // level start: let the board's intro settle first
+  const BUDGET = _rotChanged ? 450 - base : 330;  // rotation: whole trace done by 450 ms after input
+  const prevSig = (_same && renderPuzzle._bsig) || {};
+  const sigs = {};
+  const lockAt = {};                               // rim slot -> ms until a beam reaches it
+  const hitAt = new Map();                         // "x,y" of a segment end -> ms until the beam gets there
+  const srcK = optScale('sourceSize');
+  // lit-source halos (static)
+  lvl.rings.forEach((ring,r)=>ring.spokeSlots.forEach(slot=>{
+    const br = gstate.beamResults.find(b=>b.ring===r && b.authoredSlot===slot);
+    if(!br || !br.result.hitLockSlots.length) return;
+    const a = slotToAngle((slot+gstate.rotations[r])%n, n), rad = ringRadius(r);
+    el('circle',{cx:f1(Math.cos(a)*rad), cy:f1(Math.sin(a)*rad), r:13*srcK, fill:'url(#flareGradLit)', opacity:0.75}, layer);
+  }));
+  const sorted = gstate.beamResults.slice().sort((a,b2)=>(a.ring===gstate.selectedRing?1:0)-(b2.ring===gstate.selectedRing?1:0));
+  const B = V2C.beam || {};
+  sorted.forEach(b=>{
+    const segs = b.result.segments; if(!segs.length) return;
+    const key = b.ring+':'+b.authoredSlot;
+    const sig = segs.map(s=>f1(s.x1)+','+f1(s.y1)+','+f1(s.x2)+','+f1(s.y2)+(segIsLit(s)?'L':'')).join(';');
+    sigs[key] = sig;
+    const animate = !instant && (_rotChanged || !_same) && prevSig[key] !== sig;
+    const isC = b.ring === gstate.selectedRing;
+    const {start, end} = v2SegStarts(segs);
+    const SPD = Math.max(V2.SPD, Math.max(...end) / BUDGET);   // px per ms for this beam
+    segs.forEach((s,i)=>{
+      const lit = segIsLit(s);
+      const col = lit ? beamColorFor(true) : (isC ? getControlledBeamColor() : getBackgroundBeamColor());
+      const len = end[i]-start[i];
+      const d = `M ${f1(s.x1)} ${f1(s.y1)} L ${f1(s.x2)} ${f1(s.y2)}`;
+      const cw = (isC?2.2:1.6)*srcK;
+      // glow = layered translucent strokes (no SVG filter); a lit beam gets a white-hot core
+      const strokes = [
+        [col, (isC?12:9)*srcK, isC?(B.haloC||0.16):(B.halo||0.09)],
+        [col, (isC?4.6:3.4)*srcK, isC?0.42:0.28],
+        ...(lit ? [[col, cw*1.5, 0.95], ['#ffffff', cw*0.6, 1]] : [[col, cw, isC?1:0.85]]),
+      ];
+      const delay = base + start[i]/SPD, dur = Math.max(16, len/SPD);
+      strokes.forEach(([sc,w,op])=>{
+        const p = el('path',{d, fill:'none', stroke:sc, 'stroke-width':w, opacity:op, 'stroke-linecap':'round'}, layer);
+        if(animate){
+          p.style.strokeDasharray = `${f1(len+1)} ${f1(len+2)}`;
+          p.animate([{strokeDashoffset:len+1},{strokeDashoffset:0}], {duration:dur, delay, fill:'backwards', easing:'linear'});
+        }
+      });
+      if(animate){                                     // the energy front travelling ahead of the trace
+        const sp = el('circle',{r:(isC?3.6:2.8)*srcK, fill:'#ffffff', opacity:0}, layer);
+        sp.animate([{opacity:1, transform:`translate(${f1(s.x1)}px,${f1(s.y1)}px)`},{opacity:1, transform:`translate(${f1(s.x2)}px,${f1(s.y2)}px)`}], {duration:dur, delay, easing:'linear'});
+      }
+      const arrive = animate ? delay + dur : 0;
+      hitAt.set(Math.round(s.x2)+','+Math.round(s.y2), Math.min(hitAt.get(Math.round(s.x2)+','+Math.round(s.y2)) ?? 1e9, arrive));
+      if(Math.hypot(s.x2,s.y2) > RIM_R-1){
+        const sl = angleToNearestSlot(Math.atan2(s.y2,s.x2), n);
+        lockAt[sl] = Math.min(lockAt[sl] ?? 1e9, arrive);
+      } else if(!segs.some(o=>o!==s && Math.hypot(o.x1-s.x2,o.y1-s.y2)<0.5)){
+        // the beam ends inside the board (block, half-block, satellite top, unpaired hole...)
+        el('circle',{cx:f1(s.x2), cy:f1(s.y2), r:2.6*srcK, fill:col, opacity:0.95}, layer);
+        if(animate){ const pg = el('circle',{cx:f1(s.x2), cy:f1(s.y2), r:4, fill:'none', stroke:col, 'stroke-width':1.6, opacity:0}, layer);
+          pg.style.transformBox = 'fill-box'; pg.style.transformOrigin = 'center';
+          pg.animate([{opacity:0.9, transform:'scale(.6)'},{opacity:0, transform:'scale(3)'}], {duration:420, delay:arrive, easing:'ease-out'}); }
+      }
+    });
+  });
+  // locks that just lit: react when the beam arrives
+  let newLit = 0;
+  if(_same && _pL){
+    const bl = lvl.bonusLockSlots||[];
+    [...lvl.lockSlots, ...bl].forEach(s=>{ if(gstate.litLocks.has(s) && !_pL.has(s)){
+      const t = Math.min(1500, lockAt[s] ?? 0); newLit = Math.max(newLit, t);
+      if(reduced) return;
+      const a = slotToAngle(s,n), x = Math.cos(a)*RIM_R, y = Math.sin(a)*RIM_R, bon = bl.includes(s)||coinLocks;
+      setTimeout(()=>{ const pc = lockPalette(true,bon); Fx.ring(x,y,6,bon?46:34,pc.main); Fx.burst(x,y,pc.light,bon?18:10); }, t);
+    } });
+    if(_pS!==undefined && _pS!==gstate.selectedRing) Fx.ring(0,0,ringRadius(gstate.selectedRing)-14,ringRadius(gstate.selectedRing)+14,'#fff6c8',.4);
+  }
+  V2.newLitDelay = newLit; V2.lockDoneAt = performance.now() + newLit;
+  // mechanisms react when the beam reaches them (same detection as the legacy layer)
+  { const CC={mirror_l:'#ffffff',mirror_r:'#ffffff',block:'#ff5a5a',amp:'#ffd23f',portal:'#c77dff',half_block:'#ff9d4d',prism:'#ff5ec4',bell:'#ffffff'};
+    const gh = new Map();
+    gstate.beamResults.forEach(b=>b.result.segments.forEach(s=>{ const rd = Math.hypot(s.x2,s.y2), sl = angleToNearestSlot(Math.atan2(s.y2,s.x2),n);
+      lvl.rings.forEach((ring,r)=>{ if(!ring.gimmicks || Math.abs(rd-ringRadius(r))>.6) return;
+        Object.keys(ring.gimmicks).forEach(k=>{ const raw = ring.gimmicks[k], ty = typeof raw==='string'?raw:raw.type; if(!CC[ty]) return;
+          const fx = (typeof raw==='object'&&raw.fixed===true)||ty==='bell', w = typeof raw==='string'?1:Math.max(1,raw.width||1);
+          for(let q=0;q<w;q++){ const live = fx?(parseInt(k,10)+q)%n:(parseInt(k,10)+q+gstate.rotations[r])%n;
+            if(live===sl){ const id = r+':'+sl+':'+ty; gh.set(id, Math.min(gh.get(id) ?? 1e9, hitAt.get(Math.round(s.x2)+','+Math.round(s.y2)) ?? 0)); } } }); }); }));
+    const eh = (gstate.echoHits||[]).map(e=>e.ringIdx+':'+e.slot+':'+e.mode);
+    if(_same && renderPuzzle._gh && !reduced){
+      gh.forEach((t,k)=>{ if(renderPuzzle._gh.has(k)) return; const [r,sl,ty] = k.split(':'), a = slotToAngle(+sl,n), rr = ringRadius(+r), x = Math.cos(a)*rr, y = Math.sin(a)*rr;
+        setTimeout(()=>{ Fx.ring(x,y,3,24,CC[ty],.42); Fx.burst(x,y,CC[ty],ty==='prism'?10:6); }, Math.min(1500,t)); });
+      (gstate.echoHits||[]).forEach(e=>{ const k = e.ringIdx+':'+e.slot+':'+e.mode; if((renderPuzzle._echo||[]).includes(k)) return;
+        const a = slotToAngle(e.slot,n), rr = ringRadius(e.ringIdx), x = Math.cos(a)*rr, y = Math.sin(a)*rr;
+        let t = 0; hitAt.forEach((v,kk)=>{ const [hx,hy] = kk.split(',').map(Number); if(Math.hypot(hx-x,hy-y)<2) t = Math.max(t, v); });
+        setTimeout(()=>{ if(e.mode==='kill'){ Fx.burst(x,y,'#ff6a5a',14); Fx.ring(x,y,4,28,'#ff6a5a',.4); Fx.shake(true); } else { Fx.ring(x,y,30,5,'#5df0ff',.45); Fx.burst(x,y,'#8ff6ff',10); } }, Math.min(1500,t)); });
+      if(_pS!==undefined && _pS!==gstate.selectedRing){ const tg = document.getElementById('ringTag'); if(tg){ tg.classList.remove('tagPop'); void tg.offsetWidth; tg.classList.add('tagPop'); } }
+    }
+    renderPuzzle._gh = new Set(gh.keys()); renderPuzzle._echo = eh;
+  }
+  renderPuzzle._bsig = sigs;
+  renderPuzzle._rots = gstate.rotations.slice(); renderPuzzle._lit = new Set(gstate.litLocks); renderPuzzle._sel = gstate.selectedRing; renderPuzzle._lvl = lvl;
+}
+// rim redraw for a v2 theme: newly lit locks turn on when their beam arrives, everything else immediately
+function v2ScheduleRim(){
+  clearTimeout(V2.rimTimer);
+  const go = ()=>{ if(RPS.rim && gstate.level) lite(()=>drawRimLocks(RPS.rim)); };
+  if(V2.newLitDelay > 20) V2.rimTimer = setTimeout(go, V2.newLitDelay); else go();
+}
+// win visuals for a v2 theme: wait for the last beam to land, then light the board
+function v2Celebrate(withCoin, show){
+  const run = ()=>{
+    show();
+    const st = document.getElementById('stage');
+    if(st && !v2Reduced()){ st.classList.remove('v2-win'); void st.offsetWidth; st.classList.add('v2-win'); setTimeout(()=>st.classList.remove('v2-win'), 1400); }
+    Fx.celebrate(withCoin);
+  };
+  // rotateRing() calls checkWin() before renderPuzzle(); wait one frame so the beam timing exists
+  requestAnimationFrame(()=>{ const wait = Math.max(0, V2.lockDoneAt - performance.now()); if(wait > 20) setTimeout(run, wait + 60); else run(); });
+}
+
+/* ---------- background-art helpers (SVG strings, rasterised once) ---------- */
+function v2Stars(tile, count, seed, rMin, rMax, opMin, opMax, colors, glow){
+  const R = v2Rand(seed); let s = '';
+  for(let i=0;i<count;i++){
+    const x = R()*tile, y = R()*tile, r = rMin + R()*(rMax-rMin), c = colors[Math.floor(R()*colors.length)], o = opMin + R()*(opMax-opMin);
+    if(glow && r > (rMin+rMax)/2) s += v2Tag('circle',{cx:f1(x),cy:f1(y),r:f1(r*3.2),fill:c,opacity:(o*0.12).toFixed(3)});
+    s += v2Tag('circle',{cx:f1(x),cy:f1(y),r:f1(r),fill:c,opacity:o.toFixed(2)});
+  }
+  return s;
+}
+function v2Grad(id, stops, kind, attrs){
+  return v2Tag(kind||'linearGradient', Object.assign({id}, attrs||{}), stops.map(([o,c,a])=>v2Tag('stop',{offset:o,'stop-color':c,'stop-opacity':a==null?1:a})).join(''));
+}
+function v2Speckle(count, seed, x0, y0, w, h, colors, rMin, rMax, opMin, opMax){
+  const R = v2Rand(seed); let s = '';
+  for(let i=0;i<count;i++) s += v2Tag('circle',{cx:f1(x0+R()*w), cy:f1(y0+R()*h), r:f1(rMin+R()*(rMax-rMin)), fill:colors[Math.floor(R()*colors.length)], opacity:(opMin+R()*(opMax-opMin)).toFixed(2)});
+  return s;
+}
+// irregular rounded blob (stones, moss) around (cx,cy)
+function v2Blob(cx, cy, r, seed, k){
+  const R = v2Rand(seed), N = 9, pts = [];
+  for(let i=0;i<N;i++){ const a = i/N*Math.PI*2, rr = r*(1 - (k||0.18) + R()*(k||0.18)*2); pts.push([cx+Math.cos(a)*rr*1.12, cy+Math.sin(a)*rr*0.86]); }
+  let d = '';
+  for(let i=0;i<N;i++){ const p = pts[i], q = pts[(i+1)%N], m = [(p[0]+q[0])/2, (p[1]+q[1])/2];
+    d += (i===0 ? `M ${f1((pts[N-1][0]+p[0])/2)} ${f1((pts[N-1][1]+p[1])/2)} ` : '') + `Q ${f1(p[0])} ${f1(p[1])} ${f1(m[0])} ${f1(m[1])} `; }
+  return d + 'Z';
+}
+
+// ui tokens from a handful of colours; ink = the theme's darkest tone as [r,g,b]
+function v2UiMk(o){
+  const [r,g,b] = o.ink, rgba = (a,k)=>`rgba(${Math.round(r*(k||1))},${Math.round(g*(k||1))},${Math.round(b*(k||1))},${a})`, lift = o.lift || [r*2.4,g*2.4,b*2.4].map(v=>Math.min(255,Math.round(v)));
+  return { panel:o.panel||rgba(1), line:o.line, bright:o.bright, ring:o.ring, dim:o.dim||o.line, sel:o.sel, t0:o.t0, t1:o.t1, t2:o.t2, accent:o.accent,
+    hud:rgba(o.hudA||0.66), card:`linear-gradient(160deg,rgba(${lift.join(',')},.34),${rgba(0.8)})`, btn:rgba(0.76), modal:`linear-gradient(160deg,${rgba(0.97,1.6)},${rgba(0.98,0.8)})`,
+    win:o.win, font:o.font, bg:o.bg };
+}
+
+/* =========================================================================
+   REDESIGNED THEMES
+   ========================================================================= */
+const THEME_V2 = {};
+
+/* ---- SPACE -> "Deep Field": anodised instrument steel, cool key light, two
+   star depths drifting at different speeds (parallax), a slow scanner sweep. */
+THEME_V2.space = {
+  id:'space', name:'Deep Field', blurb:'Anodised instrument steel under a slowly drifting deep sky. The default world.',
+  pal:{ sockHi:'#55708f', sockLo:'#0e1828', sockIn:'#08101d', sockEdge:'#02050b' },
+  stageFx:'v2-sweep', rimId:'deepfield', swatch:'linear-gradient(135deg,#a9d0f5,#132139 55%,#7fe7ff)',
+  ui:{ panel:'#0a1222', line:'#26395a', bright:'#6f97c8', ring:'#a9dcff', dim:'#2a4060', sel:'#dff6ff', t0:'#eaf3ff', t1:'#9bb2cf', t2:'#5b7696', accent:'#7fe7ff',
+    hud:'rgba(6,10,20,.62)', card:'linear-gradient(160deg,rgba(40,70,110,.32),rgba(6,10,20,.7))', btn:'rgba(10,18,34,.72)', modal:'linear-gradient(160deg,rgba(14,24,44,.97),rgba(4,7,14,.98))', win:'rgba(160,235,255,.4)', bg:'#03050a' },
+  env(){
+    const base = v2Grad('bg',[['0','#0a1122'],['0.55','#050913'],['1','#020308']],'linearGradient',{x1:0,y1:0,x2:0.4,y2:1})
+      + v2Grad('pool',[['0','#2a4878',0.5],['1','#2a4878',0]],'radialGradient',{cx:0.18,cy:0.12,r:0.75})
+      + v2Grad('lane',[['0','#4a6ea8',0.12],['1','#4a6ea8',0]],'radialGradient',{})
+      + v2Grad('vig',[['0.55','#000',0],['1','#000',0.65]],'radialGradient',{});
+    return [
+      { svg: v2Tag('defs',{},base) + v2Tag('rect',{width:1000,height:1000,fill:'url(#bg)'}) + v2Tag('rect',{width:1000,height:1000,fill:'url(#pool)'})
+          + v2Tag('ellipse',{cx:560,cy:520,rx:760,ry:110,fill:'url(#lane)',transform:'rotate(-28 560 520)'})
+          + v2Stars(1000, 90, 7, 0.4, 0.9, 0.08, 0.3, ['#9fb8e0','#ffffff']) + v2Tag('rect',{width:1000,height:1000,fill:'url(#vig)'}) },
+      { cls:'v2T v2PanA', vb:'0 0 400 400', par:'none', size:'400px 400px', svg: v2Stars(400, 46, 21, 0.35, 0.95, 0.25, 0.7, ['#ffffff','#cfe0ff','#a9c4ff']) },
+      { cls:'v2T v2PanB', vb:'0 0 600 600', par:'none', size:'600px 600px', svg: v2Stars(600, 11, 33, 0.9, 1.7, 0.55, 0.95, ['#ffffff','#e3ecff','#ffe9c4'], true) },
+    ];
+  },
+  arena(svg, defs){
+    v2BoardShadow(svg, defs, 0.65);
+    const g = (id, stops, attrs, kind)=>{ const gr = el(kind||'radialGradient', Object.assign({id}, attrs||{}), defs); stops.forEach(([o,c,a])=>el('stop',{offset:o,'stop-color':c,'stop-opacity':a==null?1:a}, gr)); };
+    g('v2spDisc', [['0','#1d2f4d'],['0.6','#132139'],['1','#0a1322']]);
+    g('v2spBevel', [['0','#a8cdf2'],['0.5','#2b4466'],['1','#03060c']], {x1:0.15,y1:0.1,x2:0.85,y2:0.9}, 'linearGradient');
+    g('v2spAniso', [['0','#ffffff',0],['0.3','#ffffff',0.11],['1','#ffffff',0]], {cx:0, cy:0, r:RIM_R+24, gradientUnits:'userSpaceOnUse'});
+    el('circle',{r:RIM_R+24, fill:'url(#v2spDisc)'}, svg);
+    // concentric "turned" finish: two paths of many fine circles
+    let dl = '', dd = '';
+    for(let i=0;i<110;i++){ const r = 14 + i*2.1; const arc = `M ${r} 0 A ${r} ${r} 0 1 0 ${-r} 0 A ${r} ${r} 0 1 0 ${r} 0 `; if(i%2) dl += arc; else dd += arc; }
+    el('path',{d:dl, fill:'none', stroke:'#ffffff', 'stroke-width':0.6, opacity:0.035}, svg);
+    el('path',{d:dd, fill:'none', stroke:'#000000', 'stroke-width':0.6, opacity:0.12}, svg);
+    // anisotropic highlight of a turned surface: a bow-tie aligned with the light
+    [-135, 45].forEach((deg,k)=>{ const a = deg*Math.PI/180, w = 0.24, R = RIM_R+24;
+      el('path',{d:`M 0 0 L ${f1(Math.cos(a-w)*R)} ${f1(Math.sin(a-w)*R)} A ${R} ${R} 0 0 1 ${f1(Math.cos(a+w)*R)} ${f1(Math.sin(a+w)*R)} Z`, fill:'url(#v2spAniso)', opacity:k?0.45:1}, svg); });
+    el('circle',{r:RIM_R+23, fill:'none', stroke:'url(#v2spBevel)', 'stroke-width':2.2}, svg);
+    el('circle',{r:RIM_R-19, fill:'none', stroke:'#000', 'stroke-width':4, opacity:0.45}, svg);
+    el('circle',{r:46, fill:'#000', opacity:0.18}, svg);
+  },
+  hub(h){
+    const d = el('defs',{}, h);
+    const gr = el('linearGradient',{id:'v2spHub', x1:0.15, y1:0.1, x2:0.85, y2:0.9}, d); el('stop',{offset:0,'stop-color':'#7d98bb'}, gr); el('stop',{offset:1,'stop-color':'#17243a'}, gr);
+    const gc = el('radialGradient',{id:'v2spCap', cx:'38%', cy:'34%', r:'70%'}, d); el('stop',{offset:0,'stop-color':'#e9f6ff'}, gc); el('stop',{offset:1,'stop-color':'#33507a'}, gc);
+    el('circle',{cx:2.5, cy:3, r:18, fill:'#000', opacity:0.42}, h);
+    el('circle',{r:17, fill:'url(#v2spHub)', stroke:'#060b14', 'stroke-width':1}, h);
+    el('circle',{r:12.5, fill:'none', stroke:'#ffffff', 'stroke-width':0.7, opacity:0.14}, h);
+    el('circle',{r:7.5, fill:'url(#v2spCap)'}, h);
+    el('circle',{cx:-2.6, cy:-3, r:1.8, fill:'#fff', opacity:0.75}, h);
+  },
+  track(g, r, sel, n){
+    if(sel){
+      el('circle',{r, fill:'none', stroke:'#7fe7ff', 'stroke-width':17, opacity:0.10}, g);
+      v2Groove(g, r, 7, '#01040a', '#a9e4ff', 0.6, 0.55);
+      [r-7.6, r+7.6].forEach(rr=>el('circle',{r:rr, fill:'none', stroke:'#c8f4ff', 'stroke-width':1.1, opacity:0.85}, g));
+      v2SlotMarks(g, r, n, 4.2, '#e8faff', 0.75, 1.3);
+    } else {
+      v2Groove(g, r, 7, '#02050b', '#5f84b0', 0.55, 0.3);
+      v2SlotMarks(g, r, n, 3.2, '#7fa6d6', 0.38, 1);
+    }
+  },
+  beam:{ halo:0.10, haloC:0.17 },
+  // DEEP FIELD RIM: an instrument bezel -- dark anodised segments, engraved graduations, a cyan index line
+  rim:{ base:['#405878','#0a1220'], seam:'#01040a', hi:'#cfe8ff', edge:'#a9d0f5', inner:'#7fe7ff', gap:1.4,
+    deco(rimG, s, n, rIn, rOut, c, t){ if(!t){ v2RimDot(rimG, c, rOut-5.2, 1.7, '#06101e', 0.95); v2RimDot(rimG, c-0.004, rOut-5.6, 0.6, '#cfe8ff', 0.7); } },
+    after(rimG, n, rIn, rOut){
+      let d = ''; for(let i=0;i<120;i++){ const a = i/120*Math.PI*2, L = i%5===0 ? 5.2 : 2.6;
+        d += `M ${f1(Math.cos(a)*(rOut+1.2))} ${f1(Math.sin(a)*(rOut+1.2))} L ${f1(Math.cos(a)*(rOut+1.2+L))} ${f1(Math.sin(a)*(rOut+1.2+L))} `; }
+      el('path',{d, stroke:'#bfe3ff', 'stroke-width':0.8, opacity:0.62, fill:'none'}, rimG);
+      el('circle',{r:rOut+7, fill:'none', stroke:'#5f84b0', 'stroke-width':0.9, opacity:0.5}, rimG);
+      el('circle',{r:rIn+1.8, fill:'none', stroke:'#7fe7ff', 'stroke-width':0.9, opacity:0.6}, rimG); } },
+};
+
+/* ---- ICE -> "Tenmoku": a dark iron-glazed tea bowl with hare's-fur streaks and a
+   kintsugi seam marking the selected ring, celadon details, on linen under warm
+   afternoon window light that slowly shifts. */
+THEME_V2.ice = {
+  id:'ice', name:'Tenmoku', blurb:'A glazed tea bowl with a kintsugi seam, on linen in shifting afternoon window light.',
+  pal:{ sockHi:'#cfe3d5', sockLo:'#4a6e5e', sockIn:'#1a0f08', sockEdge:'#2b4236' },
+  stageFx:'v2-gloss', swatch:'linear-gradient(135deg,#c5dccd,#3b2212 55%,#f2c35a)', badge:{icon:'\ud83c\udf75', color:'#f2c35a'},
+  ui:{ panel:'#221b13', line:'#6a5639', bright:'#e0b766', ring:'#f0dfbd', dim:'#5a4630', sel:'#f2c35a', t0:'#f8f1e4', t1:'#d6c7ab', t2:'#9a8a70', accent:'#9fc7b2',
+    hud:'rgba(26,19,12,.66)', card:'linear-gradient(160deg,rgba(90,70,40,.38),rgba(24,18,11,.78))', btn:'rgba(30,22,14,.74)', modal:'linear-gradient(160deg,rgba(44,33,20,.97),rgba(20,14,9,.98))',
+    win:'rgba(242,195,90,.42)', font:"'Palatino Linotype','Book Antiqua',Palatino,Georgia,serif", bg:'#3a362c' },
+  env(){
+    const R = v2Rand(5);
+    let weave = '';
+    for(let y=0;y<1000;y+=7) weave += `M 0 ${y+R()*1.4} L 1000 ${y+R()*1.4} `;
+    let weaveV = '';
+    for(let x=0;x<1000;x+=7) weaveV += `M ${x+R()*1.4} 0 L ${x+R()*1.4} 1000 `;
+    const defs = v2Grad('lin',[['0','#57513f'],['0.5','#423d31'],['1','#2a2720']],'linearGradient',{x1:0,y1:0,x2:0.7,y2:1})
+      + v2Grad('fold',[['0','#ffffff',0.07],['1','#ffffff',0]],'radialGradient',{})
+      + v2Grad('foldS',[['0','#000',0.16],['1','#000',0]],'radialGradient',{})
+      + v2Grad('vig',[['0.5','#000',0],['1','#000',0.55]],'radialGradient',{});
+    const panes = (()=>{ let s = ''; for(let i=0;i<2;i++) for(let j=0;j<2;j++){ s += v2Tag('rect',{x:120+i*196, y:90+j*176, width:180, height:160, rx:5, fill:'#ffe0a8', opacity:0.2}); } return s; })();
+    return [
+      { svg: v2Tag('defs',{},defs) + v2Tag('rect',{width:1000,height:1000,fill:'url(#lin)'})
+          + v2Tag('path',{d:weave, stroke:'#000', 'stroke-width':1, opacity:0.07, fill:'none'}) + v2Tag('path',{d:weaveV, stroke:'#fff', 'stroke-width':1, opacity:0.03, fill:'none'})
+          + v2Tag('ellipse',{cx:300,cy:760,rx:520,ry:60,fill:'url(#fold)',transform:'rotate(-24 300 760)'})
+          + v2Tag('ellipse',{cx:330,cy:820,rx:520,ry:70,fill:'url(#foldS)',transform:'rotate(-24 330 820)'})
+          + v2Tag('ellipse',{cx:780,cy:230,rx:440,ry:50,fill:'url(#foldS)',transform:'rotate(-24 780 230)'})
+          + v2Tag('rect',{width:1000,height:1000,fill:'url(#vig)'}) },
+      // the window's light on the cloth: four panes, soft-edged, skewed by the low sun
+      { cls:'v2Drift', svg: v2Tag('defs',{}, v2Tag('filter',{id:'b',x:'-20%',y:'-20%',width:'140%',height:'140%'}, v2Tag('feGaussianBlur',{stdDeviation:7})))
+          + v2Tag('g',{filter:'url(#b)', transform:'translate(40 30) skewX(-22) rotate(-8 500 500)'}, panes) },
+      { cls:'v2T v2PanA', vb:'0 0 400 400', par:'none', size:'400px 400px', svg: v2Stars(400, 18, 77, 0.5, 1.4, 0.10, 0.32, ['#ffe9c4','#fff6e0']) },
+    ];
+  },
+  arena(svg, defs){
+    v2BoardShadow(svg, defs, 0.6);
+    const g = (id, stops, attrs, kind)=>{ const gr = el(kind||'radialGradient', Object.assign({id}, attrs||{}), defs); stops.forEach(([o,c,a])=>el('stop',{offset:o,'stop-color':c,'stop-opacity':a==null?1:a}, gr)); };
+    g('v2tmLip', [['0','#d3e6d9'],['0.45','#8fb5a1'],['1','#3f6353']], {x1:0.15,y1:0.1,x2:0.85,y2:0.95}, 'linearGradient');
+    g('v2tmGlaze', [['0','#0f0703'],['0.35','#22120a'],['0.78','#3b2212'],['1','#4d2d15']]);
+    g('v2tmGloss', [['0','#ffffff',0.16],['1','#ffffff',0]]);
+    el('circle',{r:RIM_R+24, fill:'url(#v2tmLip)'}, svg);
+    el('circle',{r:RIM_R+2, fill:'url(#v2tmGlaze)'}, svg);
+    // hare's-fur: fine iron streaks running down the bowl wall
+    const R = v2Rand(91); let d1 = '', d2 = '', d3 = '';
+    for(let i=0;i<420;i++){ const a = R()*Math.PI*2, r0 = 40 + R()*110, r1 = Math.min(RIM_R+1, r0 + 50 + R()*120), bend = (R()-0.5)*0.05;
+      const seg = `M ${f1(Math.cos(a)*r0)} ${f1(Math.sin(a)*r0)} L ${f1(Math.cos(a+bend)*r1)} ${f1(Math.sin(a+bend)*r1)} `;
+      const k = R(); if(k<0.45) d1 += seg; else if(k<0.8) d2 += seg; else d3 += seg; }
+    el('path',{d:d1, stroke:'#a65a29', 'stroke-width':0.8, opacity:0.16, fill:'none'}, svg);
+    el('path',{d:d2, stroke:'#c98a45', 'stroke-width':0.6, opacity:0.12, fill:'none'}, svg);
+    el('path',{d:d3, stroke:'#e2b46a', 'stroke-width':0.5, opacity:0.09, fill:'none'}, svg);
+    el('circle',{r:64, fill:'#000', opacity:0.32}, svg);
+    // glaze gloss + the window reflected in it (same light as the cloth)
+    el('ellipse',{cx:-80, cy:-112, rx:112, ry:44, fill:'url(#v2tmGloss)', transform:'rotate(-38 -80 -112)'}, svg);
+    const rg = el('g',{transform:'translate(-138 -150) skewX(-22) rotate(-8)', opacity:0.16}, svg);
+    [[0,0],[22,0],[0,19],[22,19]].forEach(([x,y])=>el('rect',{x, y, width:19, height:16, rx:2, fill:'#fff6e4'}, rg));
+    el('circle',{r:RIM_R-19, fill:'none', stroke:'#000', 'stroke-width':4, opacity:0.5}, svg);
+    el('circle',{r:RIM_R+23, fill:'none', stroke:'#f3faf5', 'stroke-width':1, opacity:0.5}, svg);
+  },
+  hub(h){
+    const d = el('defs',{}, h);
+    const gc = el('radialGradient',{id:'v2tmKnob', cx:'36%', cy:'32%', r:'72%'}, d);
+    [['0','#eef6ef'],['0.45','#9fc3b0'],['1','#45695a']].forEach(([o,c])=>el('stop',{offset:o,'stop-color':c}, gc));
+    el('circle',{cx:2.5, cy:3, r:17, fill:'#000', opacity:0.45}, h);
+    el('circle',{r:16, fill:'url(#v2tmKnob)', stroke:'#2b4236', 'stroke-width':1}, h);
+    el('circle',{r:9.5, fill:'none', stroke:'#2b4236', 'stroke-width':0.8, opacity:0.45}, h);
+    el('circle',{cx:-4, cy:-4.6, r:2.4, fill:'#fff', opacity:0.8}, h);
+  },
+  track(g, r, sel, n){
+    if(sel){
+      // kintsugi: a gold seam
+      el('circle',{r, fill:'none', stroke:'#f3c560', 'stroke-width':12, opacity:0.12}, g);
+      el('circle',{r, fill:'none', stroke:'#8a6420', 'stroke-width':4, opacity:0.9}, g);
+      el('circle',{r, fill:'none', stroke:'#f2c35a', 'stroke-width':2.4, opacity:1}, g);
+      el('circle',{cx:-0.5, cy:-0.6, r, fill:'none', stroke:'#fff3cf', 'stroke-width':0.7, opacity:0.85}, g);
+      v2SlotMarks(g, r, n, 2.2, '#ffe7a3', 0.9, 2.6);
+    } else {
+      v2Groove(g, r, 4, '#070302', '#d9c39c', 0.6, 0.16);
+      el('circle',{r, fill:'none', stroke:'#e6d3ad', 'stroke-width':1.2, opacity:0.4}, g);
+      v2SlotMarks(g, r, n, 1.4, '#e6d3ad', 0.42, 2.4);
+    }
+  },
+  beam:{ halo:0.11, haloC:0.18 },
+  rim:{ base:['#c5dccd','#5a8270'], seam:'#2b4236', hi:'#ffffff', edge:'#eef6f0', inner:'#1d2d25', gap:2.2, fleck:{count:3, colors:['#ffffff','#8fb3a1'], op:0.25} },
+};
+
+/* ---- RUIN -> "Stone Garden": raked gravel seen from above, two mossed stones in
+   the corners with their own ripple rakes, a slate basin, and maple-leaf shade
+   that sways slowly across the gravel. */
+THEME_V2.ruin = {
+  id:'ruin', name:'Stone Garden', blurb:'Raked gravel, mossed stones and a slate basin under slowly swaying leaf shade.',
+  pal:{ sockHi:'#b0b4a8', sockLo:'#3d413b', sockIn:'#141716', sockEdge:'#1a1d1b' },
+  stageFx:'', swatch:'linear-gradient(135deg,#8c877c,#2b302d 55%,#7f9b47)', badge:{icon:'\ud83e\udea8', color:'#c9cdbf'},
+  ui:{ panel:'#23261f', line:'#6b6f60', bright:'#e6dcb4', ring:'#f1ead0', dim:'#5d6152', sel:'#efe3b4', t0:'#f6f3e8', t1:'#ddd8c6', t2:'#a7a28f', accent:'#b9cf7a',
+    hud:'rgba(28,30,25,.70)', card:'linear-gradient(160deg,rgba(70,74,62,.55),rgba(24,26,22,.82))', btn:'rgba(30,32,27,.76)', modal:'linear-gradient(160deg,rgba(46,49,42,.97),rgba(22,24,20,.98))',
+    win:'rgba(239,227,180,.42)', font:"'Optima','Candara','Segoe UI',sans-serif", bg:'#6f6a60' },
+  env(){
+    const BASE = '#6f6a60', GR = ['#8b8578','#55514a','#9d978a','#635f56','#7b766b','#a9a397'];
+    // shallow raked furrows: a shadow line and a lit ridge 2.4 units below it, gently wandering
+    const rakes = (()=>{ const R = v2Rand(8); let dk = '', lt = ''; for(let y=-30;y<1050;y+=17){ const ph = R()*6; let a = `M -20 ${y} `, b = `M -20 ${y+2.4} `;
+      for(let x=0;x<=1040;x+=20){ const yy = y + Math.sin(x/115 + y/520)*9 + Math.sin(x/37 + ph)*0.6 + (R()-0.5)*0.5; a += `L ${x} ${f1(yy)} `; b += `L ${x} ${f1(yy+2.4)} `; } dk += a; lt += b; } return {dk, lt}; })();
+    const stone = (cx, cy, r, seed, rot)=>{
+      let s = '';
+      // concentric rakes around the stone, fading into the straight rakes
+      for(let rr=r+26; rr<r+190; rr+=24){ const fade = Math.max(0, 1-(rr-r)/190);
+        s += v2Tag('circle',{cx, cy, r:rr, fill:'none', stroke:'#45413a', 'stroke-width':2.4, opacity:(0.45*fade).toFixed(2)});
+        s += v2Tag('circle',{cx, cy:cy+2.4, r:rr, fill:'none', stroke:'#b2ac9e', 'stroke-width':1.5, opacity:(0.42*fade).toFixed(2)}); }
+      s += v2Tag('path',{d:v2Blob(cx+10, cy+14, r*1.02, seed, 0.16), fill:'#000', opacity:0.35});           // contact shadow
+      s += v2Tag('path',{d:v2Blob(cx, cy, r, seed, 0.16), fill:'url(#st)', stroke:'#2e2d29', 'stroke-width':1.5});
+      s += v2Tag('path',{d:v2Blob(cx-r*0.18, cy-r*0.22, r*0.62, seed+3, 0.24), fill:'url(#moss)', opacity:0.95});
+      s += v2Speckle(70, seed*7, cx-r*0.7, cy-r*0.65, r*1.1, r*0.8, ['#8fae52','#3f5524','#a8c46a'], 0.8, 2.2, 0.35, 0.8);
+      return s;
+    };
+    const sdefs = v2Grad('st',[['0','#9a978d'],['0.55','#5e5c55'],['1','#2f2e2a']],'linearGradient',{x1:0.1,y1:0.05,x2:0.85,y2:0.95})
+      + v2Grad('moss',[['0','#7f9b47'],['1','#3a5021']],'linearGradient',{x1:0.1,y1:0,x2:0.8,y2:1})
+      + v2Grad('pad',[['0.62',BASE,1],['1',BASE,0]],'radialGradient',{});
+    const pad = (cx,cy,r)=> v2Tag('circle',{cx, cy, r, fill:'url(#pad)'}) + v2Speckle(Math.round(r*r/40), cx+cy, cx-r, cy-r, r*2, r*2, GR, 0.8, 2, 0.3, 0.7);
+    return [
+      { svg: v2Tag('rect',{width:1000,height:1000,fill:BASE})
+          + v2Speckle(4200, 3, 0, 0, 1000, 1000, GR, 0.7, 1.9, 0.5, 0.95)
+          + v2Tag('path',{d:rakes.dk, fill:'none', stroke:'#45413a', 'stroke-width':2.4, opacity:0.45})
+          + v2Tag('path',{d:rakes.lt, fill:'none', stroke:'#b2ac9e', 'stroke-width':1.5, opacity:0.42})
+          + v2Tag('rect',{width:1000,height:1000,fill:'url(#v)'}) + v2Tag('defs',{}, v2Grad('v',[['0.5','#000',0],['1','#000',0.42]],'radialGradient',{})) },
+      { cls:'v2C', vb:'0 0 600 600', par:'xMinYMax meet', pos:'left bottom', size:'min(72vmin,600px) min(72vmin,600px)',
+        svg: v2Tag('defs',{}, sdefs) + pad(130,470,260) + stone(130, 470, 92, 17) },
+      { cls:'v2C', vb:'0 0 600 600', par:'xMaxYMin meet', pos:'right top', size:'min(56vmin,480px) min(56vmin,480px)',
+        svg: v2Tag('defs',{}, sdefs) + pad(470,140,220) + stone(470, 140, 70, 29) },
+      // dappled maple shade, swaying
+      { cls:'v2Sway', svg: v2Tag('defs',{}, v2Tag('filter',{id:'b',x:'-30%',y:'-30%',width:'160%',height:'160%'}, v2Tag('feGaussianBlur',{stdDeviation:16})))
+          + v2Tag('g',{filter:'url(#b)', fill:'#1d2a1a'}, (()=>{ const R = v2Rand(44); let s = ''; for(let i=0;i<26;i++){ const x = R()*1000, y = R()*1000; for(let j=0;j<4;j++) s += v2Tag('ellipse',{cx:f1(x+(R()-0.5)*90), cy:f1(y+(R()-0.5)*70), rx:f1(24+R()*46), ry:f1(16+R()*30), opacity:(0.10+R()*0.10).toFixed(2), transform:`rotate(${f1(R()*180)} ${f1(x)} ${f1(y)})`}); } return s; })()) },
+    ];
+  },
+  arena(svg, defs){
+    v2BoardShadow(svg, defs, 0.55);
+    const g = (id, stops, attrs, kind)=>{ const gr = el(kind||'radialGradient', Object.assign({id}, attrs||{}), defs); stops.forEach(([o,c,a])=>el('stop',{offset:o,'stop-color':c,'stop-opacity':a==null?1:a}, gr)); };
+    g('v2sgEdge', [['0','#9ea397'],['0.5','#5a5f57'],['1','#1e211d']], {x1:0.15,y1:0.1,x2:0.85,y2:0.92}, 'linearGradient');
+    g('v2sgSlate', [['0','#3c423e'],['0.7','#2b302d'],['1','#1e2220']]);
+    el('circle',{r:RIM_R+24, fill:'url(#v2sgEdge)'}, svg);
+    el('circle',{r:RIM_R+2, fill:'url(#v2sgSlate)'}, svg);
+    const cp = el('clipPath',{id:'v2sgClip'}, defs); el('circle',{r:RIM_R+1}, cp);
+    const st = el('g',{'clip-path':'url(#v2sgClip)'}, svg);
+    const R = v2Rand(12); let lt = '', dk = '';
+    for(let i=0;i<9;i++){ const y = -230 + i*56 + R()*20; let p = `M -260 ${f1(y)} `; for(let x=-260;x<=260;x+=26) p += `L ${x} ${f1(y + Math.sin(x/60 + i)*6 + (x/260)*18)} `; if(i%2) lt += p; else dk += p; }
+    el('path',{d:lt, fill:'none', stroke:'#56605a', 'stroke-width':1.1, opacity:0.4}, st);
+    el('path',{d:dk, fill:'none', stroke:'#121513', 'stroke-width':1.4, opacity:0.4}, st);
+    let sp = ''; for(let i=0;i<320;i++){ const a = R()*Math.PI*2, r = Math.sqrt(R())*RIM_R; sp += `M ${f1(Math.cos(a)*r)} ${f1(Math.sin(a)*r)} h 0.01 `; }
+    el('path',{d:sp, stroke:'#9aa59c', 'stroke-width':1.6, 'stroke-linecap':'round', opacity:0.14, fill:'none'}, st);
+    el('circle',{r:RIM_R-19, fill:'none', stroke:'#000', 'stroke-width':5, opacity:0.4}, svg);
+    el('circle',{r:RIM_R+23, fill:'none', stroke:'#c9cdbf', 'stroke-width':1, opacity:0.45}, svg);
+  },
+  hub(h){
+    const d = el('defs',{}, h);
+    const gc = el('radialGradient',{id:'v2sgPeb', cx:'36%', cy:'30%', r:'75%'}, d);
+    [['0','#d6d8cf'],['0.5','#8b8e85'],['1','#3c3f39']].forEach(([o,c])=>el('stop',{offset:o,'stop-color':c}, gc));
+    el('ellipse',{cx:2.5, cy:3.2, rx:18, ry:15.5, fill:'#000', opacity:0.42, transform:'rotate(-18 2.5 3.2)'}, h);
+    el('ellipse',{rx:17.5, ry:15, fill:'url(#v2sgPeb)', stroke:'#2b2e29', 'stroke-width':0.8, transform:'rotate(-18)'}, h);
+    el('ellipse',{cx:-5, cy:-5.5, rx:4.5, ry:2.4, fill:'#fff', opacity:0.35, transform:'rotate(-30 -5 -5.5)'}, h);
+  },
+  track(g, r, sel, n){
+    if(sel){
+      el('circle',{r, fill:'none', stroke:'#efe6c4', 'stroke-width':15, opacity:0.10}, g);
+      v2Groove(g, r, 5.5, '#0b0d0c', '#c9cfbf', 0.6, 0.45);
+      el('circle',{r, fill:'none', stroke:'#e6dcb4', 'stroke-width':2.2, opacity:0.95}, g);
+      [r-7.2, r+7.2].forEach(rr=>el('circle',{r:rr, fill:'none', stroke:'#efe6c4', 'stroke-width':1, opacity:0.7}, g));
+      v2SlotMarks(g, r, n, 1.6, '#fbf4d8', 0.85, 2.8);
+    } else {
+      v2Groove(g, r, 5.5, '#0e100f', '#9fa597', 0.6, 0.32);
+      el('circle',{r, fill:'none', stroke:'#7e8578', 'stroke-width':0.8, opacity:0.4}, g);
+      v2SlotMarks(g, r, n, 1.4, '#b9bfae', 0.5, 2.6);
+    }
+  },
+  beam:{ halo:0.10, haloC:0.17 },
+  rim:{ base:['#8f9288','#484c45'], seam:'#1e211d', hi:'#e3e6d8', edge:'#b3b7aa', inner:'#121513', gap:3.4, fleck:{count:8, colors:['#6f8a3c','#55702c','#c9ccbf','#8fae52'], op:0.6} },
+};
+
+/* ---------- extra background helpers ---------- */
+// wobbly closed loops tiled seamlessly (caustic light network)
+function v2Caustics(tile, seed, cells, col, op){
+  const R = v2Rand(seed); let d = '';
+  const n = cells, step = tile/n;
+  for(let i=0;i<n;i++) for(let j=0;j<n;j++){
+    const cx = (i+0.5)*step + (R()-0.5)*step*0.6, cy = (j+0.5)*step + (R()-0.5)*step*0.6, r = step*(0.42+R()*0.16);
+    const sd = Math.floor(R()*1e6);
+    for(const ox of [-tile,0,tile]) for(const oy of [-tile,0,tile]){
+      if(cx+ox < -r || cx+ox > tile+r || cy+oy < -r || cy+oy > tile+r) continue;
+      d += v2Blob(cx+ox, cy+oy, r, sd, 0.28) + ' ';
+    }
+  }
+  return v2Tag('path',{d, fill:'none', stroke:col, 'stroke-width':3.2, opacity:(op*0.45).toFixed(2), 'stroke-linejoin':'round'}) + v2Tag('path',{d, fill:'none', stroke:'#ffffff', 'stroke-width':1, opacity:op, 'stroke-linejoin':'round'});
+}
+function v2Petals(tile, count, seed){
+  const R = v2Rand(seed); let s = '';
+  for(let i=0;i<count;i++){ const x = 30+R()*(tile-60), y = 30+R()*(tile-60), a = R()*360, k = 0.8+R()*0.7;
+    s += v2Tag('path',{d:'M 0 -6 L 1.2 -4.6 L 2.6 -6 C 6 -3 4.6 4 0 7 C -4.6 4 -6 -3 -2.6 -6 L -1.2 -4.6 Z', fill:R()<0.5?'#f6c3cf':'#eaa3b6', opacity:(0.5+R()*0.35).toFixed(2), transform:`translate(${f1(x)} ${f1(y)}) rotate(${f1(a)}) scale(${f1(k*1.6)})`}); }
+  return s;
+}
+function v2Dots(tile, count, seed, cols, rMin, rMax, opMin, opMax){ return v2Speckle(count, seed, 0, 0, tile, tile, cols, rMin, rMax, opMin, opMax); }
+
+/* ---- ISLAND -> "Tide Pool": looking down into a sunlit rock pool between two wet basalt
+   walls; two caustic light networks drift in different directions over a sandy bottom. */
+THEME_V2.island = {
+  id:'island', name:'Tide Pool', blurb:'A sunlit rock pool between wet basalt walls, caustic light drifting over sand and pebbles.',
+  pal:{ sockHi:'#c4ece2', sockLo:'#2c6a62', sockIn:'#06201f', sockEdge:'#12403b' },
+  stageFx:'', swatch:'linear-gradient(135deg,#bff6ea,#10343a 55%,#5b686a)', badge:{icon:'🐚', color:'#bff6ea'},
+  ui: v2UiMk({ink:[6,26,30], line:'#2f5f5c', bright:'#8fe0cc', ring:'#bff6ea', sel:'#e8fff6', t0:'#ecfffa', t1:'#a9d6cc', t2:'#5f8f86', accent:'#7ff0d8', win:'rgba(150,255,220,.42)', bg:'#082a2f', font:"'Trebuchet MS','Segoe UI',sans-serif"}),
+  env(){
+    const R = v2Rand(61);
+    let peb = '';
+    for(let i=0;i<150;i++){ const x = R()*1000, y = R()*1000, rx = 3+R()*9, ry = rx*(0.6+R()*0.35), a = R()*180, c = ['#6d7a72','#8a8a74','#4f5c58','#9a937a'][Math.floor(R()*4)];
+      peb += v2Tag('ellipse',{cx:f1(x+2), cy:f1(y+3), rx:f1(rx), ry:f1(ry), fill:'#000', opacity:0.25, transform:`rotate(${f1(a)} ${f1(x)} ${f1(y)})`})
+          + v2Tag('ellipse',{cx:f1(x), cy:f1(y), rx:f1(rx), ry:f1(ry), fill:c, opacity:0.75, transform:`rotate(${f1(a)} ${f1(x)} ${f1(y)})`})
+          + v2Tag('ellipse',{cx:f1(x-rx*0.3), cy:f1(y-ry*0.35), rx:f1(rx*0.35), ry:f1(ry*0.25), fill:'#fff', opacity:0.2, transform:`rotate(${f1(a)} ${f1(x)} ${f1(y)})`}); }
+    const wall = (seed, flip)=>{
+      const Q = v2Rand(seed); let s = v2Tag('defs',{}, v2Grad('rk',[['0','#3b4749'],['0.6','#1c2526'],['1','#0c1213']],'linearGradient',{x1:flip?1:0,y1:0,x2:flip?0:1,y2:0.3}));
+      let edge = `M ${flip?300:0} -10 `; const pts = [];
+      for(let y=-10;y<=1010;y+=55){ const x = 120 + Q()*90; pts.push([flip?300-x:x, y]); }
+      pts.forEach(p=>edge += `L ${f1(p[0])} ${f1(p[1])} `); edge += `L ${flip?300:0} 1010 Z`;
+      s += v2Tag('path',{d:edge, fill:'url(#rk)'});
+      s += v2Tag('defs',{}, v2Grad('rb',[['0','#56656a'],['0.55','#26302f'],['1','#0e1415']],'radialGradient',{cx:0.35,cy:0.3,r:0.75}));
+      for(let i=0;i<16;i++){ const y = Q()*1000, x = flip ? 300-(20+Q()*120) : 20+Q()*120, r = 30+Q()*42, sd = Math.floor(Q()*1e5);
+        s += v2Tag('path',{d:v2Blob(x+6, y+8, r, sd, 0.3), fill:'#000', opacity:0.4}) + v2Tag('path',{d:v2Blob(x, y, r, sd, 0.3), fill:'url(#rb)'})
+           + v2Tag('ellipse',{cx:f1(x-r*0.35), cy:f1(y-r*0.38), rx:f1(r*0.32), ry:f1(r*0.12), fill:'#e8fff8', opacity:0.22, transform:`rotate(-30 ${f1(x-r*0.35)} ${f1(y-r*0.38)})`}); }
+      s += v2Tag('path',{d:pts.map((p,i)=>(i?'L ':'M ')+f1(p[0]+(flip?-6:6))+' '+f1(p[1])).join(' '), fill:'none', stroke:'#e8fff8', 'stroke-width':2, 'stroke-dasharray':'2 7', opacity:0.35});
+      s += v2Speckle(220, seed+5, flip?140:0, 0, 160, 1000, ['#e2ddcc','#c9c2ac'], 0.6, 1.8, 0.35, 0.8);
+      for(let i=0;i<7;i++){ const y = 60+Q()*880, x0 = pts[Math.min(pts.length-1, Math.round((y+10)/55))][0]; let d = `M ${f1(x0)} ${f1(y)} `;
+        for(let k=1;k<6;k++) d += `Q ${f1(x0+(flip?-1:1)*(k*14)+ (Q()-0.5)*16)} ${f1(y+k*10-6)} ${f1(x0+(flip?-1:1)*(k*16))} ${f1(y+k*12)} `;
+        s += v2Tag('path',{d, fill:'none', stroke:'#3f7a4a', 'stroke-width':2.4, 'stroke-linecap':'round', opacity:0.7}); }
+      return s; };
+    return [
+      { svg: v2Tag('defs',{}, v2Grad('w',[['0','#11474c'],['0.6','#0b343a'],['1','#06242a']],'radialGradient',{cx:0.45,cy:0.4,r:0.8}))
+          + v2Tag('rect',{width:1000,height:1000,fill:'url(#w)'}) + v2Speckle(2600, 9, 0, 0, 1000, 1000, ['#c9b98a','#a89a70','#d9cfa8'], 0.6, 1.6, 0.06, 0.22) + peb },
+      { cls:'v2T v2PanA', vb:'0 0 400 400', par:'none', size:'400px 400px', svg: v2Caustics(400, 13, 9, '#c8fff0', 0.16) },
+      { cls:'v2T v2PanB', vb:'0 0 600 600', par:'none', size:'600px 600px', svg: v2Caustics(600, 27, 11, '#b8f6ff', 0.09) },
+      { vb:'0 0 300 1000', par:'xMinYMid slice', box:{left:0, top:0, width:'min(30vw,280px)', height:'100%', inset:'auto'}, svg: wall(71, false) },
+      { vb:'0 0 300 1000', par:'xMaxYMid slice', box:{right:0, left:'auto', top:0, width:'min(26vw,250px)', height:'100%', inset:'auto'}, svg: wall(83, true) },
+    ];
+  },
+  arena(svg, defs){
+    v2Arena(svg, defs, { lip:[['0','#7d8c8e'],['0.5','#3a4749'],['1','#121a1b']], field:[['0','#1b4b51'],['0.7','#10353b'],['1','#0a2429']], gloss:0.06, edge:'#d8efe8',
+      tex(g){ el('path',{d:(()=>{ const R = v2Rand(5); let d=''; for(let i=0;i<40;i++){ d += v2Blob((R()-0.5)*440, (R()-0.5)*440, 26+R()*16, Math.floor(R()*1e5), 0.3)+' '; } return d; })(), fill:'none', stroke:'#c8fff0', 'stroke-width':1.2, opacity:0.06}, g); } });
+  },
+  hub(h){ v2HubStd(h, {stops:[['0','#f4f6f0'],['0.5','#a9b3ad'],['1','#4f5a57']], edge:'#2a3332'}); },
+  track(g, r, sel, n){ v2TrackStd(g, r, sel, n, { groove:['#03161a','#7fd0c0',4.5], line:['#a8f0e0',1.1,0.38], mark:['#bff6ea',1.4,2.2,0.45],
+    sel:{glow:['#7ff0d8',15,0.12], main:['#e8fff6',2.2], hi:'#ffffff', edges:['#bff6ea',0.6], mark:['#ffffff',0.85]} }); },
+  beam:{ halo:0.10, haloC:0.17 },
+  rim:{ base:['#5f6d6f','#1b2325'], seam:'#0b1112', hi:'#d8efe8', edge:'#9fb8b4', inner:'#0b1112', gap:3, fleck:{count:6, colors:['#e2ddcc','#c9c2ac','#7a8a5a'], op:0.7} },
+};
+
+/* ---- VOID -> "Velvet Theatre": a proscenium of plum velvet curtains and a swagged
+   valance, footlights along the stage lip, a warm spotlight on a revolving brass-ringed stage. */
+THEME_V2.void = {
+  id:'void', name:'Velvet Theatre', blurb:'Plum velvet curtains, a brass-ringed revolving stage and a warm spotlight with dust in the air.',
+  pal:{ sockHi:'#f0d48a', sockLo:'#6a4a14', sockIn:'#1a0c06', sockEdge:'#3a2608' },
+  stageFx:'v2-spot', swatch:'linear-gradient(135deg,#e8c77a,#6a1f4f 50%,#14050f)', badge:{icon:'🎭', color:'#e8c77a'},
+  ui: v2UiMk({ink:[30,8,24], line:'#6a2a52', bright:'#e8c77a', ring:'#f3dcb0', sel:'#ffe6a8', t0:'#fff3f8', t1:'#e0b9cf', t2:'#9a6a86', accent:'#e8c77a', win:'rgba(255,220,160,.42)', bg:'#14050f', font:"'Didot','Bodoni MT',Georgia,serif"}),
+  env(){
+    const curtain = (seed, flip)=>{
+      const Q = v2Rand(seed); let s = '', x = 0, defs = '';
+      for(let i=0;x<300;i++){ const w = 26+Q()*20; const id = 'f'+i;
+        defs += v2Grad(id,[['0','#2a0718'],['0.45','#8a2a5a'],['0.6','#a33a6c'],['1','#2a0718']],'linearGradient',{x1:0,y1:0,x2:1,y2:0});
+        s += v2Tag('rect',{x:f1(x), y:0, width:f1(w+1), height:1000, fill:`url(#${id})`}); x += w; }
+      // gathered inner edge: shadow + gold fringe
+      s += v2Tag('path',{d:'M 300 0 L 300 1000 L 250 1000 C 200 760 300 640 230 520 C 285 380 240 180 290 0 Z', fill:'#14050f', opacity:0.9});
+      s += v2Tag('path',{d:'M 0 985 L 300 985', stroke:'#c9a45a', 'stroke-width':10, 'stroke-dasharray':'2 3', opacity:0.8});
+      return v2Tag('defs',{},defs) + v2Tag('g', flip ? {transform:'translate(300 0) scale(-1 1)'} : {}, s); };
+    const valance = (()=>{ let s = v2Tag('defs',{}, v2Grad('sw',[['0','#7a2252'],['0.7','#4a0f30'],['1','#24061a']],'linearGradient',{x1:0,y1:0,x2:0,y2:1}));
+      s += v2Tag('rect',{width:1000, height:40, fill:'#3a0c28'});
+      for(let i=0;i<6;i++){ const x0 = i*170-20; s += v2Tag('path',{d:`M ${x0} 30 Q ${x0+95} 150 ${x0+190} 30 Z`, fill:'url(#sw)'});
+        s += v2Tag('path',{d:`M ${x0+10} 40 Q ${x0+95} 120 ${x0+180} 40`, fill:'none', stroke:'#a33a6c', 'stroke-width':2, opacity:0.5});
+        s += v2Tag('path',{d:`M ${x0+4} 34 Q ${x0+95} 148 ${x0+186} 34`, fill:'none', stroke:'#d9b56a', 'stroke-width':3, 'stroke-dasharray':'1.5 3', opacity:0.85}); }
+      return s; })();
+    return [
+      { svg: v2Tag('defs',{}, v2Grad('bg',[['0','#40143a'],['0.55','#1c0816'],['1','#0c030a']],'radialGradient',{cx:0.5,cy:0.38,r:0.75})
+            + v2Grad('cone',[['0','#ffe2b0',0.11],['1','#ffe2b0',0]],'linearGradient',{x1:0,y1:0,x2:0,y2:1})
+            + v2Grad('pool',[['0','#ffd9a0',0.16],['1','#ffd9a0',0]],'radialGradient',{}))
+          + v2Tag('rect',{width:1000,height:1000,fill:'url(#bg)'})
+          + v2Tag('path',{d:'M 430 -20 L 570 -20 L 860 760 L 140 760 Z', fill:'url(#cone)'})
+          + v2Tag('ellipse',{cx:500, cy:560, rx:430, ry:300, fill:'url(#pool)'}) },
+      // stage lip + footlights
+      { vb:'0 0 1000 200', par:'none', box:{left:0, bottom:0, top:'auto', width:'100%', height:'min(16vh,140px)', inset:'auto'},
+        svg: v2Tag('defs',{}, v2Grad('fl',[['0','#ffcf80',0.55],['1','#ffcf80',0]],'radialGradient',{}) + v2Grad('bd',[['0','#2a160c'],['1','#120804']],'linearGradient',{x1:0,y1:0,x2:0,y2:1}))
+          + v2Tag('rect',{y:70, width:1000, height:130, fill:'url(#bd)'}) + Array.from({length:14},(_,i)=>v2Tag('line',{x1:0,y1:90+i*9,x2:1000,y2:90+i*9,stroke:'#000','stroke-width':1,opacity:0.3})).join('')
+          + v2Tag('rect',{y:66, width:1000, height:6, fill:'#c9a45a', opacity:0.8})
+          + Array.from({length:12},(_,i)=>v2Tag('ellipse',{cx:42+i*84, cy:62, rx:60, ry:36, fill:'url(#fl)'})).join('') },
+      { cls:'v2Curtain', vb:'0 0 300 1000', par:'none', box:{left:0, top:0, width:'min(22vw,240px)', height:'100%', inset:'auto'}, svg: curtain(5) },
+      { cls:'v2Curtain', vb:'0 0 300 1000', par:'none', box:{right:0, left:'auto', top:0, width:'min(22vw,240px)', height:'100%', inset:'auto'}, svg: curtain(9, true) },
+      { vb:'0 0 1000 160', par:'none', box:{left:0, top:0, width:'100%', height:'min(15vh,130px)', inset:'auto'}, svg: valance },
+      { cls:'v2T v2PanUp', vb:'0 0 300 300', par:'none', size:'300px 300px', svg: v2Dots(300, 14, 41, ['#ffe6b8'], 0.5, 1.3, 0.12, 0.35) },
+    ];
+  },
+  arena(svg, defs){
+    v2Arena(svg, defs, { lip:[['0','#f6dc96'],['0.5','#a8823a'],['1','#3e2808']], field:[['0','#3c2217'],['0.7','#24130c'],['1','#150a06']], gloss:0.05, edge:'#fff0c8', edgeOp:0.55,
+      tex(g){ let d = ''; for(let i=0;i<24;i++){ const a = i/24*Math.PI*2; d += `M 0 0 L ${f1(Math.cos(a)*240)} ${f1(Math.sin(a)*240)} `; }
+        el('path',{d, stroke:'#000', 'stroke-width':1.2, opacity:0.35}, g);
+        let gr = ''; const R = v2Rand(3); for(let i=0;i<70;i++){ const r = 20+R()*210, a = R()*Math.PI*2, w = 0.1+R()*0.2; gr += `M ${f1(Math.cos(a)*r)} ${f1(Math.sin(a)*r)} A ${f1(r)} ${f1(r)} 0 0 1 ${f1(Math.cos(a+w)*r)} ${f1(Math.sin(a+w)*r)} `; }
+        el('path',{d:gr, fill:'none', stroke:'#8a5a3a', 'stroke-width':0.8, opacity:0.25}, g);
+        el('circle',{r:150, fill:v2G(defs,'v2vtPool',[['0','#ffd9a0',0.12],['1','#ffd9a0',0]]), cy:-10}, g); } });
+  },
+  hub(h){ v2HubStd(h, {stops:[['0','#fff2c8'],['0.45','#d9b56a'],['1','#5a3c10']], edge:'#3a2608', shape:'oct', ring:'#3a2608'}); },
+  track(g, r, sel, n){ v2TrackStd(g, r, sel, n, { groove:['#0a0503','#c9a45a',4], line:['#d9b56a',1.2,0.45], mark:['#e8c77a',1.6,2.2,0.5],
+    sel:{glow:['#ffe6a8',16,0.12], under:['#7a5a1c',4], main:['#ffe6a8',2.2], hi:'#fff6dc', edges:['#ffe6a8',0.55], mark:['#fff6dc',0.9]} }); },
+  beam:{ halo:0.10, haloC:0.17 },
+  rim:{ base:['#6a1f4f','#24081b'], seam:'#c9a45a', seamW:1.3, hi:'#f0a8d0', edge:'#e8c77a', inner:'#c9a45a', gap:2,
+    deco(rimG, s, n, rIn, rOut, c, t){ if(!t) v2RimDot(rimG, c, (rIn+rOut)/2, 1.9, '#e8c77a', 0.9); } },
+};
+
+/* ---- NOIR -> "Lacquer Studio": a seamless black studio sweep, two softboxes reflected in
+   piano-black lacquer and chrome, one red pinstripe; a slow light sheen crosses the board. */
+THEME_V2.noir = {
+  id:'noir', name:'Lacquer Studio', blurb:'Piano-black lacquer and chrome in a seamless studio sweep, lit by two softboxes.',
+  pal:{ sockHi:'#e6e6ee', sockLo:'#3a3a42', sockIn:'#050506', sockEdge:'#000000' },
+  stageFx:'v2-sheen', swatch:'linear-gradient(135deg,#f0f0f6,#0e0e11 55%,#ff3a4a)', badge:{icon:'🎹', color:'#f0f0f6'},
+  ui: v2UiMk({ink:[10,10,12], line:'#3a3a44', bright:'#e6e6ee', ring:'#f0f0f6', sel:'#ffffff', t0:'#f4f4f8', t1:'#b9b9c4', t2:'#6a6a76', accent:'#ff3a4a', win:'rgba(255,255,255,.36)', bg:'#0a0a0c', font:"'Futura','Century Gothic','Segoe UI',sans-serif"}),
+  env(){
+    return [
+      { svg: v2Tag('defs',{}, v2Grad('cy',[['0','#08080a'],['0.5','#17171c'],['0.62','#202027'],['0.75','#121216'],['1','#060607']],'linearGradient',{x1:0,y1:0,x2:0,y2:1})
+            + v2Grad('sb',[['0','#ffffff',0.17],['0.5','#ffffff',0.09],['1','#ffffff',0]],'linearGradient',{x1:0,y1:0,x2:0,y2:1})
+            + v2Grad('fl',[['0','#ffffff',0.10],['1','#ffffff',0]],'radialGradient',{}))
+          + v2Tag('rect',{width:1000,height:1000,fill:'url(#cy)'})
+          + v2Tag('rect',{x:70, y:90, width:150, height:560, rx:18, fill:'url(#sb)'}) + v2Tag('rect',{x:790, y:130, width:130, height:500, rx:18, fill:'url(#sb)'})
+          + v2Tag('ellipse',{cx:500, cy:640, rx:560, ry:90, fill:'url(#fl)'}) + v2Tag('ellipse',{cx:500, cy:980, rx:420, ry:60, fill:'url(#fl)'})
+          + v2Tag('rect',{x:0, y:902, width:1000, height:2, fill:'#ff3a4a', opacity:0.4}) },
+      { cls:'v2Slide', svg: v2Tag('defs',{}, v2Grad('sh',[['0','#ffffff',0],['0.5','#ffffff',0.045],['1','#ffffff',0]],'linearGradient',{x1:0,y1:0,x2:1,y2:0}))
+          + v2Tag('rect',{x:300, y:-200, width:220, height:1400, fill:'url(#sh)', transform:'rotate(24 500 500)'}) },
+    ];
+  },
+  arena(svg, defs){
+    v2Arena(svg, defs, { lip:[['0','#ffffff'],['0.3','#b9b9c4'],['0.65','#4a4a54'],['1','#141418']], field:[['0','#1b1b20'],['0.7','#0e0e11'],['1','#070708']], gloss:0.07, edge:'#ffffff', edgeOp:0.6, inner:0.55,
+      tex(g, defs){ const sb = v2G(defs,'v2lsSB',[['0','#ffffff',0.12],['1','#ffffff',0.02]],{x1:0,y1:0,x2:0,y2:1},'linearGradient');
+        el('rect',{x:-170, y:-196, width:42, height:150, rx:8, fill:sb, transform:'rotate(-12)'}, g);
+        el('rect',{x:120, y:-186, width:34, height:120, rx:8, fill:sb, opacity:0.6, transform:'rotate(10)'}, g);
+        el('path',{d:'M -230 40 Q 0 70 230 40', fill:'none', stroke:'#ffffff', 'stroke-width':1, opacity:0.05}, g); } });
+  },
+  hub(h){ v2HubStd(h, {stops:[['0','#ffffff'],['0.35','#c9c9d2'],['1','#2a2a30']], edge:'#000', dot:'#c4122a'}); },
+  track(g, r, sel, n){ v2TrackStd(g, r, sel, n, { groove:['#000000','#5a5a66',4], line:['#c9c9d2',1,0.32], mark:['#e6e6ee',1.4,2,0.4],
+    sel:{glow:['#ff3a4a',14,0.10], under:['#a01020',3.4], main:['#ffffff',1.8], edges:['#ff5a68',0.6], mark:['#ffffff',0.85]} }); },
+  beam:{ halo:0.10, haloC:0.17 },
+  rim:{ base:['#2c2c33','#060607'], seam:'#a8a8b4', hi:'#ffffff', edge:'#f0f0f6', inner:'#a8a8b4', gap:2.6 },
+};
+
+/* ---- LAVA -> "Iron Foundry": bolted cast-iron floor plates crossed by a molten channel
+   whose heat glow breathes; sparks rise slowly. The board is a turned iron plate. */
+THEME_V2.lava = {
+  id:'lava', name:'Iron Foundry', blurb:'Bolted cast-iron plates, a molten channel breathing heat, sparks rising in the dark.',
+  pal:{ sockHi:'#8a8580', sockLo:'#1e1c1b', sockIn:'#0a0909', sockEdge:'#000000' },
+  stageFx:'', swatch:'linear-gradient(135deg,#ffb347,#2c2b2e 50%,#ff5a12)', badge:{icon:'⚒️', color:'#ff9a4a'},
+  ui: v2UiMk({ink:[20,14,12], line:'#5a3a24', bright:'#ff9a4a', ring:'#ffd2a0', sel:'#ffb347', t0:'#fff1e4', t1:'#d8b8a0', t2:'#8f7462', accent:'#ff6a1a', win:'rgba(255,170,90,.42)', bg:'#141315', font:"'Arial Narrow','Segoe UI',sans-serif"}),
+  env(){
+    const R = v2Rand(77); let plates = '';
+    for(let i=0;i<5;i++) for(let j=0;j<5;j++){
+      const x = i*210-40 + (j%2)*105, y = j*210-40, w = 204, h = 204;
+      plates += v2Tag('rect',{x, y, width:w, height:h, fill:'url(#pl)'}) + v2Tag('path',{d:`M ${x} ${y+h} L ${x} ${y} L ${x+w} ${y}`, fill:'none', stroke:'#56524e', 'stroke-width':2, opacity:0.6})
+        + v2Tag('path',{d:`M ${x} ${y+h} L ${x+w} ${y+h} L ${x+w} ${y}`, fill:'none', stroke:'#000', 'stroke-width':3, opacity:0.7});
+      [[14,14],[w-14,14],[14,h-14],[w-14,h-14]].forEach(([bx,by])=>plates += v2Tag('circle',{cx:x+bx, cy:y+by, r:6, fill:'#121112'}) + v2Tag('circle',{cx:x+bx-1.5, cy:y+by-1.5, r:2.4, fill:'#6a6560', opacity:0.8}));
+      if(R()<0.4){ let dp = ''; for(let a=0;a<6;a++) for(let b=0;b<6;b++){ const cx = x+24+a*31, cy = y+24+b*31; dp += `M ${cx-6} ${cy+3} L ${cx+6} ${cy-3} `; } plates += v2Tag('path',{d:dp, stroke:'#4a4744', 'stroke-width':3, 'stroke-linecap':'round', opacity:0.5}); }
+    }
+    const ch = 'M -60 1080 C 220 900 420 990 640 860 S 960 700 1080 640';
+    return [
+      { svg: v2Tag('defs',{}, v2Grad('pl',[['0','#2c2b2e'],['1','#18171a']],'linearGradient',{x1:0,y1:0,x2:1,y2:1}))
+          + v2Tag('rect',{width:1000,height:1000,fill:'#141315'}) + plates + v2Speckle(900, 4, 0, 0, 1000, 1000, ['#6a3a1c','#8a4a22','#3a2a20'], 0.6, 2.4, 0.1, 0.32)
+          + v2Tag('path',{d:ch, fill:'none', stroke:'#1e0a03', 'stroke-width':78}) + v2Tag('path',{d:ch, fill:'none', stroke:'#ff5a12', 'stroke-width':40, opacity:0.95})
+          + v2Tag('path',{d:ch, fill:'none', stroke:'#ffb347', 'stroke-width':18}) + v2Tag('path',{d:ch, fill:'none', stroke:'#fff0b0', 'stroke-width':5, opacity:0.85})
+          + (()=>{ let s=''; for(let i=0;i<16;i++){ const t = i/16, x = -60 + t*1140, y = 1080 - t*440 + Math.sin(t*9)*40; s += v2Tag('path',{d:v2Blob(x, y, 9+R()*12, i*31, 0.4), fill:'#2a0e04', opacity:0.85}); } return s; })()
+          + v2Tag('rect',{width:1000,height:1000,fill:'url(#vg)'}) + v2Tag('defs',{}, v2Grad('vg',[['0.55','#000',0],['1','#000',0.55]],'radialGradient',{})) },
+      { cls:'v2Pulse', svg: v2Tag('defs',{}, v2Tag('filter',{id:'b',x:'-50%',y:'-50%',width:'200%',height:'200%'}, v2Tag('feGaussianBlur',{stdDeviation:40})))
+          + v2Tag('path',{d:ch, fill:'none', stroke:'#ff6a1a', 'stroke-width':170, opacity:0.22, filter:'url(#b)'}) },
+      { cls:'v2T v2PanUp', vb:'0 0 300 300', par:'none', size:'300px 300px', svg: v2Dots(300, 12, 19, ['#ffb347','#ff7a2a','#fff0b0'], 0.7, 1.6, 0.35, 0.85) },
+    ];
+  },
+  arena(svg, defs){
+    v2Arena(svg, defs, { lip:[['0','#9a958f'],['0.5','#45413e'],['1','#141313']], field:[['0','#2e2d30'],['0.7','#1f1e21'],['1','#141316']], edge:'#d8d2c8',
+      tex(g){ let dl = '', dd = ''; for(let i=0;i<100;i++){ const r = 14 + i*2.3; const arc = `M ${r} 0 A ${r} ${r} 0 1 0 ${-r} 0 A ${r} ${r} 0 1 0 ${r} 0 `; if(i%2) dl += arc; else dd += arc; }
+        el('path',{d:dl, fill:'none', stroke:'#ffffff', 'stroke-width':0.6, opacity:0.03}, g); el('path',{d:dd, fill:'none', stroke:'#000', 'stroke-width':0.6, opacity:0.14}, g);
+        const R = v2Rand(8); let sp = ''; for(let i=0;i<180;i++){ const a = R()*Math.PI*2, r = Math.sqrt(R())*RIM_R; sp += `M ${f1(Math.cos(a)*r)} ${f1(Math.sin(a)*r)} h 0.01 `; }
+        el('path',{d:sp, stroke:'#8a4a22', 'stroke-width':2, 'stroke-linecap':'round', opacity:0.16, fill:'none'}, g); },
+      after(svg){ const a0 = 15*Math.PI/180, a1 = 125*Math.PI/180, r = RIM_R+21;
+        el('path',{d:`M ${f1(Math.cos(a0)*r)} ${f1(Math.sin(a0)*r)} A ${r} ${r} 0 0 1 ${f1(Math.cos(a1)*r)} ${f1(Math.sin(a1)*r)}`, fill:'none', stroke:'#ff6a1a', 'stroke-width':3.5, opacity:0.4, 'stroke-linecap':'round'}, svg); } });
+  },
+  hub(h){ v2HubStd(h, {stops:[['0','#cfc9c0'],['0.45','#6a6560'],['1','#1e1c1b']], edge:'#0a0909', shape:'hex', ring:'#0a0909'}); },
+  track(g, r, sel, n){ v2TrackStd(g, r, sel, n, { groove:['#060606','#8a857e',5], line:['#a39e96',0.9,0.3], mark:['#c9c3ba',1.4,2.2,0.4],
+    sel:{glow:['#ff6a1a',15,0.14], under:['#8a2a06',4.4], main:['#ffb347',2.4], hi:'#fff0b0', edges:['#ff9a4a',0.55], mark:['#fff0b0',0.9]} }); },
+  beam:{ halo:0.10, haloC:0.17 },
+  rim:{ base:['#625e59','#1c1b1a'], seam:'#070707', hi:'#d0cac0', edge:'#8f8a83', inner:'#070707', gap:2.2,
+    deco(rimG, s, n, rIn, rOut, c, t){ if(!t){ const st = Math.PI*2/n*0.3, rm = (rIn+rOut)/2; [c-st, c+st].forEach(a=>{ v2RimDot(rimG, a, rm, 2.2, '#121112', 0.95); v2RimDot(rimG, a-0.006, rm-0.6, 0.9, '#9a958f', 0.8); }); } } },
+};
+
+/* ---- SAKURA -> "Urushi Tray": a black lacquer tray with a vermilion border and inset gold
+   line, a gold maki-e stream flowing along the bottom, a few petals drifting across. */
+THEME_V2.sakura = {
+  id:'sakura', name:'Urushi Tray', blurb:'Black lacquer and vermilion, a gold maki-e stream, and a few petals drifting across the tray.',
+  pal:{ sockHi:'#e05a48', sockLo:'#5a0e0c', sockIn:'#120606', sockEdge:'#3a0806' },
+  stageFx:'v2-warmgloss', swatch:'linear-gradient(135deg,#ffd27a,#c43a2c 45%,#0a0404)', badge:{icon:'🌸', color:'#ffd27a'},
+  ui: v2UiMk({ink:[18,8,8], line:'#6a2a1a', bright:'#ffd27a', ring:'#f6d9a8', sel:'#ffd27a', t0:'#fff4ea', t1:'#e0c0a8', t2:'#9a7462', accent:'#d4473a', win:'rgba(255,210,122,.42)', bg:'#0a0404', font:"'Hiragino Mincho ProN','Yu Mincho',Georgia,serif"}),
+  env(){
+    const stream = (()=>{ let s = ''; const R = v2Rand(15);
+      for(let k=0;k<9;k++){ const y0 = 70+k*15; let d = `M -20 ${y0} `; for(let x=0;x<=1040;x+=40) d += `L ${x} ${f1(y0 + Math.sin(x/120 + k*0.5)*18 + Math.sin(x/47+k)*4)} `;
+        s += v2Tag('path',{d, fill:'none', stroke:'#d9a84a', 'stroke-width':f1(0.8+R()*2.2), opacity:f1(0.35+R()*0.4), 'stroke-linecap':'round'}); }
+      return s + v2Speckle(500, 21, 0, 40, 1000, 160, ['#e8c77a','#ffd88a','#c9963a'], 0.4, 1.3, 0.25, 0.75); })();
+    return [
+      { css:'background:radial-gradient(ellipse at 30% 18%, #2c1414 0%, #120808 55%, #070303 100%)' },
+      { css:'inset:2.4vmin; border-radius:3vmin; border:2.1vmin solid #9a2018; box-shadow: inset 0 0 0 0.32vmin #d9a84a, inset 0.6vmin 1.4vmin 3vmin rgba(0,0,0,.65), 0 0 0 0.3vmin #3a0a08, 0 1vmin 2.4vmin rgba(0,0,0,.6); background:radial-gradient(ellipse at 25% 15%, rgba(255,220,200,.05), rgba(0,0,0,0) 50%)' },
+      { vb:'0 0 1000 220', par:'none', box:{left:'4vmin', right:'4vmin', bottom:'4vmin', top:'auto', height:'min(22vh,190px)', inset:'auto', width:'auto'}, svg: stream },
+      { cls:'v2T v2PanB', vb:'0 0 600 600', par:'none', size:'600px 600px', svg: v2Petals(600, 7, 33) },
+    ];
+  },
+  arena(svg, defs){
+    v2Arena(svg, defs, { lip:[['0','#e05a48'],['0.5','#9a2018'],['1','#3a0806']], field:[['0','#1f0e0e'],['0.7','#120707'],['1','#0a0404']], gloss:0.09, edge:'#ffd27a', edgeOp:0.6,
+      tex(g){ const R = v2Rand(4); let sp = ''; for(let i=0;i<240;i++){ const a = R()*Math.PI*2, r = Math.sqrt(R())*RIM_R; sp += `M ${f1(Math.cos(a)*r)} ${f1(Math.sin(a)*r)} h 0.01 `; }
+        el('path',{d:sp, stroke:'#e8c77a', 'stroke-width':1.3, 'stroke-linecap':'round', opacity:0.2, fill:'none'}, g); },
+      after(svg){ el('circle',{r:RIM_R+19.5, fill:'none', stroke:'#d9a84a', 'stroke-width':1.2, opacity:0.75}, svg); } });
+  },
+  hub(h){ v2HubStd(h, {stops:[['0','#fff1c0'],['0.5','#d9a84a'],['1','#6a4a14']], edge:'#3a2008', dot:'#b8281c'}); },
+  track(g, r, sel, n){ v2TrackStd(g, r, sel, n, { groove:['#000000','#4a1a10',3], line:['#d9a84a',1,0.5], mark:['#e8c77a',1.4,2,0.55],
+    sel:{glow:['#ffd27a',14,0.12], under:['#8a5a14',3.6], main:['#ffd27a',2.2], hi:'#fff4cf', edges:['#ffd27a',0.5], mark:['#fff4cf',0.9]} }); },
+  beam:{ halo:0.10, haloC:0.17 },
+  rim:{ base:['#2e1414','#080404'], seam:'#d9a84a', seamW:1.2, hi:'#d9a84a', edge:'#ffd27a', inner:'#d9a84a', gap:1.6 },
+};
+
+/* ---- CARNIVAL -> "Carousel Canopy": looking up into a striped canopy whose seams converge
+   above the screen; strings of warm bulbs chase slowly; the board is a gilt carousel platform. */
+THEME_V2.carnival = {
+  id:'carnival', name:'Carousel Canopy', blurb:'Striped canvas converging overhead, chasing warm bulbs and a gilt carousel platform.',
+  pal:{ sockHi:'#f6dc96', sockLo:'#6a4a10', sockIn:'#0a2526', sockEdge:'#4a3008' },
+  stageFx:'', swatch:'linear-gradient(135deg,#efe2c2,#2a7a78 50%,#e0b54a)', badge:{icon:'🎠', color:'#f0d48a'},
+  ui: v2UiMk({ink:[14,30,30], line:'#2f6a66', bright:'#f0d48a', ring:'#f6e6bf', sel:'#fff0b8', t0:'#fff8ea', t1:'#d8ccb0', t2:'#8f8670', accent:'#e0b54a', win:'rgba(255,224,138,.42)', bg:'#2a1414', font:"'Rockwell',Georgia,serif"}),
+  env(){
+    const P = [500,-760]; let wedges = '', seams = '';
+    for(let i=-14;i<=14;i++){
+      const a0 = Math.PI/2 + i*0.06, a1 = a0 + 0.06, L = 2600;
+      const p = (a)=>`${f1(P[0]+Math.cos(a)*L)} ${f1(P[1]+Math.sin(a)*L)}`;
+      wedges += v2Tag('path',{d:`M ${P[0]} ${P[1]} L ${p(a0)} L ${p(a1)} Z`, fill:i%2 ? 'url(#cr)' : 'url(#tl)'});
+      seams += `M ${P[0]} ${P[1]} L ${p(a0)} `;
+    }
+    const bulbs = (phase)=>{ let s = ''; for(let i=-9;i<=9;i++){ if((i+9)%2!==phase) continue; const a = Math.PI/2 + i*0.06, R = 1440, x = P[0]+Math.cos(a)*R, y = P[1]+Math.sin(a)*R;
+      s += v2Tag('circle',{cx:f1(x), cy:f1(y), r:34, fill:'url(#bg)'}) + v2Tag('circle',{cx:f1(x), cy:f1(y), r:6, fill:'#fff3cf'}); } return s; };
+    const bdefs = v2Tag('defs',{}, v2Grad('bg',[['0','#ffd480',0.7],['1','#ffd480',0]],'radialGradient',{}));
+    return [
+      { svg: v2Tag('defs',{}, v2Grad('cr',[['0','#d9c9a4'],['1','#a8946c']],'linearGradient',{x1:0,y1:0,x2:1,y2:0}) + v2Grad('tl',[['0','#2a7a78'],['1','#164a48']],'linearGradient',{x1:0,y1:0,x2:1,y2:0})
+            + v2Grad('sh',[['0','#000',0.6],['0.55','#000',0.25],['1','#000',0.55]],'radialGradient',{cx:0.5,cy:-0.3,r:1.4}))
+          + wedges + v2Tag('path',{d:seams, stroke:'#e0b54a', 'stroke-width':2.4, opacity:0.55, fill:'none'})
+          + v2Tag('rect',{width:1000,height:1000,fill:'url(#sh)'}) + v2Tag('rect',{width:1000,height:1000,fill:'#1a0a08',opacity:0.32}) },
+      { cls:'v2Twinkle', svg: bdefs + bulbs(0) },
+      { cls:'v2Twinkle2', svg: bdefs + bulbs(1) },
+    ];
+  },
+  arena(svg, defs){
+    v2Arena(svg, defs, { lip:[['0','#f6dc96'],['0.5','#b8902e'],['1','#4a3008']], field:[['0','#195052'],['0.7','#0f3638'],['1','#0a2526']], gloss:0.07, edge:'#fff4c8', edgeOp:0.6,
+      tex(g){ let d = ''; for(let i=0;i<12;i++){ const a = i/12*Math.PI*2; d += `M ${f1(Math.cos(a)*30)} ${f1(Math.sin(a)*30)} L ${f1(Math.cos(a)*226)} ${f1(Math.sin(a)*226)} `; }
+        el('path',{d, stroke:'#d9b56a', 'stroke-width':1, opacity:0.22}, g); el('circle',{r:120, fill:'none', stroke:'#d9b56a', 'stroke-width':1, opacity:0.25}, g); } });
+  },
+  hub(h){ v2HubStd(h, {stops:[['0','#fff4c8'],['0.5','#e0b54a'],['1','#6a4a10']], edge:'#4a3008', shape:'oct', ring:'#4a3008'}); },
+  track(g, r, sel, n){ v2TrackStd(g, r, sel, n, { groove:['#04191a','#c9a45a',4], line:['#e8c77a',1.2,0.45], mark:['#f0d48a',1.5,2.2,0.5],
+    sel:{glow:['#ffe08a',15,0.13], under:['#8a6a1c',3.8], main:['#fff0b8',2.2], hi:'#ffffff', edges:['#ffe08a',0.55], mark:['#ffffff',0.9]} }); },
+  beam:{ halo:0.10, haloC:0.17 },
+  rim:{ base:['#efe2c2','#b8a47a'], alt:[['#f2e6c8','#b8a47a'],['#2e8280','#0f3a3a']], seam:'#e0b54a', seamW:1.2, hi:'#fff6dc', edge:'#f0d48a', inner:'#e0b54a', gap:1.8 },
+};
+
+/* ---- ARCHIVE -> "Reading Desk": a walnut desk with a tooled green-leather inlay and the warm
+   pool of a desk lamp from the top right; the board is a brass-rimmed leather disc. */
+THEME_V2.archive = {
+  id:'archive', name:'Reading Desk', blurb:'Walnut, a gold-tooled leather inlay and the warm pool of a desk lamp.',
+  pal:{ sockHi:'#f0d08a', sockLo:'#5a3c10', sockIn:'#0e1d15', sockEdge:'#3a2608' },
+  stageFx:'', swatch:'linear-gradient(135deg,#e3c07a,#1a3024 50%,#6b4426)', badge:{icon:'📚', color:'#e3c07a'},
+  ui: v2UiMk({ink:[30,18,10], line:'#5a4026', bright:'#e3c07a', ring:'#f0dcae', sel:'#ffe2a0', t0:'#fff6e6', t1:'#dccaa8', t2:'#9a876a', accent:'#7fb08c', win:'rgba(255,226,160,.42)', bg:'#2e1c10', font:"'Baskerville','Book Antiqua',Georgia,serif"}),
+  env(){
+    const R = v2Rand(5); let dk = '', lt = '';
+    for(let y=-10;y<1010;y+=7){ const ph = R()*6, amp = 2+R()*6; let p = `M -10 ${f1(y)} `; for(let x=0;x<=1010;x+=30) p += `L ${x} ${f1(y + Math.sin(x/(120+R()*40)+ph)*amp)} `; if(R()<0.55) dk += p; else lt += p; }
+    let knots = ''; for(let i=0;i<5;i++){ const x = R()*1000, y = R()*1000; for(let k=0;k<4;k++) knots += v2Tag('ellipse',{cx:f1(x), cy:f1(y), rx:12+k*9, ry:4+k*3, fill:'none', stroke:'#1a0f07', 'stroke-width':1.4, opacity:0.4}); }
+    return [
+      { svg: v2Tag('rect',{width:1000,height:1000,fill:'#2e1c10'}) + v2Tag('path',{d:dk, fill:'none', stroke:'#1a0f07', 'stroke-width':1.6, opacity:0.45}) + v2Tag('path',{d:lt, fill:'none', stroke:'#6a4428', 'stroke-width':1.2, opacity:0.35}) + knots },
+      { css:'inset:8vmin 4.5vmin; border-radius:1.2vmin; background:radial-gradient(ellipse at 38% 28%, #2e4c3a, #1a3226 68%, #11241a); box-shadow: inset 0 0 0 0.55vmin #24170c, inset 0 0 0 0.8vmin #c9a45a, inset 0 0 0 1.25vmin #1a3226, inset 0 0 0 1.45vmin #c9a45a, inset 0.4vmin 0.9vmin 2.6vmin rgba(0,0,0,.55), 0 0.7vmin 1.8vmin rgba(0,0,0,.55)' },
+      { cls:'v2T', vb:'0 0 300 300', par:'none', size:'300px 300px', svg: v2Dots(300, 260, 7, ['#000000','#3f6a52'], 0.4, 1.1, 0.08, 0.22) },
+      { cls:'v2Breath', svg: v2Tag('defs',{}, v2Grad('lp',[['0','#ffd9a0',0.3],['0.5','#ffcf8a',0.1],['1','#ffcf8a',0]],'radialGradient',{})) + v2Tag('ellipse',{cx:930, cy:40, rx:760, ry:640, fill:'url(#lp)'}) },
+    ];
+  },
+  arena(svg, defs){
+    v2Arena(svg, defs, { lip:[['0','#f2d692'],['0.5','#a8823a'],['1','#40280a']], field:[['0','#2c4a38'],['0.7','#1a3024'],['1','#10201a']], gloss:0.05, edge:'#fff0c8', edgeOp:0.55,
+      tex(g){ const R = v2Rand(2); let sp = ''; for(let i=0;i<500;i++){ const a = R()*Math.PI*2, r = Math.sqrt(R())*RIM_R; sp += `M ${f1(Math.cos(a)*r)} ${f1(Math.sin(a)*r)} h 0.01 `; }
+        el('path',{d:sp, stroke:'#000', 'stroke-width':1.6, 'stroke-linecap':'round', opacity:0.16, fill:'none'}, g);
+        [RIM_R-14, RIM_R-17.5, 58, 54.5].forEach(r=>el('circle',{r, fill:'none', stroke:'#c9a45a', 'stroke-width':0.9, opacity:0.6}, g)); } });
+  },
+  hub(h){ v2HubStd(h, {stops:[['0','#fff1c8'],['0.5','#c9a45a'],['1','#4a3010']], edge:'#2a1a06', dot:'#1a3024'}); },
+  track(g, r, sel, n){ v2TrackStd(g, r, sel, n, { double:['#c9a45a',0.55], mark:['#d9b56a',1.4,2,0.5],
+    sel:{glow:['#ffe2a0',14,0.12], under:['#7a5a1c',3.6], main:['#ffe2a0',2], hi:'#fff6dc', edges:['#ffe2a0',0.5], mark:['#fff6dc',0.9]} }); },
+  beam:{ halo:0.10, haloC:0.17 },
+  rim:{ base:['#6e4628','#2a170b'], seam:'#c9a45a', hi:'#f0c890', edge:'#e3c07a', inner:'#c9a45a', gap:1.8,
+    deco(rimG, s, n, rIn, rOut, c, t){ if(t) return; const st = Math.PI*2/n*0.4; [rIn+5, (rIn+rOut)/2+1, rOut-6].forEach((r,k)=>{ const o = (k-1)*0.04;
+      el('path',{d:`M ${f1(Math.cos(c-st+o)*r)} ${f1(Math.sin(c-st+o)*r)} A ${r} ${r} 0 0 1 ${f1(Math.cos(c+st+o)*r)} ${f1(Math.sin(c+st+o)*r)}`, fill:'none', stroke:'#2a170b', 'stroke-width':0.9, opacity:0.5}, rimG); }); } },
+};
+
+/* ---- RAIL -> "Watch Movement": a perlage-finished movement plate, gold bridges with
+   Geneva stripes and blue jewels along the top and bottom, a balance wheel swinging at the edge;
+   the board is a guilloché dial. */
+THEME_V2.rail = {
+  id:'rail', name:'Watch Movement', blurb:'Perlage, Geneva-striped gold bridges, blue jewels and a swinging balance wheel.',
+  pal:{ sockHi:'#e6eaf0', sockLo:'#3a404a', sockIn:'#0f1626', sockEdge:'#1a1f28' },
+  stageFx:'', swatch:'linear-gradient(135deg,#e0c27a,#18223a 50%,#8fb4ff)', badge:{icon:'⌚', color:'#8fb4ff'},
+  ui: v2UiMk({ink:[16,20,30], line:'#3a4560', bright:'#e0c27a', ring:'#dfe6f2', sel:'#8fb4ff', t0:'#f2f5fb', t1:'#b9c3d4', t2:'#6f7a8e', accent:'#e0c27a', win:'rgba(160,190,255,.42)', bg:'#2a2c31', font:"'Gill Sans','Segoe UI',sans-serif"}),
+  env(){
+    const bridge = (flip)=>{
+      let s = v2Tag('defs',{}, v2Grad('gb',[['0','#f0d48e'],['0.5','#c9a052'],['1','#7a5a1c']],'linearGradient',{x1:0,y1:0,x2:0,y2:1})
+        + v2Tag('clipPath',{id:'bc'}, v2Tag('path',{d:'M -20 0 L 1020 0 L 1020 120 C 860 120 820 190 640 190 C 470 190 430 130 300 130 C 180 130 140 200 -20 200 Z'})));
+      s += v2Tag('path',{d:'M -20 6 L 1020 6 L 1020 126 C 860 126 820 196 640 196 C 470 196 430 136 300 136 C 180 136 140 206 -20 206 Z', fill:'#000', opacity:0.45});
+      let st = ''; for(let x=-300;x<1100;x+=26) st += v2Tag('path',{d:`M ${x} 0 L ${x+160} 220`, stroke:(x/26)%2 ? '#fff6d0' : '#6a4a14', 'stroke-width':13, opacity:0.12});
+      s += v2Tag('g',{'clip-path':'url(#bc)'}, v2Tag('rect',{x:-20,y:0,width:1040,height:220,fill:'url(#gb)'}) + st);
+      s += v2Tag('path',{d:'M -20 200 C 140 200 180 130 300 130 C 430 130 470 190 640 190 C 820 190 860 120 1020 120', fill:'none', stroke:'#fff3c8', 'stroke-width':2, opacity:0.6});
+      [[120,80],[380,70],[640,120],[880,60]].forEach(([x,y],i)=>{ s += v2Tag('circle',{cx:x, cy:y, r:15, fill:'#8a6a20'}) + v2Tag('circle',{cx:x, cy:y, r:9, fill:i%2?'#2a4fa8':'#3b5bd6'}) + v2Tag('circle',{cx:x-3, cy:y-3, r:3, fill:'#ffffff', opacity:0.55}); });
+      [[250,40],[520,40],[760,40]].forEach(([x,y])=>{ s += v2Tag('circle',{cx:x, cy:y, r:9, fill:'#3a52b0'}) + v2Tag('path',{d:`M ${x-7} ${y+2} L ${x+7} ${y-2}`, stroke:'#101a40', 'stroke-width':2.2}) + v2Tag('circle',{cx:x-2.5, cy:y-3, r:2, fill:'#fff', opacity:0.4}); });
+      return v2Tag('g', flip ? {transform:'translate(1000 220) scale(-1 -1)'} : {}, s); };
+    const wheel = (()=>{ let s = v2Tag('defs',{}, v2Grad('gw',[['0','#f6dc96'],['1','#8a6420']],'linearGradient',{x1:0,y1:0,x2:1,y2:1}));
+      s += v2Tag('circle',{cx:206, cy:208, r:150, fill:'none', stroke:'#000', 'stroke-width':20, opacity:0.35});
+      s += v2Tag('circle',{cx:200, cy:200, r:150, fill:'none', stroke:'url(#gw)', 'stroke-width':18});
+      for(let i=0;i<3;i++){ const a = i/3*Math.PI*2; s += v2Tag('line',{x1:200, y1:200, x2:f1(200+Math.cos(a)*145), y2:f1(200+Math.sin(a)*145), stroke:'url(#gw)', 'stroke-width':9}); }
+      for(let i=0;i<12;i++){ const a = i/12*Math.PI*2+0.2; s += v2Tag('circle',{cx:f1(200+Math.cos(a)*150), cy:f1(200+Math.sin(a)*150), r:6.5, fill:'#c9a052', stroke:'#6a4a14', 'stroke-width':1.5}); }
+      let sp = 'M 200 200 '; for(let t=0;t<9*Math.PI*2;t+=0.2){ const r = 8 + t*1.45; sp += `L ${f1(200+Math.cos(t)*r)} ${f1(200+Math.sin(t)*r)} `; }
+      s += v2Tag('path',{d:sp, fill:'none', stroke:'#c8d0dc', 'stroke-width':1.6, opacity:0.75}) + v2Tag('circle',{cx:200, cy:200, r:12, fill:'#2a4fa8', stroke:'#c9a052', 'stroke-width':4});
+      return s; })();
+    return [
+      { svg: v2Tag('defs',{}, v2Tag('radialGradient',{id:'pl',cx:'42%',cy:'40%',r:'60%'}, v2Tag('stop',{offset:'0','stop-color':'#44474f'}) + v2Tag('stop',{offset:'0.7','stop-color':'#2e3036'}) + v2Tag('stop',{offset:'1','stop-color':'#25272c'}))
+            + v2Tag('pattern',{id:'pg', width:44, height:38, patternUnits:'userSpaceOnUse'}, [[0,0],[44,0],[22,19],[0,38],[44,38]].map(([x,y])=>v2Tag('circle',{cx:x, cy:y, r:22, fill:'url(#pl)', stroke:'#5a5d66', 'stroke-width':0.8, 'stroke-opacity':0.5})).join(''))
+            + v2Grad('vg',[['0.5','#000',0],['1','#000',0.5]],'radialGradient',{}))
+          + v2Tag('rect',{width:1000,height:1000,fill:'url(#pg)'}) + v2Tag('rect',{width:1000,height:1000,fill:'url(#vg)'}) },
+      { vb:'0 0 1000 220', par:'none', box:{left:0, top:0, width:'100%', height:'min(20vh,170px)', inset:'auto'}, svg: bridge(false) },
+      { vb:'0 0 1000 220', par:'none', box:{left:0, bottom:0, top:'auto', width:'100%', height:'min(18vh,150px)', inset:'auto'}, svg: bridge(true) },
+      { cls:'v2Swing', vb:'0 0 400 400', par:'xMidYMid meet', box:{left:'-11vmin', bottom:'15%', top:'auto', width:'38vmin', height:'38vmin', inset:'auto'}, svg: wheel },
+    ];
+  },
+  arena(svg, defs){
+    v2Arena(svg, defs, { lip:[['0','#eef1f6'],['0.45','#8a93a0'],['1','#22272f']], field:[['0','#24324c'],['0.7','#18223a'],['1','#0f1626']], edge:'#ffffff', edgeOp:0.5,
+      tex(g){ let dl = '', dd = ''; for(let i=0;i<180;i++){ const a = i/180*Math.PI*2, seg = `M 0 0 L ${f1(Math.cos(a)*240)} ${f1(Math.sin(a)*240)} `; if(i%2) dl += seg; else dd += seg; }
+        el('path',{d:dl, stroke:'#ffffff', 'stroke-width':0.9, opacity:0.05}, g); el('path',{d:dd, stroke:'#000', 'stroke-width':0.9, opacity:0.18}, g);
+        el('circle',{r:RIM_R-14, fill:'none', stroke:'#c8d0dc', 'stroke-width':0.8, opacity:0.35}, g); } });
+  },
+  hub(h){ v2HubStd(h, {stops:[['0','#fff4c8'],['0.5','#c9a052'],['1','#5a3c10']], edge:'#3a2a10', dot:'#2a4fa8', ring:'#3a2a10'}); },
+  track(g, r, sel, n){ v2TrackStd(g, r, sel, n, { groove:['#05080e','#9aa6b8',4], line:['#b9c3d0',1,0.35], mark:['#d6deea',1.6,2,0.5],
+    sel:{glow:['#6f9cff',14,0.14], under:['#1f3a8a',3.6], main:['#8fb4ff',2.2], hi:'#e6eeff', edges:['#9fbcff',0.55], mark:['#e6eeff',0.9]} }); },
+  beam:{ halo:0.10, haloC:0.17 },
+  rim:{ base:['#e4c680','#7a5a1c'], seam:'#3a2a10', hi:'#fff4c8', edge:'#fff0c0', inner:'#3a2a10', gap:1.6,
+    deco(rimG, s, n, rIn, rOut, c, t){ if(t) return; const rm = (rIn+rOut)/2; v2RimDot(rimG, c, rm, 3, '#8a6a20'); v2RimDot(rimG, c, rm, 1.9, '#2a4fa8'); v2RimDot(rimG, c-0.006, rm-0.7, 0.6, '#ffffff', 0.6); } },
+};
+
+/* ---- SPORE -> "Greenhouse": looking up through a misted glass roof on iron glazing bars,
+   ferns softly out of focus at the edges, morning light shafts drifting through. */
+THEME_V2.spore = {
+  id:'spore', name:'Greenhouse', blurb:'A misted glass roof on iron glazing bars, soft ferns and drifting morning light.',
+  pal:{ sockHi:'#e0b48a', sockLo:'#4a2a14', sockIn:'#0d1710', sockEdge:'#2a1a0a' },
+  stageFx:'', swatch:'linear-gradient(135deg,#9fdcc0,#16261a 50%,#c08050)', badge:{icon:'🌿', color:'#9fdcc0'},
+  ui: v2UiMk({ink:[10,24,16], line:'#2f5a44', bright:'#9fdcc0', ring:'#d6f5e4', sel:'#eafff2', t0:'#f2fff6', t1:'#b8d8c4', t2:'#6f9a80', accent:'#c08050', win:'rgba(190,255,215,.42)', bg:'#1e2a24', font:"'Candara','Segoe UI',sans-serif"}),
+  env(){
+    // looking UP through the roof: glazing bars converge on a vanishing point above the screen
+    let bars = ''; const VP = [500,-1100];
+    for(let x=-1400;x<=2400;x+=200) bars += `M ${x} 1150 L ${f1(VP[0]+(x-VP[0])*0.08)} ${VP[1]} `;
+    for(let k=0;k<9;k++){ const y = 1150 - Math.pow(k,1.35)*120; if(y < -200) break; bars += `M -400 ${f1(y)} L 1400 ${f1(y)} `; }
+    const R = v2Rand(9); let drops = '';
+    for(let i=0;i<1100;i++){ const x = R()*1000, y = R()*1000, r = 0.8+R()*2.6; drops += v2Tag('circle',{cx:f1(x), cy:f1(y), r:f1(r), fill:'#0e1a12', opacity:0.25}) + v2Tag('circle',{cx:f1(x-r*0.3), cy:f1(y-r*0.3), r:f1(r*0.45), fill:'#e8fff0', opacity:0.28}); }
+    for(let i=0;i<40;i++){ const x = R()*1000, y = R()*1000; drops += v2Tag('path',{d:`M ${f1(x)} ${f1(y)} q 2 ${f1(20+R()*40)} -1 ${f1(40+R()*60)}`, stroke:'#d8f5e4', 'stroke-width':1.6, fill:'none', opacity:0.18}); }
+    const frond = (x, y, ang, len, sd)=>{ const Q = v2Rand(sd); let s = '', d = `M ${x} ${y} `; const pts = [];
+      for(let i=1;i<=20;i++){ const t = i/20, a = ang + Math.sin(t*2)*0.35, px = x + Math.cos(a)*len*t, py = y + Math.sin(a)*len*t; pts.push([px,py,a]); d += `L ${f1(px)} ${f1(py)} `; }
+      s += v2Tag('path',{d, stroke:'#0f2416', 'stroke-width':6, fill:'none'});
+      pts.forEach(([px,py,a],i)=>{ const L = (1-i/20)*90+20; [-1,1].forEach(sg=>{ const b = a + sg*1.15; s += v2Tag('ellipse',{cx:f1(px+Math.cos(b)*L*0.5), cy:f1(py+Math.sin(b)*L*0.5), rx:f1(L*0.5), ry:f1(7+Q()*3), fill:'#14301e', transform:`rotate(${f1(b*180/Math.PI)} ${f1(px+Math.cos(b)*L*0.5)} ${f1(py+Math.sin(b)*L*0.5)})`}); }); });
+      return s; };
+    return [
+      { svg: v2Tag('defs',{}, v2Grad('sk',[['0','#9db8a2'],['0.45','#5d7a66'],['1','#24342a']],'linearGradient',{x1:0.2,y1:0,x2:0.5,y2:1}))
+          + v2Tag('rect',{width:1000,height:1000,fill:'url(#sk)'}) + drops
+          + v2Tag('g',{transform:'rotate(6 500 500)'}, v2Tag('path',{d:bars, stroke:'#0e1410', 'stroke-width':12, fill:'none'}) + v2Tag('path',{d:bars, stroke:'#b8d0bf', 'stroke-width':1.4, fill:'none', opacity:0.35, transform:'translate(-3 -2)'})) },
+      { svg: v2Tag('defs',{}, v2Tag('filter',{id:'b',x:'-20%',y:'-20%',width:'140%',height:'140%'}, v2Tag('feGaussianBlur',{stdDeviation:4})))
+          + v2Tag('g',{filter:'url(#b)', opacity:0.95}, frond(-40, 80, 0.35, 560, 3) + frond(-60, 420, -0.15, 460, 7) + frond(1060, 980, Math.PI+0.4, 600, 11) + frond(1040, 620, Math.PI-0.1, 420, 13) + frond(380, -60, 1.2, 380, 17)) },
+      { cls:'v2Drift', svg: v2Tag('defs',{}, v2Tag('filter',{id:'s',x:'-20%',y:'-20%',width:'140%',height:'140%'}, v2Tag('feGaussianBlur',{stdDeviation:18})))
+          + v2Tag('g',{filter:'url(#s)', transform:'rotate(28 500 500)'}, [[-80,140],[200,90],[560,120]].map(([x,w])=>v2Tag('rect',{x, y:-300, width:w, height:1700, fill:'#f2fff0', opacity:0.13})).join('')) },
+    ];
+  },
+  arena(svg, defs){
+    v2Arena(svg, defs, { lip:[['0','#a6e0c6'],['0.5','#3f7a64'],['1','#163428']], field:[['0','#24391f'],['0.7','#16261a'],['1','#0d1710']], edge:'#d6f5e4', edgeOp:0.5,
+      tex(g){ const R = v2Rand(6); let a1 = '', a2 = '';
+        for(let i=0;i<900;i++){ const a = R()*Math.PI*2, r = Math.sqrt(R())*RIM_R, seg = `M ${f1(Math.cos(a)*r)} ${f1(Math.sin(a)*r)} h 0.01 `; if(R()<0.5) a1 += seg; else a2 += seg; }
+        el('path',{d:a1, stroke:'#4f7a3a', 'stroke-width':2.2, 'stroke-linecap':'round', opacity:0.25, fill:'none'}, g);
+        el('path',{d:a2, stroke:'#0a1208', 'stroke-width':2, 'stroke-linecap':'round', opacity:0.3, fill:'none'}, g); } });
+  },
+  hub(h){ v2HubStd(h, {stops:[['0','#f0c8a0'],['0.5','#b87a4a'],['1','#4a2a14']], edge:'#2a1a0a', shape:'hex', ring:'#2a1a0a'}); },
+  track(g, r, sel, n){ v2TrackStd(g, r, sel, n, { groove:['#06120b','#6fae8a',4.5], line:['#9fdcc0',1,0.35], mark:['#bff0d6',1.4,2,0.45],
+    sel:{glow:['#b8ffd8',14,0.12], under:['#2f6a4a',3.6], main:['#eafff2',2.1], hi:'#ffffff', edges:['#bff0d6',0.55], mark:['#ffffff',0.9]} }); },
+  beam:{ halo:0.10, haloC:0.17 },
+  rim:{ base:['#c48452','#4a2a14'], seam:'#1a0e06', hi:'#ffd8b8', edge:'#9fdcc0', inner:'#1a0e06', gap:2.4, fleck:{count:6, colors:['#6fc0a0','#4f9a80','#9fdcc0'], op:0.7} },
+};
+
+/* ---- CRIMSON -> "Terracotta Courtyard": a terracotta tile floor under hard noon sun, the
+   pergola's beams casting parallel shadow bars that creep slowly, vine shade swaying along them. */
+THEME_V2.crimson = {
+  id:'crimson', name:'Terracotta Courtyard', blurb:'Terracotta tiles under hard noon sun, pergola shadows creeping and vine shade swaying.',
+  pal:{ sockHi:'#f0a882', sockLo:'#5a2412', sockIn:'#1a0c07', sockEdge:'#3a1608' },
+  stageFx:'', swatch:'linear-gradient(135deg,#d27a52,#28140d 50%,#3a5ca0)', badge:{icon:'🏺', color:'#f0a882'},
+  ui: v2UiMk({ink:[30,14,8], line:'#6a3a24', bright:'#9fb8ff', ring:'#f4e2c8', sel:'#fff1d0', t0:'#fff6ec', t1:'#e0c8b0', t2:'#9a7c66', accent:'#3a5ca0', win:'rgba(255,236,200,.42)', bg:'#5a2e1c', font:"'Trebuchet MS','Segoe UI',sans-serif"}),
+  env(){
+    const R = v2Rand(31); let tiles = '';
+    const cols = ['#8a4a32','#9a5638','#7c4230','#a35e3e','#93503a'];
+    for(let i=0;i<9;i++) for(let j=0;j<9;j++){ const x = i*125-30, y = j*125-30;
+      tiles += v2Tag('rect',{x:x+3, y:y+3, width:119, height:119, rx:3, fill:cols[Math.floor(R()*cols.length)]})
+        + v2Tag('path',{d:`M ${x+4} ${y+120} L ${x+4} ${y+4} L ${x+120} ${y+4}`, stroke:'#d89a78', 'stroke-width':1.5, fill:'none', opacity:0.35}); }
+    let bars = ''; for(let k=-4;k<9;k++) bars += v2Tag('rect',{x:k*210, y:-400, width:78, height:1900, fill:'#1a0904'});
+    let leaves = ''; for(let k=-4;k<9;k++) for(let m=0;m<9;m++){ const x = k*210+39+(R()-0.5)*60, y = -300+m*200+R()*80; leaves += v2Tag('ellipse',{cx:f1(x), cy:f1(y), rx:f1(30+R()*40), ry:f1(14+R()*16), transform:`rotate(${f1(R()*180)} ${f1(x)} ${f1(y)})`}); }
+    return [
+      { svg: v2Tag('rect',{width:1000,height:1000,fill:'#c9b294'}) + tiles + v2Speckle(1200, 7, 0, 0, 1000, 1000, ['#5a2a18','#c98a68','#3a1a10'], 0.6, 1.8, 0.15, 0.4)
+          + v2Tag('rect',{width:1000,height:1000,fill:'#2a1006',opacity:0.32}) },
+      { cls:'v2Slide', svg: v2Tag('defs',{}, v2Tag('filter',{id:'b',x:'-5%',y:'-5%',width:'110%',height:'110%'}, v2Tag('feGaussianBlur',{stdDeviation:2.5})))
+          + v2Tag('g',{filter:'url(#b)', opacity:0.52, transform:'rotate(28 500 500)'}, bars) },
+      { cls:'v2Sway', svg: v2Tag('defs',{}, v2Tag('filter',{id:'c',x:'-20%',y:'-20%',width:'140%',height:'140%'}, v2Tag('feGaussianBlur',{stdDeviation:9})))
+          + v2Tag('g',{filter:'url(#c)', fill:'#1a0904', opacity:0.28, transform:'rotate(28 500 500)'}, leaves) },
+    ];
+  },
+  arena(svg, defs){
+    v2Arena(svg, defs, { lip:[['0','#e08a60'],['0.5','#8a4228'],['1','#30120a']], field:[['0','#3c1f15'],['0.7','#28140d'],['1','#1a0c07']], gloss:0.07, edge:'#ffd8c0',
+      tex(g){ el('circle',{r:RIM_R-12, fill:'none', stroke:'#3a5ca0', 'stroke-width':7, opacity:0.75}, g);
+        el('circle',{r:RIM_R-12, fill:'none', stroke:'#e9e0cc', 'stroke-width':1.6, 'stroke-dasharray':'2 9', opacity:0.75}, g);
+        el('circle',{r:62, fill:'none', stroke:'#3a5ca0', 'stroke-width':4, opacity:0.6}, g); } });
+  },
+  hub(h){ v2HubStd(h, {stops:[['0','#f0a882'],['0.5','#c06a46'],['1','#5a2412']], edge:'#3a1608', shape:'square', ring:'#3a1608'}); },
+  track(g, r, sel, n){ v2TrackStd(g, r, sel, n, { groove:['#0a0402','#c9a080',4], line:['#e9d6b8',1.1,0.42], mark:['#f0e0c4',1.4,2.2,0.5],
+    sel:{glow:['#fff1d0',14,0.12], under:['#2f4f8a',3.6], main:['#fff1d0',2.2], hi:'#ffffff', edges:['#9fb8ff',0.5], mark:['#ffffff',0.9]} }); },
+  beam:{ halo:0.10, haloC:0.17 },
+  rim:{ base:['#3e62a8','#152a5a'], seam:'#e9e0cc', seamW:1.6, hi:'#c8d8ff', edge:'#e9e0cc', inner:'#e9e0cc', gap:2.4,
+    deco(rimG, s, n, rIn, rOut, c, t){ if(t) return; const rm = (rIn+rOut)/2, st = Math.PI*2/n*0.16;
+      [[c,rm-5],[c,rm+5],[c-st,rm],[c+st,rm]].forEach(([a,r])=>v2RimDot(rimG, a, r, 1.3, '#e9e0cc', 0.85)); v2RimDot(rimG, c, rm, 1.6, '#e0b54a', 0.9); } },
+};
+
+/* ---- GLACIER -> "Teak Deck": diagonal teak planks with black caulking, a white bulwark with a
+   varnished cap rail along one side, sea glints dancing across the deck; a brass-ringed mahogany board. */
+THEME_V2.glacier = {
+  id:'glacier', name:'Teak Deck', blurb:'Caulked teak planks, a white bulwark and brass, with sea glints dancing across the deck.',
+  pal:{ sockHi:'#f2d69a', sockLo:'#5a3c10', sockIn:'#1e0d07', sockEdge:'#3a2608' },
+  stageFx:'', swatch:'linear-gradient(135deg,#f2eee4,#6e482b 50%,#e3c27a)', badge:{icon:'⚓', color:'#e3c27a'},
+  ui: v2UiMk({ink:[20,26,40], line:'#3a4a66', bright:'#e3c27a', ring:'#f4ead2', sel:'#f4ead2', t0:'#fbf8f0', t1:'#d0c8b4', t2:'#8a8270', accent:'#e3c27a', win:'rgba(255,244,220,.42)', bg:'#3a2618', font:"'Franklin Gothic Medium','Arial Narrow',sans-serif"}),
+  env(){
+    const R = v2Rand(12); let planks = '', grain = '', seams = '';
+    const cols = ['#7a5232','#6e482b','#85593a','#5e3c22','#73502f'];
+    for(let k=-12;k<30;k++){ const y = k*62; planks += v2Tag('rect',{x:-600, y, width:2400, height:62, fill:cols[Math.floor(R()*cols.length)]});
+      seams += `M -600 ${y} L 1800 ${y} `;
+      for(let g=0; g<4; g++){ const yy = y+8+g*14+R()*6; let p = `M -600 ${f1(yy)} `; for(let x=-600;x<=1800;x+=80) p += `L ${x} ${f1(yy+Math.sin(x/90+g+k)*1.6)} `; grain += p; }
+      let x = -600 + R()*400; while(x < 1800){ seams += `M ${f1(x)} ${y} L ${f1(x)} ${y+62} `; x += 520 + R()*600; } }
+    const bulwark = v2Tag('defs',{}, v2Grad('bw',[['0','#a9a294'],['0.35','#efebe2'],['1','#d6d0c4']],'linearGradient',{x1:0,y1:0,x2:1,y2:0}) + v2Grad('cr',[['0','#9a6a3a'],['1','#4a2a12']],'linearGradient',{x1:0,y1:0,x2:1,y2:0}) + v2Grad('sh',[['0','#000',0],['1','#000',0.45]],'linearGradient',{x1:0,y1:0,x2:1,y2:0}))
+      + v2Tag('rect',{x:0, y:0, width:40, height:1000, fill:'url(#sh)'}) + v2Tag('rect',{x:40, y:0, width:26, height:1000, fill:'url(#cr)'})
+      + v2Tag('rect',{x:66, y:0, width:134, height:1000, fill:'url(#bw)'})
+      + Array.from({length:9},(_,i)=>v2Tag('circle',{cx:53, cy:60+i*110, r:4.5, fill:'#e3c27a', stroke:'#6a4a14', 'stroke-width':1.2})).join('');
+    return [
+      { svg: v2Tag('g',{transform:'rotate(-32 500 500)'}, planks + v2Tag('path',{d:grain, fill:'none', stroke:'#2a170a', 'stroke-width':1, opacity:0.3}) + v2Tag('path',{d:seams, fill:'none', stroke:'#0e0805', 'stroke-width':4}))
+          + v2Tag('rect',{width:1000,height:1000,fill:'#120a04',opacity:0.28}) },
+      { cls:'v2T v2PanA', vb:'0 0 400 400', par:'none', size:'400px 400px', svg: (()=>{ const Q = v2Rand(4); let s=''; for(let i=0;i<26;i++){ const x = Q()*400, y = Q()*400; s += v2Tag('ellipse',{cx:f1(x), cy:f1(y), rx:f1(4+Q()*10), ry:f1(1+Q()*1.6), fill:'#fff6e0', opacity:(0.12+Q()*0.25).toFixed(2), transform:`rotate(-32 ${f1(x)} ${f1(y)})`}); } return s; })() },
+      { vb:'0 0 200 1000', par:'none', box:{right:0, left:'auto', top:0, width:'min(15vw,140px)', height:'100%', inset:'auto'}, svg: bulwark },
+    ];
+  },
+  arena(svg, defs){
+    v2Arena(svg, defs, { lip:[['0','#f4dca0'],['0.5','#b08a3e'],['1','#40280a']], field:[['0','#4c2615'],['0.7','#2e150b'],['1','#1e0d07']], gloss:0.08, edge:'#fff4d8', edgeOp:0.6,
+      tex(g){ let d = ''; for(let i=0;i<8;i++){ const a = i/8*Math.PI*2+0.2; d += `M ${f1(Math.cos(a)*20)} ${f1(Math.sin(a)*20)} L ${f1(Math.cos(a)*226)} ${f1(Math.sin(a)*226)} `; }
+        el('path',{d, stroke:'#000', 'stroke-width':2.4, opacity:0.4}, g);
+        const R = v2Rand(5); let gr = ''; for(let i=0;i<90;i++){ const r = 24+R()*200, a = R()*Math.PI*2, w = 0.15+R()*0.3; gr += `M ${f1(Math.cos(a)*r)} ${f1(Math.sin(a)*r)} A ${f1(r)} ${f1(r)} 0 0 1 ${f1(Math.cos(a+w)*r)} ${f1(Math.sin(a+w)*r)} `; }
+        el('path',{d:gr, fill:'none', stroke:'#8a4a2a', 'stroke-width':0.9, opacity:0.3}, g); },
+      after(svg){ for(let i=0;i<24;i++){ const a = i/24*Math.PI*2, r = RIM_R+21; el('circle',{cx:f1(Math.cos(a)*r), cy:f1(Math.sin(a)*r), r:1.6, fill:'#4a3010'}, svg); } } });
+  },
+  hub(h){ v2HubStd(h, {stops:[['0','#fff1c8'],['0.5','#c9a052'],['1','#4a3010']], edge:'#2a1a06', shape:'oct', dot:'#1b2a44'}); },
+  track(g, r, sel, n){ v2TrackStd(g, r, sel, n, { groove:['#0a0402','#c9a070',4], line:['#d9b26a',1.1,0.42], mark:['#e8c890',1.4,2.2,0.5],
+    sel:{glow:['#fff4dc',14,0.12], under:['#1b2a44',3.6], main:['#f4ead2',2.2], hi:'#ffffff', edges:['#f4ead2',0.55], mark:['#ffffff',0.9]} }); },
+  beam:{ halo:0.10, haloC:0.17 },
+  rim:{ base:['#f4f0e6','#b8b2a4'], seam:'#1b2a44', hi:'#ffffff', edge:'#e3c27a', inner:'#1b2a44', gap:2,
+    deco(rimG, s, n, rIn, rOut, c, t){ if(t) return; const st = Math.PI*2/n*0.42, r = (rIn+rOut)/2;
+      el('path',{d:`M ${f1(Math.cos(c-st)*r)} ${f1(Math.sin(c-st)*r)} A ${r} ${r} 0 0 1 ${f1(Math.cos(c+st)*r)} ${f1(Math.sin(c+st)*r)}`, fill:'none', stroke:'#1b2a44', 'stroke-width':1.4, opacity:0.75}, rimG); } },
+};
+
+/* ---- LEVIATHAN -> "Bathyscaphe": riveted bronze hull plating and copper pipes, a dim cabin lamp,
+   and the board as a heavy porthole onto deep water where marine snow drifts past. */
+THEME_V2.leviathan = {
+  id:'leviathan', name:'Bathyscaphe', blurb:'Riveted bronze plating, copper pipes and a porthole onto deep water with drifting marine snow.',
+  pal:{ sockHi:'#e8be78', sockLo:'#5a3a14', sockIn:'#041420', sockEdge:'#2a1a08' },
+  stageFx:'', swatch:'linear-gradient(135deg,#e8be78,#0b3046 55%,#7fd6e8)', badge:{icon:'🌊', color:'#7fd6e8'},
+  stageLayer:{ vb:'0 0 300 300', size:'300px 300px', svg: v2Speckle(46, 5, 0, 0, 300, 300, ['#cfefff','#e8f8ff','#9fd6e8'], 0.5, 1.5, 0.25, 0.7) },
+  ui: v2UiMk({ink:[16,14,10], line:'#5a4426', bright:'#c89a52', ring:'#e0fbff', sel:'#e0fbff', t0:'#f0f8f8', t1:'#b8ccc8', t2:'#6f8480', accent:'#7fd6e8', win:'rgba(160,240,255,.42)', bg:'#2a2118', font:"'Copperplate','Copperplate Gothic Light',Georgia,serif"}),
+  env(){
+    const R = v2Rand(23); let plates = '', rivets = '', streaks = '';
+    for(let j=-1;j<7;j++) for(let i=-1;i<6;i++){ const x = i*240 + (j%2)*120 - 20, y = j*170 - 20, w = 248, h = 176;
+      plates += v2Tag('rect',{x, y, width:w, height:h, fill:'url(#pt)'}) + v2Tag('path',{d:`M ${x} ${y+h} L ${x} ${y} L ${x+w} ${y}`, stroke:'#8a6a3a', 'stroke-width':2, fill:'none', opacity:0.5}) + v2Tag('path',{d:`M ${x} ${y+h} L ${x+w} ${y+h} L ${x+w} ${y}`, stroke:'#000', 'stroke-width':3, fill:'none', opacity:0.65});
+      for(let t=12;t<w;t+=20){ rivets += v2Tag('circle',{cx:x+t, cy:y+9, r:3.4, fill:'#1a1208'}) + v2Tag('circle',{cx:x+t-1, cy:y+8, r:1.4, fill:'#c8a060', opacity:0.7}); }
+      if(R()<0.5){ const sx = x+20+R()*(w-40); streaks += v2Tag('rect',{x:f1(sx), y:y+12, width:f1(6+R()*10), height:f1(60+R()*110), fill:'#4f9a80', opacity:(0.12+R()*0.15).toFixed(2), rx:4}); } }
+    const pipes = v2Tag('defs',{}, v2Grad('cp',[['0','#5a2a12'],['0.35','#d08a52'],['0.55','#f0b880'],['1','#4a200a']],'linearGradient',{x1:0,y1:0,x2:1,y2:0}))
+      + [[20,44],[80,30]].map(([x,w])=>v2Tag('rect',{x, y:-10, width:w, height:1020, fill:'url(#cp)'}) + Array.from({length:5},(_,i)=>v2Tag('rect',{x:x-6, y:120+i*200, width:w+12, height:14, rx:3, fill:'url(#cp)', stroke:'#2a1006', 'stroke-width':1})).join('')).join('');
+    return [
+      { svg: v2Tag('defs',{}, v2Grad('pt',[['0','#56442c'],['1','#2c2218']],'linearGradient',{x1:0,y1:0,x2:1,y2:1}) + v2Tag('filter',{id:'b'}, v2Tag('feGaussianBlur',{stdDeviation:6})))
+          + v2Tag('rect',{width:1000,height:1000,fill:'#2a2118'}) + plates + v2Tag('g',{filter:'url(#b)'}, streaks) + rivets
+          + v2Tag('rect',{width:1000,height:1000,fill:'url(#vg)'}) + v2Tag('defs',{}, v2Grad('vg',[['0.45','#000',0],['1','#000',0.6]],'radialGradient',{})) },
+      { vb:'0 0 130 1000', par:'none', box:{left:0, top:0, width:'min(12vw,110px)', height:'100%', inset:'auto'}, svg: pipes },
+      { cls:'v2Breath', svg: v2Tag('defs',{}, v2Grad('lp',[['0','#ffd9a0',0.18],['1','#ffd9a0',0]],'radialGradient',{})) + v2Tag('ellipse',{cx:500, cy:-40, rx:620, ry:420, fill:'url(#lp)'}) },
+    ];
+  },
+  arena(svg, defs){
+    v2Arena(svg, defs, { lip:[['0','#f0c886'],['0.5','#9a6a2c'],['1','#2e1a06']], field:[['0','#16566f'],['0.55','#0b3046'],['1','#041420']], fieldAt:{cx:'45%', cy:'30%', r:'80%'}, edge:'#ffe0b0', edgeOp:0.55, inner:0.6,
+      tex(g, defs){ const ray = v2G(defs,'v2bsRay',[['0','#cfefff',0.07],['1','#cfefff',0]],{x1:0,y1:0,x2:0,y2:1},'linearGradient');
+        [-80,-30,25,70].forEach((x,i)=>el('path',{d:`M ${x} -240 L ${x+18} -240 L ${x+60+i*12} 240 L ${x-40+i*8} 240 Z`, fill:ray}, g)); },
+      after(svg){ for(let i=0;i<24;i++){ const a = i/24*Math.PI*2, r = RIM_R+21; el('circle',{cx:f1(Math.cos(a)*r), cy:f1(Math.sin(a)*r), r:2.2, fill:'#2a1a06'}, svg); el('circle',{cx:f1(Math.cos(a)*r-0.7), cy:f1(Math.sin(a)*r-0.7), r:0.9, fill:'#ffe0b0', opacity:0.8}, svg); } } });
+  },
+  hub(h){ v2HubStd(h, {stops:[['0','#fff0c8'],['0.5','#c89a52'],['1','#4a2a08']], edge:'#2a1a06', ring:'#2a1a06'}); },
+  track(g, r, sel, n){ v2TrackStd(g, r, sel, n, { groove:['#020a10','#5fb0c8',4], line:['#7fd6e8',1,0.32], mark:['#a8ecff',1.4,2,0.45],
+    sel:{glow:['#9ff4ff',14,0.14], under:['#0f5a70',3.6], main:['#e0fbff',2.2], hi:'#ffffff', edges:['#9ff4ff',0.55], mark:['#ffffff',0.9]} }); },
+  beam:{ halo:0.11, haloC:0.18 },
+  rim:{ base:['#94723f','#3a2a14'], seam:'#1a1208', hi:'#f0d0a0', edge:'#c89a52', inner:'#1a1208', gap:2.6,
+    deco(rimG, s, n, rIn, rOut, c, t){ if(t) return; const st = Math.PI*2/n*0.32; [c-st, c+st].forEach(a=>{ v2RimDot(rimG, a, rOut-4.5, 2, '#1a1208'); v2RimDot(rimG, a-0.005, rOut-5, 0.8, '#f0d0a0', 0.8); v2RimDot(rimG, a, rIn+4.5, 2, '#1a1208'); v2RimDot(rimG, a-0.005, rIn+4, 0.8, '#f0d0a0', 0.8); }); } },
+};
+
+/* ---- HALO -> "Concrete & Sun": board-formed concrete with tie holes, one hard-edged wedge of
+   low sun that slowly shifts; the board is terrazzo set in raw concrete with a brass strip. */
+THEME_V2.halo = {
+  id:'halo', name:'Concrete & Sun', blurb:'Board-formed concrete, terrazzo and brass, crossed by one slow-moving edge of low sun.',
+  pal:{ sockHi:'#d6d1c8', sockLo:'#4a4744', sockIn:'#22201e', sockEdge:'#22201e' },
+  stageFx:'', swatch:'linear-gradient(135deg,#ffe3b8,#5d5953 50%,#e2bd70)', badge:{icon:'☀️', color:'#e2bd70'},
+  ui: v2UiMk({ink:[24,23,22], line:'#5a5650', bright:'#e2bd70', ring:'#ece7de', sel:'#e2bd70', t0:'#faf8f4', t1:'#cdc8c0', t2:'#8a857e', accent:'#e2bd70', win:'rgba(255,232,190,.42)', bg:'#5d5953', font:"'Helvetica Neue',Arial,sans-serif"}),
+  env(){
+    const R = v2Rand(41); let bands = '', grain = '', joints = '', ties = '';
+    for(let y=0;y<1000;y+=46){ const v = Math.floor(84 + R()*14); bands += v2Tag('rect',{x:0, y, width:1000, height:46, fill:`rgb(${v},${v-4},${v-9})`});
+      joints += `M 0 ${y} L 1000 ${y} `; for(let g=0; g<3; g++){ const yy = y+8+g*13+R()*5; let p = `M 0 ${f1(yy)} `; for(let x=0;x<=1000;x+=60) p += `L ${x} ${f1(yy+Math.sin(x/70+g*2+y)*2)} `; grain += p; } }
+    for(let x=150;x<1000;x+=300) for(let y=115;y<1000;y+=230) ties += v2Tag('circle',{cx:x, cy:y, r:6, fill:'#2a2826'}) + v2Tag('circle',{cx:x, cy:y, r:6, fill:'none', stroke:'#b9b3aa', 'stroke-width':1.2, opacity:0.5, transform:'translate(1 1)'});
+    return [
+      { svg: bands + v2Tag('path',{d:grain, fill:'none', stroke:'#3a3734', 'stroke-width':1, opacity:0.25}) + v2Tag('path',{d:joints, stroke:'#2a2826', 'stroke-width':2.2, opacity:0.6}) + ties
+          + v2Speckle(1600, 3, 0, 0, 1000, 1000, ['#3a3734','#9a958e','#2a2826'], 0.5, 1.8, 0.15, 0.45) + v2Tag('rect',{width:1000,height:1000,fill:'#1a1816',opacity:0.18}) },
+      { cls:'v2Slide', svg: v2Tag('polygon',{points:'-300,-300 1350,-300 -300,1180', fill:'#ffdcaa', opacity:0.26}) + v2Tag('polygon',{points:'-300,1180 1350,-300 1380,-260 -300,1230', fill:'#fff3dc', opacity:0.12})
+          + v2Tag('polygon',{points:'-300,1230 1380,-260 1500,-200 -300,1400', fill:'#000', opacity:0.12}) },
+    ];
+  },
+  arena(svg, defs){
+    v2Arena(svg, defs, { lip:[['0','#b8b2a9'],['0.5','#6a655e'],['1','#2a2826']], field:[['0','#4c4946'],['0.7','#393633'],['1','#2a2826']], edge:'#f0ebe2', edgeOp:0.5,
+      tex(g){ const R = v2Rand(77); const cs = ['#9a958e','#d8d2c8','#2a2826','#6a655e','#b9a888'];
+        for(let i=0;i<420;i++){ const a = R()*Math.PI*2, r = Math.sqrt(R())*RIM_R, x = Math.cos(a)*r, y = Math.sin(a)*r, k = 1.2+R()*3.4, b = R()*6;
+          el('polygon',{points:`${f1(x+Math.cos(b)*k)},${f1(y+Math.sin(b)*k)} ${f1(x+Math.cos(b+2.2)*k)},${f1(y+Math.sin(b+2.2)*k)} ${f1(x+Math.cos(b+4.1)*k)},${f1(y+Math.sin(b+4.1)*k)}`, fill:cs[i%cs.length], opacity:(0.25+R()*0.35).toFixed(2)}, g); } } });
+  },
+  hub(h){ v2HubStd(h, {stops:[['0','#d6d1c8'],['0.5','#8a857e'],['1','#3a3734']], edge:'#22201e', ring:'#22201e', dot:'#e2bd70'}); },
+  track(g, r, sel, n){ v2TrackStd(g, r, sel, n, { groove:['#141312','#8a857e',5], line:['#77726b',0.8,0.4], mark:['#b9b3aa',1.4,2.2,0.45],
+    sel:{glow:['#e2bd70',13,0.12], under:['#5a4210',3.4], main:['#e2bd70',2.2], hi:'#fff0c8', edges:['#e2bd70',0.5], mark:['#fff0c8',0.9]} }); },
+  beam:{ halo:0.10, haloC:0.17 },
+  rim:{ base:['#a8a39b','#5a5650'], seam:'#2d2b29', seamW:1.4, hi:'#ece7de', edge:'#c9c3ba', inner:'#2d2b29', gap:3.2, fleck:{count:8, colors:['#e8e3da','#6a655e','#3a3734'], op:0.5} },
+};
+
+/* ---- MESA -> "Wind Dunes": dunes seen from the air at low sun, sharp crests dividing lit and
+   shadowed faces, ripples on the lit side and wind streaks blowing across. */
+THEME_V2.mesa = {
+  id:'mesa', name:'Wind Dunes', blurb:'Dunes from the air at low sun: sharp crests, rippled faces and wind-blown streaks. Free.',
+  pal:{ sockHi:'#f0c08a', sockLo:'#6a3a1c', sockIn:'#1c0f08', sockEdge:'#3a1e0c' },
+  stageFx:'', swatch:'linear-gradient(135deg,#e0a66c,#2a170c 50%,#fff0d0)', badge:{icon:'🏜️', color:'#f0c890'},
+  ui: v2UiMk({ink:[36,20,10], line:'#7a4a2a', bright:'#f0c890', ring:'#fbe8cc', sel:'#fff0d0', t0:'#fff8ee', t1:'#e6cdb0', t2:'#a48468', accent:'#e0a66c', win:'rgba(255,230,190,.42)', bg:'#8a5530', font:"'Lucida Sans','Segoe UI',sans-serif"}),
+  env(){
+    const R = v2Rand(17); let dunes = '', rip = '';
+    for(let k=0;k<6;k++){
+      const y0 = -160 + k*230 + R()*40, amp = 80+R()*60, ph = R()*6;
+      const crest = []; for(let x=-200;x<=1200;x+=50) crest.push([x, y0 + Math.sin(x/260+ph)*amp]);
+      const cd = crest.map((p,i)=>(i?'L ':'M ')+f1(p[0])+' '+f1(p[1])).join(' ');
+      dunes += v2Tag('path',{d:cd + ' L 1200 ' + f1(y0+260) + ' L -200 ' + f1(y0+260) + ' Z', fill:'url(#lit)'});
+      dunes += v2Tag('path',{d:cd + ' ' + crest.slice().reverse().map(p=>'L '+f1(p[0]+40)+' '+f1(p[1]+120+Math.sin(p[0]/110)*26)).join(' ') + ' Z', fill:'url(#shd)'});
+      dunes += v2Tag('path',{d:cd, fill:'none', stroke:'#ffe2b8', 'stroke-width':2.2, opacity:0.55});
+      for(let r=0;r<9;r++){ let p = ''; crest.forEach((c,i)=>{ p += (i?'L ':'M ')+f1(c[0])+' '+f1(c[1]-24-r*18+Math.sin(c[0]/34+r)*5)+' '; }); rip += p; }
+    }
+    const streaks = (()=>{ const Q = v2Rand(3); let s = ''; for(let i=0;i<34;i++){ const x = Q()*600, y = Q()*600, L = 60+Q()*140; s += v2Tag('line',{x1:f1(x), y1:f1(y), x2:f1(x+L), y2:f1(y-L*0.08), stroke:'#ffe8c4', 'stroke-width':f1(0.8+Q()*1.4), opacity:(0.06+Q()*0.12).toFixed(2), 'stroke-linecap':'round'}); } return s; })();
+    return [
+      { svg: v2Tag('defs',{}, v2Grad('lit',[['0','#b8763e'],['1','#e0a466']],'linearGradient',{x1:0,y1:0,x2:0,y2:1}) + v2Grad('shd',[['0','#3e1c0a'],['1','#6a3618']],'linearGradient',{x1:0,y1:0,x2:0,y2:1}))
+          + v2Tag('rect',{width:1000,height:1000,fill:'#a8683c'}) + dunes + v2Tag('path',{d:rip, fill:'none', stroke:'#6a3a1e', 'stroke-width':1.3, opacity:0.22})
+          + v2Speckle(1200, 2, 0, 0, 1000, 1000, ['#f0c890','#6a3a1e'], 0.5, 1.2, 0.1, 0.3) + v2Tag('rect',{width:1000,height:1000,fill:'#2a1206',opacity:0.26}) },
+      { cls:'v2T v2PanX', vb:'0 0 600 600', par:'none', size:'600px 600px', svg: streaks },
+    ];
+  },
+  arena(svg, defs){
+    v2Arena(svg, defs, { lip:[['0','#eab27a'],['0.5','#9a5a2e'],['1','#341a0a']], field:[['0','#42291b'],['0.7','#2a170c'],['1','#1c0f08']], edge:'#ffe8c8', edgeOp:0.5,
+      tex(g){ const R = v2Rand(9); let lt = '', dk = '';
+        for(let i=0;i<22;i++){ const r0 = 20+i*10, ph = R()*6; let p = ''; for(let k=0;k<=64;k++){ const a = k/64*Math.PI*2, r = r0 + Math.sin(a*3+ph)*3; p += (k?'L ':'M ')+f1(Math.cos(a)*r)+' '+f1(Math.sin(a)*r)+' '; } if(i%2) lt += p; else dk += p; }
+        el('path',{d:lt, fill:'none', stroke:'#c08a5a', 'stroke-width':1.2, opacity:0.18}, g); el('path',{d:dk, fill:'none', stroke:'#0c0603', 'stroke-width':1.4, opacity:0.3}, g); } });
+  },
+  hub(h){ v2HubStd(h, {stops:[['0','#f6e0c0'],['0.5','#b8763e'],['1','#4a2410']], edge:'#2a1408', ring:'#2a1408'}); },
+  track(g, r, sel, n){ v2TrackStd(g, r, sel, n, { groove:['#0c0603','#c08a5a',4.5], line:['#e8c08a',1,0.38], mark:['#f0d4a8',1.4,2.2,0.45],
+    sel:{glow:['#fff0d0',14,0.12], under:['#7a3a14',3.6], main:['#fff0d0',2.2], hi:'#ffffff', edges:['#ffd8a0',0.5], mark:['#ffffff',0.9]} }); },
+  beam:{ halo:0.10, haloC:0.17 },
+  rim:{ base:['#d49862','#6a3a1c'], seam:'#3a2010', hi:'#ffe0b8', edge:'#f0c890', inner:'#3a2010', gap:2.8,
+    deco(rimG, s, n, rIn, rOut, c, t){ if(t) return; const st = Math.PI*2/n*0.44; [rIn+6, rOut-7].forEach(r=>el('path',{d:`M ${f1(Math.cos(c-st)*r)} ${f1(Math.sin(c-st)*r)} A ${r} ${r} 0 0 1 ${f1(Math.cos(c+st)*r)} ${f1(Math.sin(c+st)*r)}`, fill:'none', stroke:'#6a3a1c', 'stroke-width':1, opacity:0.45}, rimG)); } },
+};
+
+/* ---- MISTCOSMOS -> "Amethyst Geode": the inside of a split geode -- agate bands outside, a
+   ring of crystal points around the board, glints flickering on facets; a polished amethyst board. */
+THEME_V2.mistcosmos = {
+  id:'mistcosmos', name:'Amethyst Geode', blurb:'Inside a split geode: agate banding, a ring of crystal points and glints on the facets.',
+  pal:{ sockHi:'#e6dcf2', sockLo:'#4a3a6a', sockIn:'#12081f', sockEdge:'#2e2440' },
+  stageFx:'', swatch:'linear-gradient(135deg,#e6dcf2,#2e1446 50%,#c8a8ff)', badge:{icon:'💎', color:'#c8a8ff'},
+  ui: v2UiMk({ink:[20,12,32], line:'#4a3a6a', bright:'#c8a8ff', ring:'#e6dcff', sel:'#ffffff', t0:'#faf6ff', t1:'#cbbfe0', t2:'#857aa0', accent:'#c8a8ff', win:'rgba(210,180,255,.42)', bg:'#1a1226', font:"'Segoe UI Light','Segoe UI',sans-serif"}),
+  env(){
+    const R = v2Rand(29); let bands = '';
+    const cols = ['#3a3550','#5e4f80','#d8d0e8','#2a1640','#7a6aa0','#4a3a6a','#e6dcf2','#30204a'];
+    for(let k=14;k>=0;k--){ const r0 = 330 + k*34; let p = ''; const ph = R()*6;
+      for(let i=0;i<=90;i++){ const a = i/90*Math.PI*2, r = r0 + Math.sin(a*3+ph)*14 + Math.sin(a*7+ph*2)*6; p += (i?'L ':'M ')+f1(500+Math.cos(a)*r)+' '+f1(500+Math.sin(a)*r)+' '; }
+      bands += v2Tag('path',{d:p+'Z', fill:cols[k%cols.length], opacity:k%3===2 ? 0.75 : 1}); }
+    let crystals = '';
+    for(let i=0;i<84;i++){ const a = i/84*Math.PI*2 + (R()-0.5)*0.04, rb = 330 + R()*24, L = 55 + R()*60, w = 0.04+R()*0.03, tip = rb - L;
+      const P = (r,aa)=>f1(500+Math.cos(aa)*r)+','+f1(500+Math.sin(aa)*r);
+      crystals += v2Tag('polygon',{points:`${P(rb,a-w)} ${P(tip,a)} ${P(rb,a)}`, fill:'#3e1c64'}) + v2Tag('polygon',{points:`${P(rb,a)} ${P(tip,a)} ${P(rb,a+w)}`, fill:'#6a42a0'})
+        + v2Tag('line',{x1:P(rb,a).split(',')[0], y1:P(rb,a).split(',')[1], x2:P(tip,a).split(',')[0], y2:P(tip,a).split(',')[1], stroke:'#e6d4ff', 'stroke-width':0.8, opacity:0.5}); }
+    const glints = (seed)=>{ const Q = v2Rand(seed); let s = ''; for(let i=0;i<22;i++){ const a = Q()*Math.PI*2, r = 270+Q()*80, x = 500+Math.cos(a)*r, y = 500+Math.sin(a)*r;
+      s += v2Tag('circle',{cx:f1(x), cy:f1(y), r:f1(3+Q()*3), fill:'#ffffff', opacity:0.25}) + v2Tag('circle',{cx:f1(x), cy:f1(y), r:1.4, fill:'#ffffff', opacity:0.95}); } return s; };
+    return [
+      { svg: v2Tag('rect',{width:1000,height:1000,fill:'#1a1226'}) + bands + v2Tag('circle',{cx:500, cy:500, r:330, fill:'#120a1c'}) + crystals
+          + v2Tag('rect',{width:1000,height:1000,fill:'url(#vg)'}) + v2Tag('defs',{}, v2Grad('vg',[['0.6','#000',0],['1','#000',0.4]],'radialGradient',{})) },
+      { cls:'v2Twinkle', svg: glints(3) },
+      { cls:'v2Twinkle2', svg: glints(8) },
+    ];
+  },
+  arena(svg, defs){
+    v2Arena(svg, defs, { lip:[['0','#eee6f8'],['0.5','#8a78a8'],['1','#241c34']], field:[['0','#321650'],['0.7','#1d0c30'],['1','#12081f']], gloss:0.07, edge:'#ffffff', edgeOp:0.55,
+      tex(g){ const R = v2Rand(21); let p = '';
+        for(let i=0;i<16;i++){ const r0 = 30+i*13, ph = R()*6; for(let k=0;k<=72;k++){ const a = k/72*Math.PI*2, r = r0 + Math.sin(a*4+ph)*4; p += (k?'L ':'M ')+f1(Math.cos(a)*r)+' '+f1(Math.sin(a)*r)+' '; } }
+        el('path',{d:p, fill:'none', stroke:'#b8a0e8', 'stroke-width':1.1, opacity:0.13}, g); } });
+  },
+  hub(h){ v2HubStd(h, {stops:[['0','#ffffff'],['0.4','#c8a8ff'],['1','#3a1a6a']], edge:'#1a0a30', shape:'gem'}); },
+  track(g, r, sel, n){ v2TrackStd(g, r, sel, n, { groove:['#08040e','#9a86c8',4], line:['#d6c4ff',1,0.38], mark:['#e6dcff',1.4,2,0.45],
+    sel:{glow:['#c8a8ff',14,0.14], under:['#4a2a8a',3.6], main:['#ffffff',2], edges:['#d6c4ff',0.6], mark:['#ffffff',0.9]} }); },
+  beam:{ halo:0.10, haloC:0.17 },
+  rim:{ base:['#9282b0','#2e2440'], seam:'#e6dcf2', hi:'#ffffff', edge:'#e6dcf2', inner:'#e6dcf2', gap:2,
+    deco(rimG, s, n, rIn, rOut, c, t){ if(t) return; const st = Math.PI*2/n*0.42, r = rIn+6+((s*7)%5);
+      el('path',{d:`M ${f1(Math.cos(c-st)*r)} ${f1(Math.sin(c-st)*r)} A ${r} ${r} 0 0 1 ${f1(Math.cos(c+st)*r)} ${f1(Math.sin(c+st)*r)}`, fill:'none', stroke:'#e6dcf2', 'stroke-width':1, opacity:0.4}, rimG); } },
+};
+
+/* ---- MISTJUNGLE -> "Cut Paper": layered sheets of hand-cut paper rising from the bottom and
+   hanging from the top, each casting a soft shadow, drifting very slightly apart (parallax). */
+function v2PaperStrip(seed, color, flip, amp){
+  const R = v2Rand(seed); let edge = '';
+  for(let x=-20;x<=1020;x+=40) edge += (x===-20 ? 'M ' : 'L ') + `${x} ${f1(70 + Math.sin(x/140 + seed)*amp + (R()-0.5)*10)} `;
+  const body = edge + 'L 1020 320 L -20 320 Z';
+  const sh = v2Tag('path',{d:body, fill:'#000', opacity:0.42, filter:'url(#b)', transform:'translate(0 -10)'});
+  const fib = v2Speckle(220, seed+3, 0, 80, 1000, 240, ['#ffffff','#000000'], 0.4, 1.1, 0.04, 0.12);
+  const g = sh + v2Tag('path',{d:body, fill:color}) + v2Tag('path',{d:edge, fill:'none', stroke:'#ffffff', 'stroke-width':1.6, opacity:0.22}) + fib;
+  return v2Tag('defs',{}, v2Tag('filter',{id:'b',x:'-5%',y:'-40%',width:'110%',height:'180%'}, v2Tag('feGaussianBlur',{stdDeviation:7})))
+    + v2Tag('g', flip ? {transform:'translate(0 320) scale(1 -1)'} : {}, g);
+}
+THEME_V2.mistjungle = {
+  id:'mistjungle', name:'Cut Paper', blurb:'Layered sheets of hand-cut paper rising and hanging around a thick card board.',
+  pal:{ sockHi:'#f2ead6', sockLo:'#8a7a58', sockIn:'#102422', sockEdge:'#3a3020' },
+  stageFx:'', swatch:'linear-gradient(135deg,#efe4c8,#2f5a55 50%,#1f3b3a)', badge:{icon:'✂️', color:'#efe4c8'},
+  ui: v2UiMk({ink:[16,30,28], line:'#3f6a62', bright:'#e6dac0', ring:'#efe4c8', sel:'#fff3d6', t0:'#fffaf0', t1:'#cfd8cc', t2:'#7f948c', accent:'#d9cfa8', win:'rgba(255,243,214,.42)', bg:'#1f3b3a', font:"'Avenir Next',Avenir,'Segoe UI',sans-serif"}),
+  env(){
+    return [
+      { svg: v2Tag('rect',{width:1000,height:1000,fill:'#1f3b3a'}) + v2Speckle(1600, 5, 0, 0, 1000, 1000, ['#ffffff','#000000'], 0.4, 1.2, 0.03, 0.1) },
+      { vb:'0 0 1000 320', par:'none', box:{left:0, top:0, width:'100%', height:'26vh', inset:'auto'}, svg: v2PaperStrip(11, '#2a4a47', true, 34) },
+      { cls:'v2Bob', vb:'0 0 1000 320', par:'none', box:{left:0, top:0, width:'100%', height:'15vh', inset:'auto', animationDuration:'13s'}, svg: v2PaperStrip(17, '#3f6a62', true, 26) },
+      { vb:'0 0 1000 320', par:'none', box:{left:0, bottom:0, top:'auto', width:'100%', height:'38vh', inset:'auto'}, svg: v2PaperStrip(3, '#2f5a55', false, 40) },
+      { cls:'v2Bob', vb:'0 0 1000 320', par:'none', box:{left:0, bottom:0, top:'auto', width:'100%', height:'27vh', inset:'auto', animationDuration:'11s'}, svg: v2PaperStrip(7, '#4f7f72', false, 30) },
+      { cls:'v2Bob', vb:'0 0 1000 320', par:'none', box:{left:0, bottom:0, top:'auto', width:'100%', height:'15vh', inset:'auto', animationDuration:'15s', animationDelay:'-4s'}, svg: v2PaperStrip(29, '#c9b98f', false, 22) },
+    ];
+  },
+  arena(svg, defs){
+    v2Arena(svg, defs, { lip:[['0','#f6eed8'],['0.5','#c4b088'],['1','#6a5a3a']], field:[['0','#24443f'],['0.7','#183230'],['1','#102422']], edge:'#ffffff', edgeOp:0.6, shadow:0.6,
+      tex(g){ const R = v2Rand(4); let d = ''; for(let i=0;i<260;i++){ const a = R()*Math.PI*2, r = Math.sqrt(R())*RIM_R, x = Math.cos(a)*r, y = Math.sin(a)*r, b = R()*6, L = 3+R()*7; d += `M ${f1(x)} ${f1(y)} q ${f1(Math.cos(b)*L*0.5)} ${f1(Math.sin(b)*L*0.5+2)} ${f1(Math.cos(b)*L)} ${f1(Math.sin(b)*L)} `; }
+        el('path',{d, fill:'none', stroke:'#cfe0d6', 'stroke-width':0.6, opacity:0.12}, g); },
+      after(svg){ [[RIM_R+21.5,'#d9cfa8'],[RIM_R+19,'#a8987a']].forEach(([r,c],i)=>{ el('circle',{cx:1.5, cy:2, r, fill:'none', stroke:'#000', 'stroke-width':1.5, opacity:0.35}, svg); el('circle',{r, fill:'none', stroke:c, 'stroke-width':1, opacity:0.8}, svg); }); } });
+  },
+  hub(h){ v2HubStd(h, {stops:[['0','#fffaf0'],['0.5','#d9cfa8'],['1','#7a6a48']], edge:'#3a3020', shape:'oct', ring:'#3a3020'}); },
+  track(g, r, sel, n){ v2TrackStd(g, r, sel, n, { groove:['#08120f','#9fc8b8',4], line:['#d9cfa8',0.9,0.35], mark:['#efe4c8',1.4,2.2,0.45],
+    sel:{glow:['#fff3d6',14,0.12], under:['#0a1a18',4.4], main:['#fff3d6',2.4], hi:'#ffffff', edges:['#efe4c8',0.5], mark:['#ffffff',0.9]} }); },
+  beam:{ halo:0.10, haloC:0.17 },
+  rim:{ base:['#ece0c6','#a8987a'], seam:'#1f3b3a', seamW:1.6, hi:'#ffffff', edge:'#efe4c8', inner:'#1f3b3a', gap:3.4 },
+};
+
+/* ---- VOLCANO -> "Stained Glass": a leaded window of muted jewel glass, backlit from the upper
+   right, with cloud shade passing slowly across; the board is a dark rose window with pewter. */
+THEME_V2.volcano = {
+  id:'volcano', name:'Stained Glass', blurb:'Muted jewel glass in lead came, backlit, with cloud shade passing across the window.',
+  pal:{ sockHi:'#d8dae0', sockLo:'#4a4c52', sockIn:'#0a0e18', sockEdge:'#141414' },
+  stageFx:'', swatch:'linear-gradient(135deg,#ffd88a,#3a5aa0 40%,#5a3a90 70%,#10121c)', badge:{icon:'⛪', color:'#ffd88a'},
+  ui: v2UiMk({ink:[14,16,26], line:'#3a3a52', bright:'#ffd88a', ring:'#e8e4f4', sel:'#ffd88a', t0:'#fbf8ff', t1:'#c8c4d8', t2:'#7f7a94', accent:'#ffd88a', win:'rgba(255,216,138,.42)', bg:'#10121c', font:"Perpetua,Georgia,serif"}),
+  env(){
+    const R = v2Rand(53), N = 9, step = 1000/(N-1), G = [];
+    for(let i=0;i<N;i++){ G.push([]); for(let j=0;j<N;j++) G[i].push([i*step + (i%(N-1) ? (R()-0.5)*step*0.55 : 0), j*step + (j%(N-1) ? (R()-0.5)*step*0.55 : 0)]); }
+    const cols = ['#24406e','#7a5420','#3a2860','#1c5656','#5e3a1e','#2c4c86','#8a6a26','#463070'];
+    let cells = '', lead = '';
+    for(let i=0;i<N-1;i++) for(let j=0;j<N-1;j++){
+      const a = G[i][j], b = G[i+1][j], c = G[i+1][j+1], d = G[i][j+1], P = p=>f1(p[0])+','+f1(p[1]);
+      const polys = R()<0.45 ? (R()<0.5 ? [[a,b,c],[a,c,d]] : [[a,b,d],[b,c,d]]) : [[a,b,c,d]];
+      polys.forEach(pg=>{ const pts = pg.map(P).join(' '); cells += v2Tag('polygon',{points:pts, fill:cols[Math.floor(R()*cols.length)]}); lead += v2Tag('polygon',{points:pts, fill:'none'}); });
+    }
+    return [
+      { svg: v2Tag('defs',{}, v2Grad('bl',[['0','#fff6dc',0.32],['0.5','#fff6dc',0.08],['1','#fff6dc',0]],'radialGradient',{cx:0.85,cy:0.1,r:0.9}))
+          + cells + v2Tag('rect',{width:1000,height:1000,fill:'url(#bl)'})
+          + v2Tag('g',{stroke:'#121212', 'stroke-width':8, 'stroke-linejoin':'round'}, lead) + v2Tag('g',{stroke:'#6a6a70', 'stroke-width':1.2, opacity:0.45, transform:'translate(-2 -2)'}, lead)
+          + v2Tag('rect',{width:1000,height:1000,fill:'#06070c',opacity:0.36}) },
+      { cls:'v2Drift', svg: v2Tag('defs',{}, v2Tag('filter',{id:'c',x:'-30%',y:'-30%',width:'160%',height:'160%'}, v2Tag('feGaussianBlur',{stdDeviation:60})))
+          + v2Tag('ellipse',{cx:300, cy:700, rx:420, ry:260, fill:'#000', opacity:0.35, filter:'url(#c)'}) },
+    ];
+  },
+  arena(svg, defs){
+    v2Arena(svg, defs, { lip:[['0','#d4d6dc'],['0.5','#6a6c72'],['1','#1c1d20']], field:[['0','#1c2438'],['0.7','#121828'],['1','#0a0e18']], edge:'#ffffff', edgeOp:0.45,
+      tex(g){ const tints = ['#3a5aa0','#c08a3a','#5a3a90','#2a7a7a'];
+        for(let i=0;i<12;i++){ const a0 = i/12*Math.PI*2, a1 = (i+1)/12*Math.PI*2, r = 232;
+          el('path',{d:`M ${f1(Math.cos(a0)*112)} ${f1(Math.sin(a0)*112)} L ${f1(Math.cos(a0)*r)} ${f1(Math.sin(a0)*r)} A ${r} ${r} 0 0 1 ${f1(Math.cos(a1)*r)} ${f1(Math.sin(a1)*r)} L ${f1(Math.cos(a1)*112)} ${f1(Math.sin(a1)*112)} A 112 112 0 0 0 ${f1(Math.cos(a0)*112)} ${f1(Math.sin(a0)*112)} Z`, fill:tints[i%4], opacity:0.09}, g); }
+        let d = ''; for(let i=0;i<12;i++){ const a = i/12*Math.PI*2; d += `M ${f1(Math.cos(a)*112)} ${f1(Math.sin(a)*112)} L ${f1(Math.cos(a)*232)} ${f1(Math.sin(a)*232)} `; }
+        el('path',{d, stroke:'#0a0a0a', 'stroke-width':3, opacity:0.55}, g); el('circle',{r:112, fill:'none', stroke:'#0a0a0a', 'stroke-width':3, opacity:0.55}, g); } });
+  },
+  hub(h){ v2HubStd(h, {stops:[['0','#f0f0f4'],['0.5','#8a8c92'],['1','#2a2b2e']], edge:'#141414', dot:'#c08a2a', ring:'#141414'}); },
+  track(g, r, sel, n){ v2TrackStd(g, r, sel, n, { line:['#9a9ca2',2,0.5], mark:['#c8cad0',1.4,2.2,0.45],
+    sel:{glow:['#ffd88a',14,0.13], under:['#5a4210',3.6], main:['#ffd88a',2.2], hi:'#fff4d0', edges:['#ffd88a',0.5], mark:['#fff4d0',0.9]} }); },
+  beam:{ halo:0.10, haloC:0.17 },
+  rim:{ base:['#3a5aa0','#14244a'], alt:[['#4a6ab0','#14244a'],['#c8923e','#5a3a10'],['#6a4aa0','#24143e'],['#3a8a8a','#0f3a3a']], seam:'#141414', seamW:2.4, hi:'#ffffff', edge:'#c8cad0', inner:'#141414', gap:2.6 },
+};
+
+/* ---- VIRUS -> "Circuit Board": navy solder mask with gold traces routed in from the edges,
+   vias and IC packages along the sides, status LEDs blinking softly; a round gold-edged PCB board. */
+THEME_V2.virus = {
+  id:'virus', name:'Circuit Board', blurb:'Navy solder mask, gold traces and vias, IC packages along the edges and softly blinking LEDs.',
+  pal:{ sockHi:'#f2d48a', sockLo:'#4a3410', sockIn:'#0a1628', sockEdge:'#1a1206' },
+  stageFx:'', swatch:'linear-gradient(135deg,#f2d48a,#0e1f38 50%,#5ff0ff)', badge:{icon:'🔌', color:'#5ff0ff'},
+  ui: v2UiMk({ink:[8,18,34], line:'#2a4468', bright:'#d9b25a', ring:'#cfe2ff', sel:'#ffe08a', t0:'#f2f8ff', t1:'#a9bcd8', t2:'#5f7494', accent:'#5ff0ff', win:'rgba(95,240,255,.4)', bg:'#0a1a30', font:"Consolas,'Lucida Console',monospace"}),
+  env(){
+    const R = v2Rand(37); let tr = '', vias = '';
+    const route = (x, y, dx, dy)=>{ let d = `M ${f1(x)} ${f1(y)} `; for(let k=0;k<6;k++){ const L = 40+R()*110; x += dx*L; y += dy*L; d += `L ${f1(x)} ${f1(y)} `;
+        if(Math.hypot(x-500,y-500) < 380) break; const t = R(); if(t<0.35){ const nx = (dx+dy)/Math.SQRT2*1, ny = (dy-dx)/Math.SQRT2*1; dx = Math.round(nx*10)/10; dy = Math.round(ny*10)/10; } else if(t<0.7){ const nx = (dx-dy)/Math.SQRT2, ny = (dy+dx)/Math.SQRT2; dx = Math.round(nx*10)/10; dy = Math.round(ny*10)/10; } }
+      vias += v2Tag('circle',{cx:f1(x), cy:f1(y), r:6.5, fill:'none', stroke:'#d9b25a', 'stroke-width':3}) + v2Tag('circle',{cx:f1(x), cy:f1(y), r:2.4, fill:'#050a14'}); return d; };
+    for(let i=0;i<14;i++){ tr += route(0, 60+i*68, 1, 0); tr += route(1000, 40+i*68, -1, 0); }
+    for(let i=0;i<8;i++){ tr += route(80+i*120, 0, 0, 1); tr += route(60+i*120, 1000, 0, -1); }
+    const ic = (x, y, w, h)=>{ let s = v2Tag('rect',{x:x+5, y:y+7, width:w, height:h, rx:3, fill:'#000', opacity:0.45}) + v2Tag('rect',{x, y, width:w, height:h, rx:3, fill:'#15171c'}) + v2Tag('rect',{x:x+2, y:y+2, width:w-4, height:6, fill:'#ffffff', opacity:0.05});
+      for(let k=8;k<h-4;k+=11){ s += v2Tag('rect',{x:x-9, y:y+k, width:9, height:4, fill:'#d9b25a'}) + v2Tag('rect',{x:x+w, y:y+k, width:9, height:4, fill:'#d9b25a'}); }
+      return s + v2Tag('circle',{cx:x+9, cy:y+9, r:3, fill:'#2a2c34'}); };
+    const leds = (seed, col)=>{ const Q = v2Rand(seed); let s = ''; for(let i=0;i<12;i++){ const x = 120+Q()*760, y = Q()<0.5 ? 40+Q()*150 : 830+Q()*140;
+      s += v2Tag('circle',{cx:f1(x+5), cy:f1(y+3), r:14, fill:col, opacity:0.22}) + v2Tag('rect',{x:f1(x), y:f1(y), width:10, height:6, rx:1.5, fill:col}); } return s; };
+    return [
+      { svg: v2Tag('defs',{}, v2Grad('sm',[['0','#13294a'],['1','#091628']],'linearGradient',{x1:0,y1:0,x2:0.6,y2:1}) + v2Tag('pattern',{id:'hx', width:12, height:12, patternUnits:'userSpaceOnUse', patternTransform:'rotate(45)'}, v2Tag('line',{x1:0,y1:0,x2:0,y2:12,stroke:'#1c3a64','stroke-width':3})))
+          + v2Tag('rect',{width:1000,height:1000,fill:'url(#sm)'}) + v2Tag('rect',{width:1000,height:1000,fill:'url(#hx)',opacity:0.35})
+          + v2Tag('path',{d:tr, fill:'none', stroke:'#050a14', 'stroke-width':7, 'stroke-linejoin':'round', opacity:0.6, transform:'translate(2 3)'})
+          + v2Tag('path',{d:tr, fill:'none', stroke:'#c9a24a', 'stroke-width':3.6, 'stroke-linejoin':'round', opacity:0.85}) + vias
+          + ic(70, 330, 64, 150) + ic(870, 540, 64, 180) + ic(860, 150, 56, 90) + ic(80, 720, 56, 110) + ic(300, 860, 90, 46) + ic(600, 80, 90, 46)
+          + v2Tag('rect',{width:1000,height:1000,fill:'url(#vg)'}) + v2Tag('defs',{}, v2Grad('vg',[['0.55','#000',0],['1','#000',0.45]],'radialGradient',{})) },
+      { cls:'v2Twinkle', svg: leds(5, '#ffb347') },
+      { cls:'v2Twinkle2', svg: leds(9, '#5ff0ff') },
+    ];
+  },
+  arena(svg, defs){
+    v2Arena(svg, defs, { lip:[['0','#f6dc96'],['0.5','#b08a3a'],['1','#3a2808']], field:[['0','#14304f'],['0.7','#0e1f38'],['1','#0a1628']], edge:'#fff4c8', edgeOp:0.55,
+      tex(g){ [70, 150, 200].forEach(r=>el('circle',{r, fill:'none', stroke:'#c9a24a', 'stroke-width':1.6, opacity:0.22}, g));
+        let d = ''; for(let i=0;i<16;i++){ const a = i/16*Math.PI*2; d += `M ${f1(Math.cos(a)*70)} ${f1(Math.sin(a)*70)} L ${f1(Math.cos(a)*150)} ${f1(Math.sin(a)*150)} L ${f1(Math.cos(a+0.12)*200)} ${f1(Math.sin(a+0.12)*200)} `; }
+        el('path',{d, fill:'none', stroke:'#c9a24a', 'stroke-width':1.4, opacity:0.2}, g); },
+      after(svg){ for(let i=0;i<32;i++){ const a = i/32*Math.PI*2, r = RIM_R+21; el('circle',{cx:f1(Math.cos(a)*r), cy:f1(Math.sin(a)*r), r:1.8, fill:'none', stroke:'#4a3410', 'stroke-width':1}, svg); } } });
+  },
+  hub(h){ v2HubStd(h, {stops:[['0','#4a4e58'],['0.5','#1c1e24'],['1','#0a0b0e']], edge:'#d9b25a', shape:'square', ring:'#d9b25a'}); },
+  track(g, r, sel, n){ v2TrackStd(g, r, sel, n, { line:['#d9b25a',1.4,0.45], mark:['#f0d48a',1.4,2.4,0.5],
+    sel:{glow:['#5ff0ff',14,0.13], under:['#0f4a5a',3.6], main:['#ffe08a',2.2], hi:'#fff6d0', edges:['#5ff0ff',0.55], mark:['#ffffff',0.9]} }); },
+  beam:{ halo:0.10, haloC:0.17 },
+  rim:{ base:['#24344f','#0a121e'], seam:'#d9b25a', hi:'#8fb0e0', edge:'#d9b25a', inner:'#d9b25a', gap:2,
+    deco(rimG, s, n, rIn, rOut, c, t){ if(t) return; const st = Math.PI*2/n; for(let k=-2;k<=2;k++){ const a = c + k*st*0.16;
+      el('line',{x1:f1(Math.cos(a)*(rOut-1)), y1:f1(Math.sin(a)*(rOut-1)), x2:f1(Math.cos(a)*(rOut+3)), y2:f1(Math.sin(a)*(rOut+3)), stroke:'#d9b25a', 'stroke-width':1.6}, rimG); } } },
+};
+
+/* ---- UFONIGHT -> "Arcade Cabinet": a CRT's phosphor glass framed by a glossy cabinet with
+   chrome T-molding and a glowing marquee strip; slow scanlines roll down the glass. */
+THEME_V2.ufonight = {
+  id:'ufonight', name:'Arcade Cabinet', blurb:'CRT phosphor glass in a glossy cabinet with chrome trim, a glowing marquee and rolling scanlines.',
+  pal:{ sockHi:'#d8d8e2', sockLo:'#2a2a34', sockIn:'#04070d', sockEdge:'#050507' },
+  stageFx:'', swatch:'linear-gradient(135deg,#ff6ad5,#05070d 50%,#5ff0ff)', badge:{icon:'🕹️', color:'#ff6ad5'},
+  ui: v2UiMk({ink:[8,8,16], line:'#3a2a5a', bright:'#ff6ad5', ring:'#9ff6ff', sel:'#ff9ae6', t0:'#f6f4ff', t1:'#b8b4d8', t2:'#6f6a94', accent:'#5ff0ff', win:'rgba(255,106,213,.4)', bg:'#05070d', font:"'Lucida Console','Courier New',monospace"}),
+  env(){
+    const side = v2Tag('defs',{}, v2Grad('pl',[['0','#2a2a34'],['0.6','#0c0c12'],['1','#050507']],'linearGradient',{x1:0,y1:0,x2:1,y2:0}) + v2Grad('ch',[['0','#5a5a66'],['0.4','#f4f4fa'],['0.6','#c8c8d4'],['1','#3a3a44']],'linearGradient',{x1:0,y1:0,x2:1,y2:0}))
+      + v2Tag('rect',{x:0, y:0, width:100, height:1000, fill:'url(#pl)'}) + v2Tag('rect',{x:0, y:0, width:12, height:1000, fill:'url(#ch)'})
+      + v2Tag('rect',{x:96, y:0, width:4, height:1000, fill:'#ff6ad5', opacity:0.8}) + v2Tag('rect',{x:88, y:0, width:16, height:1000, fill:'#ff6ad5', opacity:0.12})
+      + v2Tag('rect',{x:20, y:0, width:18, height:1000, fill:'#ffffff', opacity:0.05});
+    return [
+      { svg: v2Tag('defs',{}, v2Tag('pattern',{id:'ph', width:6, height:6, patternUnits:'userSpaceOnUse'}, v2Tag('rect',{x:0,width:2,height:6,fill:'#ff3a6a',opacity:0.06}) + v2Tag('rect',{x:2,width:2,height:6,fill:'#3aff9a',opacity:0.05}) + v2Tag('rect',{x:4,width:2,height:6,fill:'#3a8aff',opacity:0.07}))
+            + v2Grad('gl',[['0','#2a1a4a',0.6],['0.6','#0a0c1a',0.2],['1','#000',0]],'radialGradient',{}) + v2Grad('vg',[['0.5','#000',0],['1','#000',0.75]],'radialGradient',{}))
+          + v2Tag('rect',{width:1000,height:1000,fill:'#05070d'}) + v2Tag('rect',{width:1000,height:1000,fill:'url(#gl)'}) + v2Tag('rect',{width:1000,height:1000,fill:'url(#ph)'})
+          + v2Tag('path',{d:'M -50 260 Q 300 120 720 -40 L 860 -40 Q 360 180 -50 420 Z', fill:'#c8d8ff', opacity:0.05}) + v2Tag('ellipse',{cx:500, cy:500, rx:520, ry:470, fill:'none', stroke:'#5ff0ff', 'stroke-width':2, opacity:0.08})
+          + v2Tag('rect',{width:1000,height:1000,fill:'url(#vg)'}) },
+      { cls:'v2T v2PanDown', vb:'0 0 400 400', par:'none', size:'400px 400px', box:{animationDuration:'48s'}, svg: Array.from({length:100},(_,i)=>v2Tag('rect',{x:0, y:i*4, width:400, height:1.6, fill:'#000', opacity:0.32})).join('') + v2Tag('rect',{x:0, y:180, width:400, height:40, fill:'#ffffff', opacity:0.025}) },
+      { vb:'0 0 100 1000', par:'none', box:{left:0, top:0, width:'min(8vw,70px)', height:'100%', inset:'auto'}, svg: side },
+      { vb:'0 0 100 1000', par:'none', box:{right:0, left:'auto', top:0, width:'min(8vw,70px)', height:'100%', inset:'auto'}, svg: v2Tag('g',{transform:'translate(100 0) scale(-1 1)'}, side) },
+      { cls:'v2Breath', vb:'0 0 1000 100', par:'none', box:{left:0, top:0, width:'100%', height:'min(9vh,70px)', inset:'auto'},
+        svg: v2Tag('defs',{}, v2Grad('mq',[['0','#ff6ad5'],['0.5','#9a6aff'],['1','#5ff0ff']],'linearGradient',{x1:0,y1:0,x2:1,y2:0}) + v2Tag('filter',{id:'b',x:'-10%',y:'-100%',width:'120%',height:'300%'}, v2Tag('feGaussianBlur',{stdDeviation:10})))
+          + v2Tag('rect',{x:0, y:0, width:1000, height:60, fill:'url(#mq)', opacity:0.5, filter:'url(#b)'}) + v2Tag('rect',{x:0, y:62, width:1000, height:3, fill:'url(#mq)', opacity:0.9}) },
+    ];
+  },
+  arena(svg, defs){
+    v2Arena(svg, defs, { lip:[['0','#55556a'],['0.5','#14141a'],['1','#050507']], field:[['0','#0d1526'],['0.7','#070c16'],['1','#04070d']], edge:'#d8d8e2', edgeOp:0.7, inner:0.6,
+      tex(g){ let d = ''; for(let v=-232; v<=232; v+=8) d += `M ${v} -240 L ${v} 240 M -240 ${v} L 240 ${v} `;
+        el('path',{d, stroke:'#5ff0ff', 'stroke-width':0.5, opacity:0.05}, g);
+        el('circle',{r:180, fill:v2G(defs,'v2acGlow',[['0','#5ff0ff',0.06],['1','#5ff0ff',0]])}, g); },
+      after(svg){ el('circle',{r:RIM_R+20, fill:'none', stroke:'#e8e8f0', 'stroke-width':1.4, opacity:0.75}, svg); } });
+  },
+  hub(h){ v2HubStd(h, {stops:[['0','#fff8d0'],['0.35','#ffd23f'],['1','#7a5a00']], edge:'#3a2a00'}); },
+  track(g, r, sel, n){ v2TrackStd(g, r, sel, n, { groove:['#000000','#2a4a6a',4], line:['#5ff0ff',1,0.32], mark:['#9ff6ff',1.4,2,0.45],
+    sel:{glow:['#ff6ad5',15,0.16], under:['#7a1a6a',3.6], main:['#ff9ae6',2.2], hi:'#ffffff', edges:['#ff6ad5',0.6], mark:['#ffffff',0.9]} }); },
+  beam:{ halo:0.11, haloC:0.18 },
+  rim:{ base:['#20202c','#06060a'], seam:'#ff6ad5', hi:'#5ff0ff', edge:'#5ff0ff', inner:'#ff6ad5', gap:2.4 },
+};
+
+/* ---- UFODESERT -> "Zellige Courtyard": a floor of glazed zellige -- eight-point stars, crosses
+   and ochre -- with sun glints flickering on the glaze; the board is a hammered brass tray. */
+THEME_V2.ufodesert = {
+  id:'ufodesert', name:'Zellige Courtyard', blurb:'Glazed zellige stars and crosses with sun glints on the glaze, around a hammered brass tray.',
+  pal:{ sockHi:'#f0c870', sockLo:'#5a3c10', sockIn:'#072222', sockEdge:'#3a2808' },
+  stageFx:'', swatch:'linear-gradient(135deg,#2fa8a4,#d8a84a 50%,#1d3f7a)', badge:{icon:'🔷', color:'#2fa8a4'},
+  ui: v2UiMk({ink:[10,30,30], line:'#2f6a66', bright:'#f0c870', ring:'#f4ecd8', sel:'#fff0c0', t0:'#fffaf0', t1:'#d4ccb8', t2:'#8a8270', accent:'#2fa8a4', win:'rgba(255,240,192,.42)', bg:'#3a2a0e', font:"'Segoe UI',sans-serif"}),
+  env(){
+    const star = (cx, cy, r)=>{ const p = []; for(let i=0;i<16;i++){ const a = i/16*Math.PI*2 - Math.PI/2 + Math.PI/16, q = i%2 ? r*0.72 : r; p.push(f1(cx+Math.cos(a)*q)+','+f1(cy+Math.sin(a)*q)); } return p.join(' '); };
+    const tile = v2Tag('rect',{width:100, height:100, fill:'#b8862e'})
+      + v2Tag('polygon',{points:star(50,50,40), fill:'#1d3f7a', stroke:'#e8e2d2', 'stroke-width':2.2})
+      + v2Tag('circle',{cx:50, cy:50, r:11, fill:'#e8e2d2'}) + v2Tag('circle',{cx:50, cy:50, r:7, fill:'#1f8a8a'})
+      + [[0,0],[100,0],[0,100],[100,100]].map(([x,y])=>v2Tag('polygon',{points:`${x},${y-14} ${x+14},${y} ${x},${y+14} ${x-14},${y}`, fill:'#1f8a8a', stroke:'#e8e2d2', 'stroke-width':2.2})).join('')
+      + [[50,0],[0,50],[100,50],[50,100]].map(([x,y])=>v2Tag('rect',{x:x-5, y:y-5, width:10, height:10, fill:'#e8e2d2', transform:`rotate(45 ${x} ${y})`})).join('');
+    const glints = (seed)=>{ const Q = v2Rand(seed); let s = ''; for(let i=0;i<30;i++){ const x = Q()*1000, y = Q()*1000; s += v2Tag('ellipse',{cx:f1(x), cy:f1(y), rx:f1(5+Q()*6), ry:2, fill:'#ffffff', opacity:0.45, transform:`rotate(-35 ${f1(x)} ${f1(y)})`}); } return s; };
+    return [
+      { svg: v2Tag('defs',{}, v2Tag('pattern',{id:'z', width:100, height:100, patternUnits:'userSpaceOnUse', patternTransform:'rotate(8) scale(1.45)'}, tile)
+            + v2Grad('sh',[['0','#ffffff',0.12],['0.5','#ffffff',0],['1','#000',0.2]],'linearGradient',{x1:0,y1:0,x2:1,y2:1}))
+          + v2Tag('rect',{width:1000,height:1000,fill:'url(#z)'}) + v2Tag('rect',{width:1000,height:1000,fill:'url(#sh)'}) + v2Tag('rect',{width:1000,height:1000,fill:'#0c0a04',opacity:0.56}) },
+      { cls:'v2Twinkle', svg: glints(4) },
+      { cls:'v2Twinkle2', svg: glints(12) },
+    ];
+  },
+  arena(svg, defs){
+    v2Arena(svg, defs, { lip:[['0','#f6d07a'],['0.5','#a07a2a'],['1','#3a2808']], field:[['0','#164c4e'],['0.7','#0e3434'],['1','#072222']], gloss:0.06, edge:'#fff4c8', edgeOp:0.6,
+      tex(g){ const p = []; for(let i=0;i<32;i++){ const a = i/32*Math.PI*2 - Math.PI/2, q = i%2 ? 70 : 96; p.push(f1(Math.cos(a)*q)+','+f1(Math.sin(a)*q)); }
+        el('polygon',{points:p.join(' '), fill:'none', stroke:'#e3c06a', 'stroke-width':1.2, opacity:0.3}, g);
+        for(let i=0;i<48;i++){ const a = i/48*Math.PI*2; el('circle',{cx:f1(Math.cos(a)*204), cy:f1(Math.sin(a)*204), r:1.4, fill:'#e3c06a', opacity:0.35}, g); } },
+      after(svg){ const R = v2Rand(3); for(let i=0;i<70;i++){ const a = R()*Math.PI*2, r = RIM_R+19.5+R()*3.5; el('ellipse',{cx:f1(Math.cos(a)*r), cy:f1(Math.sin(a)*r), rx:2.2, ry:1.4, fill:R()<0.5?'#fff4c8':'#3a2808', opacity:0.35, transform:`rotate(${f1(a*180/Math.PI)} ${f1(Math.cos(a)*r)} ${f1(Math.sin(a)*r)})`}, svg); } } });
+  },
+  hub(h){ v2HubStd(h, {stops:[['0','#fff4c8'],['0.5','#e0b54a'],['1','#5a3c10']], edge:'#3a2808', shape:'star8'}); },
+  track(g, r, sel, n){ v2TrackStd(g, r, sel, n, { groove:['#03100f','#c9a45a',4], line:['#e3c06a',1.1,0.45], mark:['#f0d48a',1.4,2.2,0.5],
+    sel:{glow:['#fff0c0',14,0.12], under:['#7a5a14',3.6], main:['#fff0c0',2.2], hi:'#ffffff', edges:['#fff0c0',0.5], mark:['#ffffff',0.9]} }); },
+  beam:{ halo:0.10, haloC:0.17 },
+  rim:{ base:['#2fa8a4','#0f5a5a'], alt:[['#38b4b0','#0f5a5a'],['#e0b050','#7a5414']], seam:'#e8e2d2', seamW:1.6, hi:'#ffffff', edge:'#e8e2d2', inner:'#e8e2d2', gap:2.2 },
+};
+
+/*@@V2-THEMES@@*/
+/* ---- registration: names, shop swatches, level-select badges, rims, UI tokens ---- */
+(function v2Register(){
+  let css = '';
+  Object.keys(THEME_V2).forEach(id=>{
+    const T = THEME_V2[id], row = THEME_LIST.find(t=>t.id===id);
+    if(row){ row.name = T.name; row.blurb = T.blurb; }
+    const rimId = T.rimId || id;
+    if(T.rim) RIM_BAND_FNS[rimId] = (a,b,c,d)=>drawRimV2(a,b,c,d,T.rim);
+    if(T.swatch){ THEME_SWATCH_GRADIENT[id] = T.swatch; THEME_SWATCH_GRADIENT[rimId] = T.swatch; }
+    if(T.badge && id!=='space') THEME_BADGE[id] = T.badge;
+    if(T.ui) css += v2UiCss(id, T.ui) + '\n';
+  });
+  const st = document.createElement('style'); st.id = 'v2ThemeVars'; st.textContent = css; document.head.appendChild(st);
+})();
 
 
 /* Boot */
