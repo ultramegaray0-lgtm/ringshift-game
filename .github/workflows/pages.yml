@@ -1,0 +1,86 @@
+# Publishes the stable Ringshift build (branch "main") to GitHub Pages.
+#
+# Runs on every push to main, and on demand from the Actions tab
+# ("Publish Ringshift to GitHub Pages" -> "Run workflow", branch: main).
+# Other branches (for example theme-redesign) are never published: the build
+# job refuses to run for them and the deploy job is skipped.
+name: Publish Ringshift to GitHub Pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+# Nothing by default; each job asks for only what it needs.
+permissions: {}
+
+# One Pages deployment at a time. A newer push waits for the running
+# deployment to finish instead of cancelling it half-way.
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+env:
+  # The game source file in the repository. It is published as index.html;
+  # the file in the repository is never renamed or deleted.
+  GAME_FILE: ringshift v0.26.html
+
+jobs:
+  build:
+    name: Build site artifact
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read   # check out the repository
+      pages: read      # configure-pages reads the Pages settings
+    steps:
+      - name: Refuse branches other than main
+        if: github.ref != 'refs/heads/main'
+        run: |
+          echo "::error::Only the stable branch 'main' is published. This run is for '${GITHUB_REF_NAME}'."
+          exit 1
+
+      - name: Check out main
+        uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+
+      - name: Check Pages is enabled for GitHub Actions
+        uses: actions/configure-pages@v6
+
+      - name: Assemble site (game file -> index.html)
+        run: |
+          set -euo pipefail
+          if [ ! -f "$GAME_FILE" ]; then
+            echo "::error::'$GAME_FILE' not found in the repository root. Update GAME_FILE in this workflow."
+            exit 1
+          fi
+          rm -rf _site
+          mkdir _site
+          cp -- "$GAME_FILE" _site/index.html
+          ls -l _site
+
+      - name: Check for missing assets and broken relative paths
+        run: python3 .github/scripts/check_site.py _site
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v5
+        with:
+          path: _site
+
+  deploy:
+    name: Deploy to GitHub Pages
+    needs: build
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      pages: write     # create the Pages deployment
+      id-token: write  # prove the deployment comes from this workflow
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy
+        id: deployment
+        uses: actions/deploy-pages@v5
