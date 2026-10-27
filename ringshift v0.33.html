@@ -406,7 +406,7 @@ body.theme-sakura .gimmickChip, body.theme-sakura #powerStatus, body.theme-sakur
     color:var(--target-bonus-on); background:rgba(255,210,63,0.06); border:1px solid #5c4400; border-radius:4px; padding:9px 14px;}
 
   /* ---------- MODE SELECT ---------- */
-  #modeGrid{display:grid; grid-template-columns:repeat(3,1fr); gap:18px; width:min(92vw,680px);}
+  #modeGrid{display:grid; grid-template-columns:repeat(4,1fr); gap:18px; width:min(92vw,860px);}
   .modeCard{position:relative; border:1px solid var(--panel-line); border-radius:8px; padding:22px 14px;
     background:linear-gradient(160deg, rgba(127,231,255,0.06), rgba(6,11,16,0.6)); cursor:pointer; transition:all .15s;}
   .modeCard:hover:not(.locked){border-color:var(--ring); box-shadow:0 0 22px rgba(127,231,255,0.18); transform:translateY(-2px);}
@@ -415,6 +415,10 @@ body.theme-sakura .gimmickChip, body.theme-sakura #powerStatus, body.theme-sakur
   .modeCard.easy .mName{color:var(--ok);}
   .modeCard.normal .mName{color:var(--ring);}
   .modeCard.hard .mName{color:var(--warn);}
+  /* v0.33 CHALLENGE: crimson-gold, the "final tier" card */
+  .modeCard.challenge{border-color:#8a3a2a; background:linear-gradient(160deg, rgba(255,90,60,0.12), rgba(40,8,6,0.7));}
+  .modeCard.challenge .mName{color:#ff7a4a; text-shadow:0 0 12px rgba(255,110,60,0.45);}
+  .modeCard.challenge:hover:not(.locked){border-color:#ffd36a; box-shadow:0 0 24px rgba(255,140,60,0.32);}
   .modeCard .mSub{font-size:11px; color:var(--text2); margin-top:8px; letter-spacing:0.5px;}
   .modeCard .mProgress{font-size:11px; color:var(--text1); margin-top:10px; font-family:var(--font-mono);}
   .modeCard .lockIcon{font-size:26px; margin-top:6px;}
@@ -1613,6 +1617,7 @@ body.theme-v2 .screenSub, body.theme-v2 #titleScreen .press, body.theme-v2 #game
       <div class="htpRow"><span class="htpIcon prt">◎</span><div><b>Portal (Black Hole)</b>Holes come in a linked pair. Each hole is TWO nodes long: a beam touching it anywhere along its whole length, from ANY direction, is absorbed. It then comes out of the OTHER hole, always travelling in that hole&rsquo;s own fixed exit direction (where its black mouth points) &mdash; never the direction the beam came in on. Two holes in a level can point different ways.</div></div>
       <div class="htpRow"><span class="htpIcon hbk">◐</span><div><b>Half-Block</b>One-way valve — stops another ring's beam from ONE direction (in or out) only.</div></div>
       <div class="htpRow"><span class="htpIcon prs">△</span><div><b>Prism</b>Splits another ring's beam into two, bent ±45° off its original heading.</div></div>
+      <div class="htpRow"><span class="htpIcon">⛯</span><div><b>Rim Emitter (Challenge)</b>A source bolted to the rim. It never turns and fires straight at the center. In Challenge, it is the only beam, there is one Lock (the gift lock), and exactly one way to turn the four rings so the beam reaches it.</div></div>
       <div class="htpRow"><span class="htpIcon eco">◍</span><div><b>Echo (Satellite)</b>Always pinned in place. Its DISH shows which way it fires, and it is built pointing UP, DOWN, LEFT or RIGHT depending on the level. A beam that arrives from the DISH side (within 45° of the dish axis) dies there. A beam that arrives from either SIDE or from the ENGINE end (below) is absorbed and relaunched straight out of the DISH.</div></div>
       <div class="htpRow"><span class="htpIcon lck">◎</span><div><b>Lock</b>Needs a beam landing on it. ALL Locks must be lit at once to breach the level.</div></div>
       <div class="htpRow"><span class="htpIcon bon">☆</span><div><b>Bonus Lock</b>Optional — light it too, at the same time as every Lock, for a bonus coin. Never required.</div></div>
@@ -1745,7 +1750,7 @@ body.theme-v2 .screenSub, body.theme-v2 #titleScreen .press, body.theme-v2 #game
   <div id="shopBackdrop"></div>
   <div id="shopPanelBox">
     <h2>INVENTORY</h2>
-    <div class="modalSub">Everything here is earned from gift boxes: the end of Easy, Normal and Hard levels, and every 4 gift locks banked in Space Orchestra, Meteor Attack and Rocket Attack. Nothing is bought. Special modes unlock by levels won.</div>
+    <div class="modalSub">Everything here is earned from gift boxes: the end of Easy, Normal and Hard levels, every 4 gift locks banked in Space Orchestra, Meteor Attack and Rocket Attack, and the gift lock of each Challenge level (two themes with their rims). Nothing is bought. Special modes unlock by levels won.</div>
     <div class="shopSectionTitle">WINS · KEYS · SPECIAL MODES</div>
     <div id="invKeys"></div>
     <div class="shopSectionTitle">ROCKET ATTACK GIFT REWARDS</div>
@@ -1775,7 +1780,7 @@ body.theme-v2 .screenSub, body.theme-v2 #titleScreen .press, body.theme-v2 #game
     <div class="ringdeco r3"></div>
     <div class="ringdeco r2"></div>
     <h1 class="logo">RINGSHIFT</h1>
-    <div class="sub">DEMO · v0.32</div>
+    <div class="sub">DEMO · v0.33</div>
     <div class="press">PRESS ANY BUTTON</div>
   </div>
 
@@ -2405,8 +2410,26 @@ function traceAllBeams(levelLike, rotations, disabledRings, fogInfo){
       beamResults.push({ring:r, authoredSlot, liveSlot, result});
     });
   });
+  // RIM EMITTERS (v0.33, Challenge mode): a source bolted to the rim that the player can never
+  // rotate. It fires straight inward from just inside the rim glass, through the center, exactly
+  // like a spoke -- every ring it crosses still decides what happens. Its beam is reported with
+  // ring:-1 so no ring's "controlled beam" highlight ever claims it. Larger bounce budget than a
+  // spoke (EMITTER_BOUNCES) because a Challenge route crosses many rings on purpose.
+  (levelLike.emitters||[]).forEach(slot=>{
+    const a = slotToAngle(slot, n), r0 = rimRadius - 0.5;
+    const pos = { x: Math.cos(a)*r0, y: Math.sin(a)*r0 }, dir = { x: -Math.cos(a), y: -Math.sin(a) };
+    const segments = [], hitLockSlots = [], ends = [], hitEchoSlots = [];
+    const hitBellSlots = fogInfo ? [] : undefined;
+    traceBeamBranch(ringsWithContent, rimRadius, lockSet, portalRegistry, n, pos, dir, false, EMITTER_BOUNCES, segments, hitLockSlots, fogInfo, hitBellSlots, hitEchoSlots, undefined, undefined, ends);
+    const result = { segments, hitLockSlots, ends };
+    hitLockSlots.forEach(ls=>litLocks.add(ls));
+    if(hitBellSlots) hitBellSlots.forEach(b=>bellHits.push(b));
+    hitEchoSlots.forEach(e=>echoHits.push(e));
+    beamResults.push({ring:-1, authoredSlot:slot, liveSlot:slot, result, emitter:true});
+  });
   return { litLocks, beamResults, bellHits, echoHits };
 }
+const EMITTER_BOUNCES = 40;
 
 // (v0.29) Rocket Attack no longer uses a separate "first touch" walk: rockets aim at the LAST touch of
 // every beam branch, recorded by traceBeamBranch itself (its `ends` parameter) -- see RocketGame.
@@ -3157,6 +3180,86 @@ const ROCKET_LEVELS = [
   ], lockSlots:[6, 3, 9], bonusLockSlots:[11]},
 ];
 
+// =========================================================================
+// CHALLENGE (v0.33) -- the hardest tier, next to Hard. Five hand-built levels, each:
+//   * ONE Rim Emitter (level.emitters) -- a source bolted to the rim that never turns,
+//   * FOUR rotatable rings with no spokes of their own -- only gimmicks (unpinned ones turn
+//     with their ring; Satellites are always pinned),
+//   * ONE Lock, which is the level's GIFT LOCK (lighting it = clearing the level),
+//   * exactly ONE winning rotation out of 12^4 = 20,736 (brute-forced with the real tracer).
+// Each level is gated by KEYS held (CHALLENGE_KEY_REQ -- keys are never spent; 15 = every key
+// the game hands out). First clear opens two gift boxes: CHALLENGE_GIFTS[level] = two themes,
+// each with its matching rim. See the per-level verification notes below.
+// Do not hand-edit a level without re-running the uniqueness sweep: moving one gimmick by one
+// slot can add solutions or break the route.
+const CHALLENGE_KEY_REQ = [1, 3, 7, 10, 15];
+const CHALLENGE_GIFTS = [
+  ['vinyl','marbled'],      // Challenge 1 -- Vinyl Record, Marbled Endpaper
+  ['verdigris','carpet'],   // Challenge 2 -- Copper Verdigris, Persian Carpet
+  ['curling','lido'],       // Challenge 3 -- Curling Sheet, Lido Pool
+  ['chalk','topo'],         // Challenge 4 -- Chalkboard, Topographic Map
+  ['autumn','honey'],       // Challenge 5 -- Autumn Millstone, Honeycomb
+];
+/*CHALLENGE_LEVELS_START*/
+const CHALLENGE_LEVELS = [
+  // ---- CHALLENGE 1 -- Hall of Mirrors. Twenty unpinned Mirrors (plus a few Blocks); the beam hits three of them twice.
+  // VERIFIED (v0.33, real tracer, all 12^4 = 20,736 rotations): exactly 1 winning rotation [7,0,8,11].
+  // Route (9 touches): R4:mirror_l > R2:mirror_r > R2:mirror_r > R4:mirror_r > R4:mirror_l > R1:mirror_l > R1:mirror_l > R4:mirror_r > R3:mirror_l. Board: 16 mirror_r, 5 block, 4 mirror_l.
+  // 59 wrong rotations follow the true route for 3+ touches before failing. Every bend on the route lands
+  // within 7 degrees of its gimmick. Start [4,8,2,6] is >=3 steps off on every ring and lights nothing.
+  {name:'CHALLENGE 1 — HALL OF MIRRORS', slots:12, emitters:[0], rings:[
+        {spokeSlots:[], gimmicks:{0:'mirror_r', 2:'mirror_r', 3:'block', 7:'mirror_l', 9:'mirror_l', 10:'block'}, initialRotation:4},
+        {spokeSlots:[], gimmicks:{1:'mirror_r', 3:'mirror_r', 5:'mirror_r', 6:'block', 8:'mirror_r', 10:'mirror_r', 11:'mirror_r'}, initialRotation:8},
+        {spokeSlots:[], gimmicks:{1:'mirror_r', 3:'mirror_r', 5:'block', 10:'mirror_l', 11:'mirror_r'}, initialRotation:2},
+        {spokeSlots:[], gimmicks:{1:'mirror_l', 2:'mirror_r', 4:'mirror_r', 5:'mirror_r', 6:'mirror_r', 7:'mirror_r', 9:'block'}, initialRotation:6}
+      ], lockSlots:[8], bonusLockSlots:[]},
+  // ---- CHALLENGE 2 -- One-Way Street. Twenty Half-Blocks (lock in / lock out); the beam must thread four of them the right way.
+  // VERIFIED (v0.33, real tracer, all 12^4 = 20,736 rotations): exactly 1 winning rotation [1,2,2,5].
+  // Route (8 touches): R1:half_block > R2:half_block > R3:half_block > R4:mirror_l > R1:mirror_r > R1:mirror_r > R2:half_block > R2:mirror_l. Board: 20 half_block, 2 mirror_r, 3 mirror_l.
+  // 251 wrong rotations follow the true route for 3+ touches before failing. Every bend on the route lands
+  // within 7 degrees of its gimmick. Start [8,11,11,10] is >=3 steps off on every ring and lights nothing.
+  {name:'CHALLENGE 2 — ONE-WAY STREET', slots:12, emitters:[0], rings:[
+        {spokeSlots:[], gimmicks:{1:{type:'half_block', side:'in'}, 3:{type:'half_block', side:'in'}, 7:'mirror_r', 9:'mirror_r', 11:{type:'half_block', side:'out'}}, initialRotation:8},
+        {spokeSlots:[], gimmicks:{2:'mirror_l', 3:{type:'half_block', side:'in'}, 5:{type:'half_block', side:'out'}, 6:{type:'half_block', side:'out'}, 7:{type:'half_block', side:'in'}, 10:{type:'half_block', side:'out'}, 11:'mirror_l'}, initialRotation:11},
+        {spokeSlots:[], gimmicks:{0:{type:'half_block', side:'out'}, 1:{type:'half_block', side:'out'}, 3:{type:'half_block', side:'out'}, 4:{type:'half_block', side:'in'}, 5:{type:'half_block', side:'out'}, 7:{type:'half_block', side:'in'}, 10:{type:'half_block', side:'out'}}, initialRotation:11},
+        {spokeSlots:[], gimmicks:{0:{type:'half_block', side:'in'}, 2:{type:'half_block', side:'out'}, 7:'mirror_l', 9:{type:'half_block', side:'in'}, 10:{type:'half_block', side:'in'}, 11:{type:'half_block', side:'in'}}, initialRotation:10}
+      ], lockSlots:[5], bonusLockSlots:[]},
+  // ---- CHALLENGE 3 -- Event Horizon. Eight unpinned Black Holes in four pairs that turn with their rings; three jumps on the route.
+  // VERIFIED (v0.33, real tracer, all 12^4 = 20,736 rotations): exactly 1 winning rotation [9,1,9,5].
+  // Route (9 touches): hole > R4:mirror_r > R2:mirror_r > hole > R4:mirror_l > R2:mirror_l > hole > R4:mirror_l > R1:mirror_r. Board: 10 mirror_r, 14 block, 4 mirror_l, 8 portal.
+  // 2 wrong rotations follow the true route for 3+ touches before failing. Every bend on the route lands
+  // within 7 degrees of its gimmick. Start [6,4,2,2] is >=3 steps off on every ring and lights nothing.
+  {name:'CHALLENGE 3 — EVENT HORIZON', slots:12, emitters:[0], rings:[
+        {spokeSlots:[], gimmicks:{0:'mirror_r', 1:'block', 2:'mirror_r', 4:'mirror_r', 5:'block', 7:'block', 9:'mirror_r', 10:'mirror_r', 11:'block'}, initialRotation:6},
+        {spokeSlots:[], gimmicks:{0:'mirror_r', 1:'mirror_l', 2:{type:'portal', id:'P3'}, 3:{type:'portal', id:'P1', turn:180}, 4:'block', 5:'mirror_r', 6:'mirror_l', 7:'block', 8:{type:'portal', id:'P2'}, 9:'block'}, initialRotation:4},
+        {spokeSlots:[], gimmicks:{0:'block', 1:'block', 3:{type:'portal', id:'P0', turn:-90}, 6:'block', 7:'block', 8:'block', 11:'block'}, initialRotation:2},
+        {spokeSlots:[], gimmicks:{0:'mirror_l', 2:'mirror_r', 3:'mirror_r', 4:'mirror_l', 5:'mirror_r', 6:{type:'portal', id:'P1', turn:180}, 7:'block', 8:{type:'portal', id:'P3', turn:180}, 9:{type:'portal', id:'P0', turn:180}, 10:{type:'portal', id:'P2', turn:180}}, initialRotation:2}
+      ], lockSlots:[11], bonusLockSlots:[]},
+  // ---- CHALLENGE 4 -- Spectrum. Twelve Prisms; the winning branch is split five times, every other branch is a decoy.
+  // VERIFIED (v0.33, real tracer, all 12^4 = 20,736 rotations): exactly 1 winning rotation [2,10,0,1].
+  // Route (7 touches): R4:prism > R1:mirror_l > R1:prism > R1:prism > R1:mirror_l > R4:prism > R2:prism. Board: 5 mirror_l, 12 prism, 16 block.
+  // 8 wrong rotations follow the true route for 3+ touches before failing. Every bend on the route lands
+  // within 7 degrees of its gimmick. Start [11,2,8,7] is >=3 steps off on every ring and lights nothing.
+  {name:'CHALLENGE 4 — SPECTRUM', slots:12, emitters:[0], rings:[
+        {spokeSlots:[], gimmicks:{2:'mirror_l', 3:{type:'prism'}, 4:{type:'prism'}, 5:{type:'prism'}, 6:'mirror_l', 8:{type:'prism'}, 9:'block', 11:{type:'prism'}}, initialRotation:11},
+        {spokeSlots:[], gimmicks:{0:'block', 1:'block', 3:'block', 4:{type:'prism'}, 5:'block', 7:'block', 8:'block', 9:{type:'prism'}, 11:'block'}, initialRotation:2},
+        {spokeSlots:[], gimmicks:{1:'block', 3:'block', 5:'block', 6:'block', 7:'block', 9:'block', 10:'block', 11:'block'}, initialRotation:8},
+        {spokeSlots:[], gimmicks:{0:{type:'prism'}, 1:'mirror_l', 4:'mirror_l', 6:{type:'prism'}, 7:{type:'prism'}, 9:'mirror_l', 10:{type:'prism'}, 11:{type:'prism'}}, initialRotation:7}
+      ], lockSlots:[3], bonusLockSlots:[]},
+  // ---- CHALLENGE 5 -- Deep Space Relay. Sixteen pinned Satellites; one steerable Mirror per ring decides where the relay goes.
+  // VERIFIED (v0.33, real tracer, all 12^4 = 20,736 rotations): exactly 1 winning rotation [4,1,3,11].
+  // Route (9 touches): R1:satellite > R3:satellite > R4:mirror_r > R2:mirror_r > R2:satellite > R2:satellite > R1:mirror_r > R1:satellite > R2:satellite. Board: 16 echo_portal, 3 mirror_r, 1 mirror_l, 4 block.
+  // 846 wrong rotations follow the true route for 3+ touches before failing. Every bend on the route lands
+  // within 7 degrees of its gimmick. Start [11,9,11,3] is >=3 steps off on every ring and lights nothing.
+  {name:'CHALLENGE 5 — DEEP SPACE RELAY', slots:12, emitters:[0], rings:[
+        {spokeSlots:[], gimmicks:{0:{type:'echo_portal', turn:180, fixed:true}, 1:{type:'echo_portal', turn:90, fixed:true}, 2:{type:'echo_portal', turn:0, fixed:true}, 6:'mirror_r', 8:{type:'echo_portal', turn:90, fixed:true}, 9:{type:'echo_portal', turn:0, fixed:true}}, initialRotation:11},
+        {spokeSlots:[], gimmicks:{2:{type:'echo_portal', turn:270, fixed:true}, 3:'mirror_r', 5:{type:'echo_portal', turn:0, fixed:true}, 6:{type:'echo_portal', turn:180, fixed:true}, 8:{type:'echo_portal', turn:180, fixed:true}, 10:{type:'echo_portal', turn:270, fixed:true}}, initialRotation:9},
+        {spokeSlots:[], gimmicks:{0:{type:'echo_portal', turn:180, fixed:true}, 2:'mirror_l', 3:'block', 5:'block', 8:'block', 10:'block'}, initialRotation:11},
+        {spokeSlots:[], gimmicks:{2:{type:'echo_portal', turn:90, fixed:true}, 3:{type:'echo_portal', turn:270, fixed:true}, 4:{type:'echo_portal', turn:0, fixed:true}, 7:'mirror_r', 9:{type:'echo_portal', turn:180, fixed:true}, 11:{type:'echo_portal', turn:90, fixed:true}}, initialRotation:3}
+      ], lockSlots:[7], bonusLockSlots:[]},
+];
+/*CHALLENGE_LEVELS_END*/
+
 const LEVELS = {
   easy: [
     {name:'LEVEL 1', slots:8, rings:[
@@ -3602,6 +3705,7 @@ const LEVELS = {
   // see the guarded orchestra branch inside checkWin() (which delegates
   // to OrchestraAudio.handleCheckWin) for how that ties in with the
   // fog/Bell/Coin systems.
+  challenge: CHALLENGE_LEVELS,
   orchestra: ORCHESTRA_MOVEMENTS,
   special: METEOR_LEVELS,
   rocket: ROCKET_LEVELS,
@@ -3745,6 +3849,7 @@ const AudioSys = (function(){
     normal:    { chords:[[261.63,311.13,392.00],[293.66,349.23,440.00],[246.94,311.13,392.00],[261.63,329.63,415.30]], beat:4300, filter:1100, detune:5,  wave:'sine',     noise:0.008 },
     // A LITTLE NERVY -- minor key, a bit quicker, subtle edge
     hard:      { chords:[[220.00,261.63,311.13],[207.65,246.94,311.13],[196.00,233.08,293.66],[220.00,261.63,329.63]], beat:3200, filter:1450, detune:9,  wave:'triangle', noise:0.02 },
+    challenge: { chords:[[196.00,233.08,277.18],[185.00,220.00,277.18],[174.61,207.65,261.63],[196.00,246.94,293.66]], beat:3600, filter:1250, detune:11, wave:'triangle', noise:0.025 },
   };
 
   function playChord(freqs, dur, cfg){
@@ -5385,6 +5490,8 @@ const MODE_META = {
   easy:      {label:'EASY',      cls:'easy'},
   normal:    {label:'NORMAL',    cls:'normal'},
   hard:      {label:'HARD',      cls:'hard'},
+  // v0.33: CHALLENGE -- a 4th difficulty card next to Hard, gated by keys (CHALLENGE_KEY_REQ).
+  challenge: {label:'CHALLENGE', cls:'challenge'},
   // NOTE: 'orchestra'/'special'/'rocket' are bonus/reward modes, not
   // difficulty tiers -- deliberately left OUT of renderModeGrid()'s loop
   // (see the explicit skip inside that function) so only the 3 difficulty
@@ -5558,8 +5665,14 @@ function isModeUnlocked(mode){
   if(mode==='hard'){
     return save.totalCoins >= HARD_COIN_REQUIREMENT;
   }
+  if(mode==='challenge') return keyCount() >= CHALLENGE_KEY_REQ[0];         // v0.33: keys held
   if(WIN_REQ[mode]!==undefined) return levelWinCount() >= WIN_REQ[mode];   // Meteor / Orchestra / Rocket: levels won
   return false;
+}
+// v0.33: Challenge level idx opens once the player HOLDS CHALLENGE_KEY_REQ[idx] keys (keys are never spent).
+function challengeLevelOpen(idx){
+  if(save.options && save.options.debugMode) return true;
+  return keyCount() >= (CHALLENGE_KEY_REQ[idx] || Infinity);
 }
 
 /* =========================================================================
@@ -5736,6 +5849,10 @@ function equipSet(tid){
   if(document.body.classList.contains('inGame') && gstate.level) renderPuzzle();
 }
 function invSourceText(kind,id){
+  for(let i=0; i<CHALLENGE_GIFTS.length; i++){
+    if((kind==='theme' || kind==='rim') && CHALLENGE_GIFTS[i].includes(id))
+      return 'Challenge '+(i+1)+' gift lock'+(kind==='rim' ? ' (comes with its theme)' : '')+' \u00b7 needs '+CHALLENGE_KEY_REQ[i]+' \ud83d\udd11';
+  }
   if(kind==='theme' && UNASSIGNED_THEMES.includes(id)) return 'Unlock not assigned yet';
   if(kind==='rim' && UNASSIGNED_THEMES.includes(id)) return 'Comes with its theme \u2014 unlock not assigned yet';
   for(const m of GIFT_MODES){
@@ -5791,7 +5908,9 @@ function renderShop(){
         `<div class="invKeyRow ${w>=WIN_REQ[m]?'ok':''}"><span>${w>=WIN_REQ[m]?'\ud83d\udd13':'\ud83d\udd12'} ${nm}</span><span>${Math.min(w,WIN_REQ[m])} / ${WIN_REQ[m]} wins</span></div>`).join('') +
       `<div class="invKeyRow"><span>\ud83c\udf81 Space Orchestra gift locks</span><span>${orchGiftLockCount()} / ${orchGiftLockTotal()}</span></div>` +
       `<div class="invKeyRow"><span>\ud83c\udf81 Meteor Attack gift locks</span><span>${meteorGiftLockCount()} / ${meteorGiftLockTotal()}</span></div>` +
-      `<div class="invKeyRow"><span>\ud83c\udf81 Rocket Attack gift locks</span><span>${rocketGiftLockCount()} / ${rocketGiftLockTotal()}</span></div>`;
+      `<div class="invKeyRow"><span>\ud83c\udf81 Rocket Attack gift locks</span><span>${rocketGiftLockCount()} / ${rocketGiftLockTotal()}</span></div>` +
+      CHALLENGE_KEY_REQ.map((req,i)=>{ const got = challengeGiftClaimed(i), open = n >= req;
+        return `<div class="invKeyRow ${got?'ok':''}"><span>${got?'\u2705':(open?'\ud83d\udd13':'\ud83d\udd12')} Challenge ${i+1} gift lock \u2014 ${(CHALLENGE_GIFTS[i]||[]).map(themeName).join(' + ')}</span><span>${Math.min(n,req)} / ${req} \ud83d\udd11</span></div>`; }).join('');
   }
   const rw = document.getElementById('invRocketRewards');
   if(rw){
@@ -6145,6 +6264,7 @@ const GIMMICK_LABELS = {
   mirror_l:'Mirror', mirror_r:'Mirror', block:'Block', amp:'Amplifier',
   portal:'Portal', echo_portal:'Echo', half_block:'Half-Block', prism:'Prism',
   bell:'White Bell', ufo:'Gray UFO', coin:'Ring Coin',
+  emitter:'Rim Emitter',
 };
 function gimmickKindsInLevel(lvl){
   const kinds = new Set();
@@ -6160,6 +6280,7 @@ function renderGimmickChips(lvl){
   const wrap = document.getElementById('gameLegendChips');
   wrap.innerHTML = '';
   const kinds = gimmickKindsInLevel(lvl);
+  if(lvl.emitters && lvl.emitters.length) kinds.unshift('emitter');   // v0.33: Challenge's fixed rim source
   if(kinds.length === 0) return;
   let newlySeen = [];
   kinds.forEach(kind=>{
@@ -6212,6 +6333,9 @@ function renderModeGrid(){
     let sub = '';
     if(!unlocked){
       if(mode==='hard') sub = `Locked \u2014 collect ${HARD_COIN_REQUIREMENT} gift boxes (${save.totalCoins}/${HARD_COIN_REQUIREMENT})`;
+      if(mode==='challenge') sub = `Locked \u2014 earn ${CHALLENGE_KEY_REQ[0]} \ud83d\udd11 key (${Math.min(keyCount(),CHALLENGE_KEY_REQ[0])}/${CHALLENGE_KEY_REQ[0]})`;
+    } else if(mode==='challenge'){
+      sub = `${levels.length} levels \u00b7 \ud83d\udd11 ${keyCount()}/${CHALLENGE_KEY_REQ[CHALLENGE_KEY_REQ.length-1]} keys`;
     } else if(levels.length===0){
       sub = 'Coming soon';
     } else {
@@ -6364,11 +6488,15 @@ function renderLevelGrid(mode){
     // it existed only for the now-removed Challenge mode -- but is left as
     // generic plumbing below in case a future mode wants the same pattern.
     let locked = false, neededCoins = 0;
+    // v0.33 CHALLENGE: each level needs CHALLENGE_KEY_REQ[i] keys held.
+    if(mode==='challenge' && !challengeLevelOpen(i)) locked = true;
     if(save.options && save.options.debugMode) locked = false;
     const card = document.createElement('div');
     card.className = 'levelCard' + (locked ? ' locked' : ''); card.style.setProperty('--i', Math.min(i,30));
     let inner = `<div class="lNum">${i+1}</div>`;
-    if(locked){
+    if(locked && mode==='challenge'){
+      inner += `<div class="lLockNote">\ud83d\udd12 ${CHALLENGE_KEY_REQ[i]} \ud83d\udd11 (${Math.min(keyCount(),CHALLENGE_KEY_REQ[i])}/${CHALLENGE_KEY_REQ[i]})</div>`;
+    } else if(locked){
       inner += `<div class="lLockNote">\ud83d\udd12 ${neededCoins} coins</div>`;
     } else if(hasStar(prog)){
       // every cleared level shows its STAR; a lit bonus lock adds the GIFT BOX and turns the pair gold
@@ -6376,6 +6504,13 @@ function renderLevelGrid(mode){
       if(mode === 'special' && !prog.coin) inner += `<div class="lLockNote" style="color:var(--text1);">\u2606${prog.bestCoins||0}/6</div>`;
     }
     card.innerHTML = inner;
+    if(mode==='challenge'){
+      const got = challengeGiftClaimed(i), names = (CHALLENGE_GIFTS[i]||[]).map(themeName).join(' + ');
+      const badge = document.createElement('div');
+      badge.className = 'giftBadge'; badge.style.opacity = got ? 0.35 : 0.95;
+      badge.textContent = '\ud83c\udf81'; badge.title = 'Gift lock: ' + names + ' (themes + rims)' + (got ? ' \u2014 claimed' : '');
+      card.style.position = 'relative'; card.appendChild(badge);
+    }
     if(GIFT_MODES.includes(mode)){
       const _rw = rewardForLevel(mode,i), gtype = _rw ? _rw.kind : REWARD_CYCLE[i % 5], got = !!(save.rewards && save.rewards.claimed[mode+':'+i]);
       const badge = document.createElement('div');
@@ -6814,7 +6949,7 @@ function recomputeFlow(){
   const lvl = gstate.level;
   const alias = PowerSys.aliasMap(lvl);
   const allTargets = [...new Set([...lvl.lockSlots, ...(lvl.bonusLockSlots||[]), ...alias.keys()])];
-  const lvlLike = { slots: lvl.slots, rings: lvl.rings, lockSlots: allTargets };
+  const lvlLike = { slots: lvl.slots, rings: lvl.rings, lockSlots: allTargets, emitters: lvl.emitters };
   // Space Orchestra only: thread fog state into the tracer so a fogged
   // Lock physically blocks the beam while active (see traceBeamBranch),
   // and report which gray UFOs a beam crossed this trace. Every
@@ -6843,6 +6978,13 @@ function updateTopBar(){
     const allLit = [...lvl.lockSlots, ...(lvl.bonusLockSlots||[])].every(s=>gstate.litLocks.has(s));
     coinEl.textContent = '\ud83c\udf81 ' + orchGiftLockCount() + '/' + orchGiftLockTotal();
     coinEl.classList.toggle('lit', allLit);
+  }
+  if(currentMode === 'challenge'){
+    // Challenge (v0.33): the single Lock is the gift lock.
+    const lit = lvl.lockSlots.length>0 && lvl.lockSlots.every(s=>gstate.litLocks.has(s));
+    coinEl.textContent = (lit ? '\u25c6' : '\u25c7') + ' GIFT LOCK';
+    coinEl.classList.toggle('lit', lit);
+    coinEl.classList.remove('off');
   }
   if(currentMode === 'rocket'){
     // Rocket Attack: every Lock is a gift lock -- show banked gift locks; lit count is of the survivors.
@@ -6960,7 +7102,7 @@ function checkWin(){
   // to keep rotating and hunt for the coin too. Only once the Bonus Lock
   // (when present) is ALSO lit does the level finish automatically.
   if(requiredLit && bonusLit){
-    finishLevel(hasBonus);
+    finishLevel(hasBonus || currentMode === 'challenge');   // Challenge: the one Lock IS the gift lock
   } else {
     updateNextButtonUI();
   }
@@ -7014,7 +7156,8 @@ function finishLevel(withCoin){
   persistSave();
   
   AudioSys.playBreach();
-  document.getElementById('winSub').textContent = withCoin ? 'LEVEL COMPLETE \u2014 \u2605 STAR + \ud83c\udf81 GIFT BOX' : 'LEVEL COMPLETE \u2014 \u2605 STAR';
+  document.getElementById('winSub').textContent = currentMode === 'challenge' ? 'CHALLENGE CLEARED \u2014 \u2605 STAR + \ud83c\udf81 GIFT LOCK'
+    : withCoin ? 'LEVEL COMPLETE \u2014 \u2605 STAR + \ud83c\udf81 GIFT BOX' : 'LEVEL COMPLETE \u2014 \u2605 STAR';
   // v0.32: a first clear that reaches 10 / 30 / 50 wins (Easy+Normal+Hard) unlocks a special mode
   if(isFirstClear && WIN_COUNT_MODES.includes(currentMode)){
     const w = levelWinCount(), um = Object.keys(WIN_REQ).find(k=>WIN_REQ[k]===w);
@@ -7055,7 +7198,9 @@ function finishLevel(withCoin){
   const meteorGifts = gm==='special'
     ? bankMeteorLocks(gi, [...(gstate.meteorCollected||[])])
     : [];
-  const gifts = (gift ? [gift] : []).concat(orchGifts, rocketGifts, meteorGifts);
+  // CHALLENGE (v0.33): the level's one Lock is a gift lock -- two themes, each with its rim, once.
+  const challengeGifts = gm==='challenge' ? claimChallengeGifts(gi) : [];
+  const gifts = (gift ? [gift] : []).concat(orchGifts, rocketGifts, meteorGifts, challengeGifts);
   const proceed = (fast)=>{
     if(currentMode !== gm || currentLevelIdx !== gi) return;   // player already left this level
     if(isLastLevelOfMode && !save.demoEndScreensShown.includes(gm)){
@@ -7693,7 +7838,7 @@ function renderPuzzleFull(){
   const isSpecial = currentMode === 'special';
   const isOrchestra = currentMode === 'orchestra';
   const orchFogActive = isOrchestra && OrchestraAudio.isFogActive();
-  const coinLocks = isSpecial || isOrchestra || currentMode === 'rocket';
+  const coinLocks = isSpecial || isOrchestra || currentMode === 'rocket' || currentMode === 'challenge';
   const rimG = el('g',{}, svg); RPS.rim = rimG; drawRimLocks(rimG);
 
   const hubG = el('g',{}, svg);
@@ -8102,7 +8247,7 @@ function drawRimLocks(rimG){
   const isSpecial = currentMode === 'special';
   const isOrchestra = currentMode === 'orchestra';
   const orchFogActive = isOrchestra && OrchestraAudio.isFogActive();
-  const coinLocks = isSpecial || isOrchestra || currentMode === 'rocket'; // every lock is a coin in these modes
+  const coinLocks = isSpecial || isOrchestra || currentMode === 'rocket' || currentMode === 'challenge'; // every lock is a coin in these modes
   const fogOf = sl => isOrchestra && OrchestraAudio.isSlotFogged(sl);
   if(RIM_BAND.enabled){
     const bandStates = {};
@@ -8290,7 +8435,7 @@ function renderBeams(force){
   const _rotChanged=_same&&_pR&&_pR.some((v,i)=>v!==gstate.rotations[i]);
   { const V2C = v2Cur(); if(V2C) return lite(()=>renderBeamsV2(V2C, {lvl, n, _same, _pR, _pL, _pS, _noMo, _rotChanged})); }
   const ICE = isIceTheme(), ISLAND = isIslandTheme();
-  const coinLocks = currentMode==='special' || currentMode==='orchestra' || currentMode==='rocket';
+  const coinLocks = currentMode==='special' || currentMode==='orchestra' || currentMode==='rocket' || currentMode==='challenge';
   const svg = document.getElementById('puzzleBeams'); svg.innerHTML='';
   const beamLayer = el('g',{},svg);
   lite(()=>{
@@ -8385,10 +8530,34 @@ function renderBeams(force){
 // UFO strike / Rocket Attack overlays: rebuilt on their own tiny layer (never the whole puzzle).
 function renderDynamic(){
   const dyn = document.getElementById('puzzleDyn');
-  const need = (gstate.power && gstate.power.ufo) || currentMode==='rocket' || currentMode==='special';
+  const emit = gstate.level && gstate.level.emitters && gstate.level.emitters.length;
+  const need = (gstate.power && gstate.power.ufo) || currentMode==='rocket' || currentMode==='special' || emit;
   if(!need){ if(dyn.firstChild) dyn.innerHTML=''; return; }
   dyn.innerHTML='';
-  lite(()=>{ PowerSys.overlay(dyn); if(currentMode==='rocket') renderRocketOverlay(dyn); if(currentMode==='special') renderMeteorOverlay(dyn); });
+  lite(()=>{ if(emit) drawRimEmitters(dyn, gstate.level); PowerSys.overlay(dyn); if(currentMode==='rocket') renderRocketOverlay(dyn); if(currentMode==='special') renderMeteorOverlay(dyn); });
+}
+// ---- RIM EMITTER (v0.33, Challenge): the fixed source bolted to the rim. Drawn in the overlay
+// layer (like Rocket's trap locks) so every theme/rim shows it the same way. A heavy bracket on
+// the rim panel, a glowing barrel pointing at the center, and a padlock tab = "you can't turn this".
+function drawRimEmitters(g, lvl){
+  const n = lvl.slots, k = optScale('rimSize'), half = RIM_BAND.half*k;
+  const rIn = RIM_R - half, rOut = RIM_R + half;
+  const lit = gstate.litLocks && lvl.lockSlots.some(s=>gstate.litLocks.has(s));
+  const hot = lit ? beamColorFor(true) : getBackgroundBeamColor();
+  (lvl.emitters||[]).forEach(slot=>{
+    el('path',{d:rimPanelPath(slot, n, rIn, rOut, RIM_BAND.gap), fill:'rgba(12,16,24,0.92)', stroke:'#ffd36a', 'stroke-width':1.8}, g);
+    const a = slotToAngle(slot, n), deg = a*180/Math.PI + 90;   // local -y points at the center
+    const s = el('g',{transform:`translate(${(Math.cos(a)*RIM_R).toFixed(2)},${(Math.sin(a)*RIM_R).toFixed(2)}) rotate(${deg.toFixed(2)}) scale(${k})`}, g);
+    el('circle',{r:15, fill:'rgba(0,0,0,.55)', stroke:'#ffd36a', 'stroke-width':1.4, 'stroke-dasharray':'2.4 2.2', opacity:0.95}, s);
+    el('rect',{x:-9, y:-4, width:18, height:12, rx:3, fill:'#2a2f3a', stroke:'#c9b26a', 'stroke-width':1.2}, s);   // housing
+    el('rect',{x:-3.4, y:-15, width:6.8, height:13, rx:1.6, fill:'#3a4150', stroke:'#e9dca4', 'stroke-width':1}, s); // barrel
+    el('rect',{x:-2, y:-17.5, width:4, height:4, rx:1, fill:hot, stroke:'#ffffff', 'stroke-width':0.6, filter:'url(#glowTight)'}, s);
+    el('circle',{cx:0, cy:2, r:3.2, fill:hot, opacity:0.95, filter:'url(#glowTight)'}, s);
+    // padlock tab: this source never turns
+    const p = el('g',{transform:'translate(0,13)'}, s);
+    el('path',{d:'M -2.6 -1 L -2.6 -3.2 A 2.6 2.6 0 0 1 2.6 -3.2 L 2.6 -1', fill:'none', stroke:'#ffd36a', 'stroke-width':1.1}, p);
+    el('rect',{x:-3.6, y:-1.2, width:7.2, height:5.2, rx:1, fill:'#ffd36a'}, p);
+  });
 }
 // Bake a finished SVG into a bitmap once: static decoration then costs a texture blit instead of re-rasterising
 // vector shapes + blur filters whenever anything overlapping it repaints.
@@ -10628,7 +10797,35 @@ function bankMeteorLocks(levelIdx, slots){
   persistSave();
   return out;
 }
-const MODE_NAME = {orchestra:'Space Orchestra', special:'Meteor Attack', rocket:'UFO / Rocket Attack'};
+/* =========================================================================
+   CHALLENGE GIFT LOCKS (v0.33) -- each Challenge level's single Lock is a gift lock.
+   The first clear grants BOTH themes in CHALLENGE_GIFTS[level], each with its matching
+   rim (theme -> themeState.owned, rim -> cosmetics.rimUnlocked), one gift box per theme.
+   Claim keys 'challenge:<level>:<0|1>' -> 'theme:<id>' (never 'key:', so keyCount is unchanged).
+   ========================================================================= */
+function challengeGiftClaimed(idx){
+  const c = (save.rewards && save.rewards.claimed) || {};
+  return (CHALLENGE_GIFTS[idx]||[]).every((_,j)=>!!c['challenge:'+idx+':'+j]);
+}
+function challengeGiftCount(){ let n = 0; CHALLENGE_GIFTS.forEach((_,i)=>{ if(challengeGiftClaimed(i)) n++; }); return n; }
+function claimChallengeGifts(idx){
+  ensureRewardShape();
+  const claimed = save.rewards.claimed, out = [];
+  (CHALLENGE_GIFTS[idx]||[]).forEach((tid,j)=>{
+    const lvKey = 'challenge:'+idx+':'+j;
+    if(claimed[lvKey]) return;
+    const r = {lvKey, type:'theme', kind:'theme', themeId:tid, id:'theme:'+tid, missing:null};
+    const dup = grantReward(r);
+    const rim = (THEME_SETS[tid] && THEME_SETS[tid].rim) || tid, c = save.cosmetics;
+    if(RIM_IDS.includes(rim) && !c.rimUnlocked.includes(rim)) c.rimUnlocked.push(rim);
+    claimed[lvKey] = r.id;
+    r.dup = dup; r.orchNote = 'Challenge '+(idx+1)+' \u00b7 gift lock \u00b7 theme '+(j+1)+' of 2 (with its rim)';
+    out.push(r);
+  });
+  persistSave();
+  return out;
+}
+const MODE_NAME = {orchestra:'Space Orchestra', special:'Meteor Attack', rocket:'UFO / Rocket Attack', challenge:'Challenge'};
 function giftPreview(g){
   const v = g.id ? g.id.split(':')[1] : null, k = g.kind;
   if(k==='key') return '<div class="giftPrev" style="background:rgba(255,210,63,.12);">\ud83d\udd11</div>';
@@ -11911,7 +12108,7 @@ function v2SegStarts(segs){
 function renderBeamsV2(V2C, c){
   const {lvl, n, _same, _pL, _pS, _rotChanged} = c;
   const reduced = c._noMo || v2Reduced();
-  const coinLocks = currentMode==='special' || currentMode==='orchestra' || currentMode==='rocket';
+  const coinLocks = currentMode==='special' || currentMode==='orchestra' || currentMode==='rocket' || currentMode==='challenge';
   const svg = document.getElementById('puzzleBeams'); svg.innerHTML = '';
   const layer = el('g',{}, svg);
   // TIMING: the ring glide is 200 ms (overshoot peaks at 62% = 124 ms), so a re-trace starts as the
@@ -13554,7 +13751,7 @@ THEME_V2.patch = {
 };
 
 /* =========================================================================
-   THEMES V2 -- BATCH 7 (v0.32): ten new worlds, INVENTORY ONLY -- no unlock is
+   THEMES V2 -- BATCH 7 (v0.32): ten new worlds. v0.33: handed out by the Challenge gift locks (two per level). Originally no unlock was
    assigned yet (UNASSIGNED_THEMES). Each comes with its matching rim. Same
    redesign language as the rest of THEME_V2: a real crafted surface seen from
    above, one board, light from the top-left. Cosmetic only.
@@ -13563,7 +13760,9 @@ THEME_V2.patch = {
    To hand one out later: give it a reward slot (gift box / gift lock / key) and
    remove its id from UNASSIGNED_THEMES.
    ========================================================================= */
-const UNASSIGNED_THEMES = ['vinyl','marbled','verdigris','carpet','curling','lido','chalk','topo','autumn','honey'];
+// v0.33: all ten are now handed out by the Challenge gift locks (CHALLENGE_GIFTS), two per level.
+const BATCH7_THEMES = ['vinyl','marbled','verdigris','carpet','curling','lido','chalk','topo','autumn','honey'];
+const UNASSIGNED_THEMES = BATCH7_THEMES.filter(id=>!CHALLENGE_GIFTS.some(pair=>pair.includes(id)));
 THEME_LIST.push(
  {id:'vinyl', name:'Vinyl Record', cost:3, free:false, blurb:'A record on a walnut turntable.'},
  {id:'marbled', name:'Marbled Endpaper', cost:3, free:false, blurb:'Marbled paper and tooled leather.'},
@@ -13575,7 +13774,7 @@ THEME_LIST.push(
  {id:'topo', name:'Topographic Map', cost:3, free:false, blurb:'A contour map and a field compass.'},
  {id:'autumn', name:'Autumn Millstone', cost:3, free:false, blurb:'Maple leaves on old cobbles.'},
  {id:'honey', name:'Honeycomb', cost:3, free:false, blurb:'Capped comb and a beeswax disc.'});
-UNASSIGNED_THEMES.forEach(id=>{ THEME_SETS[id] = {rim:id}; if(!RIM_IDS.includes(id)) RIM_IDS.push(id); });
+BATCH7_THEMES.forEach(id=>{ THEME_SETS[id] = {rim:id}; if(!RIM_IDS.includes(id)) RIM_IDS.push(id); });
 
 // shared: concentric rings of fine alternating strokes (record grooves, turned metal)
 function v2Rings(g, r0, r1, step, light, dark, wL, wD, opL, opD){
