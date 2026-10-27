@@ -23,7 +23,7 @@ concurrency:
 env:
   # The game source file in the repository. It is published as index.html;
   # the file in the repository is never renamed or deleted.
-  GAME_FILE: ringshift v0.28.html
+  GAME_FILE: ringshift v0.29.html
 
 jobs:
   build:

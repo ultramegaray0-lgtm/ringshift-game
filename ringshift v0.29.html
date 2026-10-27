@@ -1622,6 +1622,15 @@ body.theme-v2 .screenSub, body.theme-v2 #titleScreen .press, body.theme-v2 #game
     </div>
 
     <div class="htpSection">
+      <h3>// 🚀 ROCKET ATTACK — LAST TOUCH &amp; GIFT, LIGHT, ELECTRICITY LOCKS</h3>
+      <div class="htpRow"><span class="htpIcon" style="color:#7dff9d; border-color:#7dff9d;">🚀</span><div><b>Rockets hit where a beam ENDS</b>Every 5 seconds the boss UFO fires a rocket at the last thing each beam touches: the Lock it lands on, or the Block / Half-Block / Satellite that stops it. 10 seconds later that target is destroyed. Things a beam only passes through (Mirror, Amplifier, Prism, Black Holes) are never targeted, and a beam that ends on empty rim glass is safe.</div></div>
+      <div class="htpRow"><span class="htpIcon" style="color:#ffd23f; border-color:#ffd23f;">🎁</span><div><b>Gift Locks</b>Every Lock is a gift lock. Light every surviving one at the same moment to clear the level. Each Lock lit at the clear is banked once, and every 4 banked Locks opens a gift box. A Lock a rocket destroys is gone for that attempt.</div></div>
+      <div class="htpRow"><span class="htpIcon" style="color:#ffe27a; border-color:#ffe27a;">💡</span><div><b>Light Locks</b>Each one lights an equal share of the board (2 Light Locks = half each, 4 = a quarter each). If a rocket destroys one, its share goes dark and only your beams still light what they touch there.</div></div>
+      <div class="htpRow"><span class="htpIcon" style="color:#5ad8ff; border-color:#5ad8ff;">⚡</span><div><b>Electricity Locks</b>One per ring; the small number shows which ring it powers. If a rocket destroys it, that ring loses power and can't be turned again this attempt.</div></div>
+      <div class="htpRow"><span class="htpIcon" style="color:#a8ffc0; border-color:#a8ffc0;">✓</span><div><b>You can't lose</b>Whatever gets hit, the level always finishes. If the damage means not every gift lock can be lit together any more, it clears the moment you light as many as are still possible. RESET restores everything.</div></div>
+    </div>
+
+    <div class="htpSection">
       <h3>// ✦ SPACE ORCHESTRA — FOG, GRAY UFOS &amp; GIFT LOCKS</h3>
       <div class="htpRow"><span class="htpIcon" style="color:#eaf6fb; border-color:#eaf6fb;">🌫️</span><div><b>Fog</b>Every Lock in Space Orchestra starts fogged. A fogged Lock is a physical wall — a beam that reaches it is blocked there, no matter how correctly the rings are set, and its true state stays hidden.</div></div>
       <div class="htpRow"><span class="htpIcon" style="color:#eaf6fb; border-color:#eaf6fb;">🛸</span><div><b>One UFO per Lock</b>Each fogged Lock has its own numbered gray UFO. Route any beam onto UFO 1 and it's knocked out for 10 seconds — Lock 1's fog lifts while it's down, then the UFO rises again and the fog comes back. UFO 2 does the same for Lock 2, and so on, so knock out every UFO you need and light their Locks before they get back up. A beam left sitting on a UFO won't knock it out again; it has to newly reach it. The UFOs leave one by one — UFO 1 at 0:30, UFO 2 at 1:30, UFO 3 at 2:30, UFO 4 at 4:00 — and a Lock whose UFO escaped stays fogged, so reset and try again.</div></div>
@@ -1737,6 +1746,8 @@ body.theme-v2 .screenSub, body.theme-v2 #titleScreen .press, body.theme-v2 #game
     <div class="modalSub">Everything here is earned from gift boxes: the end of Easy, Normal and Hard levels, and every 4 gift locks lit in Space Orchestra. Nothing is bought.</div>
     <div class="shopSectionTitle">KEYS \u00b7 SPECIAL MODES</div>
     <div id="invKeys"></div>
+    <div class="shopSectionTitle">ROCKET ATTACK GIFT REWARDS</div>
+    <div id="invRocketRewards"></div>
     <div class="shopSectionTitle">THEMES</div>
     <div id="shopThemeList"></div>
     <div class="shopSectionTitle">RIMS</div>
@@ -1760,7 +1771,7 @@ body.theme-v2 .screenSub, body.theme-v2 #titleScreen .press, body.theme-v2 #game
     <div class="ringdeco r3"></div>
     <div class="ringdeco r2"></div>
     <h1 class="logo">RINGSHIFT</h1>
-    <div class="sub">DEMO · v0.28</div>
+    <div class="sub">DEMO · v0.29</div>
     <div class="press">PRESS ANY BUTTON</div>
   </div>
 
@@ -2018,7 +2029,10 @@ function buildLiveContentMap(ring, rotation, n, disabled){
 // `undefined` there and every `if(fogInfo...)`/`if(hitBellSlots...)` guard
 // below is skipped -- behavior for every other mode is byte-for-byte
 // unchanged.
-function traceBeamBranch(rings, rimRadius, lockSlotsSet, portalRegistry, n, pos, dir, strong, bounceBudget, segments, hitLockSlots, fogInfo, hitBellSlots, hitEchoSlots, usedPortals, pathSegs){
+// ROCKET ATTACK (v0.29): `ends` (optional, last param) collects WHERE every branch of the beam finally stops --
+// its LAST touch: {kind:'rim', slot, x, y} | {kind:'ring', ringIdx, slot, contentKind, x, y}. Purely a
+// record of the stop point, it never changes the trace. Every other mode leaves it undefined.
+function traceBeamBranch(rings, rimRadius, lockSlotsSet, portalRegistry, n, pos, dir, strong, bounceBudget, segments, hitLockSlots, fogInfo, hitBellSlots, hitEchoSlots, usedPortals, pathSegs, ends){
   // usedPortals: black-hole endpoints ("ring:slot") this branch has already gone
   // in or out of. A branch may use each endpoint once, so a beam can never
   // ping-pong between a pair or loop forever. Prism splits hand each child its own copy.
@@ -2046,7 +2060,7 @@ function traceBeamBranch(rings, rimRadius, lockSlotsSet, portalRegistry, n, pos,
       const h = phit.hole, hp = { x: pos.x+dir.x*phit.t, y: pos.y+dir.y*phit.t };
       { const _sg={x1:pos.x,y1:pos.y,x2:hp.x,y2:hp.y,strong}; segments.push(_sg); pathSegs.push(_sg); }
       const other = (portalRegistry.get(h.id)||[]).find(m=>!(m.ringIdx===h.ringIdx && m.slot===h.slot));
-      if(!other) return;                                     // unpaired hole: still a dead end
+      if(!other){ if(ends) ends.push({kind:'ring', ringIdx:h.ringIdx, slot:h.slot, contentKind:'portal', x:h.cx, y:h.cy}); return; }   // unpaired hole: still a dead end
       usedPortals.add(h.ringIdx+':'+h.slot); usedPortals.add(other.ringIdx+':'+other.slot);   // loop guard
       dir = { x: other.ux, y: other.uy };                    // fixed exit direction of the paired hole
       // re-emerge from the paired hole's black-mouth tip, travelling along its axis
@@ -2066,6 +2080,7 @@ function traceBeamBranch(rings, rimRadius, lockSlotsSet, portalRegistry, n, pos,
       // and the rim behaves exactly as it always has.
       if(fogInfo && fogInfo.active && fogInfo.slots && fogInfo.slots.has(slot)) return;
       if(lockSlotsSet.has(slot)){ hitLockSlots.push(slot); pathSegs.forEach(sg=>{ (sg.litSlots||(sg.litSlots=[])).push(slot); }); }
+      if(ends){ const ra = slotToAngle(slot, n); ends.push({kind:'rim', slot, x:Math.cos(ra)*rimRadius, y:Math.sin(ra)*rimRadius}); }
       return;
     }
     const ring = rings[nearest.ringIdx];
@@ -2073,14 +2088,15 @@ function traceBeamBranch(rings, rimRadius, lockSlotsSet, portalRegistry, n, pos,
     const slot = angleToNearestSlot(angle, n);
     const content = ring.liveContent.get(slot);
     const remainingBudget = bounceBudget - bounce - 1;
-    if(content && content.kind==='block'){ return; }
+    const _end = ()=>{ if(ends){ const ra = slotToAngle(slot, n); ends.push({kind:'ring', ringIdx:nearest.ringIdx, slot, contentKind:content.kind, x:Math.cos(ra)*ring.radius, y:Math.sin(ra)*ring.radius}); } };
+    if(content && content.kind==='block'){ _end(); return; }
     else if(content && content.kind==='half_block'){
       const movingInward = (hitPoint.x*dir.x + hitPoint.y*dir.y) < 0;
       const stopsHere = (content.side==='in' && movingInward) || (content.side==='out' && !movingInward);
-      if(stopsHere) return;
+      if(stopsHere){ _end(); return; }
       pos = { x: hitPoint.x+dir.x*1e-4, y: hitPoint.y+dir.y*1e-4 }; continue;
     } else if(content && content.kind==='source'){
-      if(!strong) return;
+      if(!strong){ _end(); return; }
       pos = { x: hitPoint.x+dir.x*1e-4, y: hitPoint.y+dir.y*1e-4 }; continue;
     } else if(content && content.kind==='bell'){
       // SPACE ORCHESTRA WHITE BELL: a transparent target -- registers a
@@ -2144,16 +2160,16 @@ function traceBeamBranch(rings, rimRadius, lockSlotsSet, portalRegistry, n, pos,
       // absorbed and relaunched UP, exactly like a LEFT/RIGHT hit.
       const vertical = ld.y > 0 && ay >= ax;
       if(hitEchoSlots) hitEchoSlots.push({ringIdx: nearest.ringIdx, slot, mode: vertical ? 'kill' : 'absorb'});
-      if(vertical) return;
+      if(vertical){ _end(); return; }
       dir = tRad ? vecRotateByAngle({x:0,y:-1}, tRad) : {x:0,y:-1};
       pos = { x: hitPoint.x+dir.x*1e-4, y: hitPoint.y+dir.y*1e-4 };
       continue;
     } else if(content && content.kind==='prism'){
       if(remainingBudget>=0){
         const dirA = vecRotateByAngle(dir, Math.PI/4), dirB = vecRotateByAngle(dir, -Math.PI/4);
-        traceBeamBranch(rings, rimRadius, lockSlotsSet, portalRegistry, n, {x:hitPoint.x+dirA.x*1e-4,y:hitPoint.y+dirA.y*1e-4}, dirA, strong, remainingBudget, segments, hitLockSlots, fogInfo, hitBellSlots, hitEchoSlots, new Set(usedPortals), pathSegs.slice());
-        traceBeamBranch(rings, rimRadius, lockSlotsSet, portalRegistry, n, {x:hitPoint.x+dirB.x*1e-4,y:hitPoint.y+dirB.y*1e-4}, dirB, strong, remainingBudget, segments, hitLockSlots, fogInfo, hitBellSlots, hitEchoSlots, new Set(usedPortals), pathSegs.slice());
-      }
+        traceBeamBranch(rings, rimRadius, lockSlotsSet, portalRegistry, n, {x:hitPoint.x+dirA.x*1e-4,y:hitPoint.y+dirA.y*1e-4}, dirA, strong, remainingBudget, segments, hitLockSlots, fogInfo, hitBellSlots, hitEchoSlots, new Set(usedPortals), pathSegs.slice(), ends);
+        traceBeamBranch(rings, rimRadius, lockSlotsSet, portalRegistry, n, {x:hitPoint.x+dirB.x*1e-4,y:hitPoint.y+dirB.y*1e-4}, dirB, strong, remainingBudget, segments, hitLockSlots, fogInfo, hitBellSlots, hitEchoSlots, new Set(usedPortals), pathSegs.slice(), ends);
+      } else _end();
       return;
     } else {
       pos = { x: hitPoint.x+dir.x*1e-4, y: hitPoint.y+dir.y*1e-4 }; continue;
@@ -2165,9 +2181,9 @@ function traceBeam(rings, rimRadius, lockSlotsSet, portalRegistry, n, firingRing
   const originRadius = rings[firingRingIdx].radius;
   const pos = { x: Math.cos(originAngle)*originRadius, y: Math.sin(originAngle)*originRadius };
   const dir = vecNormalize({ x: -Math.cos(originAngle), y: -Math.sin(originAngle) });
-  const segments = [], hitLockSlots = [];
-  traceBeamBranch(rings, rimRadius, lockSlotsSet, portalRegistry, n, pos, dir, false, maxBounces, segments, hitLockSlots, fogInfo, hitBellSlots, hitEchoSlots);
-  return { segments, hitLockSlots };
+  const segments = [], hitLockSlots = [], ends = [];
+  traceBeamBranch(rings, rimRadius, lockSlotsSet, portalRegistry, n, pos, dir, false, maxBounces, segments, hitLockSlots, fogInfo, hitBellSlots, hitEchoSlots, undefined, undefined, ends);
+  return { segments, hitLockSlots, ends };
 }
 const RIM_R = 232, GAP=42, STEP=36;
 function ringRadius(idx){ return RIM_R - GAP - idx*STEP; }
@@ -2386,83 +2402,8 @@ function traceAllBeams(levelLike, rotations, disabledRings, fogInfo){
   return { litLocks, beamResults, bellHits, echoHits };
 }
 
-// =========================================================================
-// ROCKET ATTACK engine helper -- finds the FIRST meaningful thing a beam
-// touches (a gimmick, or the rim), stopping there WITHOUT applying any of
-// that content's normal effect (no bending, no killing, no teleporting).
-// This is deliberately a separate, lighter walk than traceBeamBranch: the
-// Square Lock mechanic cares only about "what does this beam currently
-// point at first", not the beam's eventual full path. An empty ring slot
-// (no gimmick) is not "touched" -- the walk passes straight through it and
-// keeps looking, exactly like traceBeamBranch's own pass-through case.
-function findFirstTouch(rings, rimRadius, n, pos, dir, lockSlotsSet){
-  const holes = [];
-  rings.forEach((rg,ri)=>rg.liveContent.forEach((c,sl)=>{ if(c.kind==='portal') holes.push(portalHoleGeom(ri, sl, rg.radius, c.face, n, c.id)); }));
-  for(let iter=0; iter<40; iter++){
-    let nearest = null;
-    const allRadii = rings.map(r=>r.radius).concat([rimRadius]);
-    allRadii.forEach((radius, idx)=>{
-      rayCircleIntersections(pos, dir, radius).forEach(t=>{
-        if(t > 1e-6){ if(!nearest || t < nearest.t) nearest = {t, isRim: idx===allRadii.length-1, ringIdx: idx<rings.length?idx:null}; }
-      });
-    });
-    let ph = null;
-    holes.forEach(h=>{ const t = rayPortalEntry(pos, dir, h); if(t!==null && (!ph || t<ph.t)) ph = {t, h}; });
-    if(ph && (!nearest || ph.t < nearest.t)){
-      // a hole is touched anywhere on its two-node footprint; target its centre
-      return { kind:'ring', ringIdx: ph.h.ringIdx, slot: ph.h.slot, contentKind:'portal', x:ph.h.cx, y:ph.h.cy };
-    }
-    if(!nearest) return null;
-    const hitPoint = { x: pos.x + dir.x*nearest.t, y: pos.y + dir.y*nearest.t };
-    if(nearest.isRim){
-      const slot = angleToNearestSlot(Math.atan2(hitPoint.y, hitPoint.x), n);
-      // An unmarked rim slot (no Lock there) isn't "a normal lock" per
-      // the mechanic's own definition -- the beam has simply run out of
-      // level without touching anything meaningful. Return null rather
-      // than a bogus rim touch, so no square lock/rocket ever gets
-      // aimed at empty rim (which would otherwise silently no-op on
-      // impact while still incorrectly flagging a failure).
-      if(!lockSlotsSet || !lockSlotsSet.has(slot)) return null;
-      return { kind:'rim', slot, x:hitPoint.x, y:hitPoint.y };
-    }
-    const ring = rings[nearest.ringIdx];
-    const slot = angleToNearestSlot(Math.atan2(hitPoint.y, hitPoint.x), n);
-    const content = ring.liveContent.get(slot);
-    if(content && content.kind!=='portal'){
-      return { kind:'ring', ringIdx: nearest.ringIdx, slot, contentKind: content.kind, x:hitPoint.x, y:hitPoint.y };
-    }
-    pos = { x: hitPoint.x + dir.x*1e-4, y: hitPoint.y + dir.y*1e-4 };
-  }
-  return null;
-}
-// Runs findFirstTouch for every beam (every spoke on every ring) in a
-// Rocket Attack level, using the level's CURRENT (possibly
-// rocket-damaged) ring/gimmick data and the player's current rotations --
-// so a gimmick destroyed mid-run is reflected on the very next call, which
-// is exactly what makes the chain-reaction (mirror destroyed -> beam
-// re-locks onto whatever's now behind it) fall out for free.
-function rocketFindFirstTouches(lvl, rotations){
-  const n = lvl.slots;
-  const lockSlotsSet = new Set([...(lvl.lockSlots||[]), ...(lvl.bonusLockSlots||[])]);
-  const ringsWithContent = lvl.rings.map((ring,r)=>({
-    radius: ringRadiusFn(r),
-    liveContent: buildLiveContentMap(ring, rotations[r]||0, n, false),
-  }));
-  const rimRadius = ringRadiusFn(-1);
-  const touches = [];
-  lvl.rings.forEach((ring, r)=>{
-    ring.spokeSlots.forEach(authoredSlot=>{
-      const liveSlot = (authoredSlot + (rotations[r]||0)) % n;
-      const originAngle = slotToAngle(liveSlot, n);
-      const originRadius = ringsWithContent[r].radius;
-      const pos = { x: Math.cos(originAngle)*originRadius, y: Math.sin(originAngle)*originRadius };
-      const dir = vecNormalize({ x: -Math.cos(originAngle), y: -Math.sin(originAngle) });
-      const touch = findFirstTouch(ringsWithContent, rimRadius, n, pos, dir, lockSlotsSet);
-      touches.push({ ring:r, authoredSlot, liveSlot, touch });
-    });
-  });
-  return touches;
-}
+// (v0.29) Rocket Attack no longer uses a separate "first touch" walk: rockets aim at the LAST touch of
+// every beam branch, recorded by traceBeamBranch itself (its `ends` parameter) -- see RocketGame.
 
 /* =========================================================================
    LEVEL DATA -- Easy 1-10, each exhaustively verified: 1 winning
@@ -3123,258 +3064,80 @@ const METEOR_LEVELS = [
 ];
 
 // =========================================================================
-// ROCKET ATTACK -- "Special: Rocket Attack". A boss UFO sits at the exact
-// center of the rings. The ONLY new rule: at a fixed global cadence --
-// every 10 seconds from level start (0:10, 0:20, 0:30, ...), REGARDLESS
-// of whether the player has rotated anything -- the boss launches one
-// rocket per beam, targeting whatever that beam FIRST touches (a gimmick,
-// or a rim Lock) at that exact instant. A rocket's target is committed at
-// launch and does NOT change no matter how the player rotates afterward
-// -- the target is already there, and 10 seconds after launch the rocket
-// destroys it regardless. Destroying a gimmick just removes it -- the
-// beam (still firing) is simply re-evaluated at the NEXT 10s mark, so if
-// it's now touching something else (chain reaction), that becomes the
-// new target for that mark's fresh rocket. Destroying a rim Lock ends the
-// run -- reset required. Nothing else about ring rotation, beam tracing,
-// or gimmick behavior changes; see findFirstTouch/rocketFindFirstTouches
-// above and RocketGame below for the actual timer/destruction logic.
+// ROCKET ATTACK levels (v0.29 rules -- see RocketGame for the runtime).
+// Extra level fields used only by this mode:
+//   lightLocks: [rim slots]   -- each lights 1/k of the map (k = how many); destroyed -> that share goes dark
+//   elecLocks:  [slot per ring, index = ring]  -- destroyed -> that ring loses power (can't turn)
+// lockSlots (and any bonusLockSlots) are all GIFT LOCKS. Rockets aim at wherever a beam ENDS.
 //
-// Levels are standard Ringshift level objects (name/slots/rings/
-// lockSlots/bonusLockSlots) -- no special authoring needed. The mechanic
-// is entirely generic: it just watches whatever traceAllBeams would find,
-// one step earlier (first touch, not full resolution).
-//
-// ---- ROCKET 01 -- "First Contact". 1 beam, 1 mirror, 1 lock -- the
-// mechanic's pure introduction. Ring0 fires straight down through the
-// center; ring1 (no spoke of its own) carries a single pinned mirror
-// sitting exactly in that beam's path, deflecting it away from the lock
-// entirely (verified: 0 locks lit while the mirror is present). The
-// player's only real job is to NOT touch ring0's rotation -- the correct
-// play is to let the fixed clock run on its own: at 0:10 the boss locks
-// onto the mirror (whatever the beam touches at that exact instant) and
-// launches; at 0:20 that rocket lands and destroys the mirror, AND (same
-// tick) a fresh rocket launches at whatever the beam touches NOW -- with
-// the mirror just gone, that's the lock itself (verified: the beam
-// reaches slot 6 directly once unobstructed) -- but the level is already
-// won the instant the mirror dies, before that second rocket ever has to
-// land. Rotating ring0 away from slot 0 is the one way to fail this level
-// -- and once a rocket has already launched at a given 10s mark, rotating
-// back afterward will NOT save its target; that rocket is already committed.
-// ---- THE "UNIVERSAL GUARD" TRICK used by Levels 02-05 below, verified
-// against the real engine (Node port of traceAllBeams/rocketFindFirstTouches),
-// not hand-derived -- a note for whoever extends this set further:
-// A kill-type gimmick (Block, or Half-Block with side:'out') placed at ring
-// index r, slot X, blocks EVERY beam's approach to rim-slot X, regardless of
-// which ring fired that beam -- because any beam's final leg into rim-slot X
-// necessarily crosses ring r at slot X too (every beam only ever touches two
-// slot-numbers in its whole life: its own live slot, and the antipodal slot
-// everything downstream of the center shares, including the rim). A PINNED
-// guard sits at X forever, so this is a permanent "nobody gets lock X"
-// guarantee. An UNPINNED guard tracks its own ring's rotation instead, so it
-// only gives that "nobody" guarantee at the one rotation where it happens to
-// land on X -- but placed at a SPOKE'S OWN ANTIPODE (authoredSlot + n/2) it
-// becomes a different, equally permanent guarantee instead: that ONE beam
-// specifically can never survive its own return trip, for any rotation,
-// since gimmick and beam share the same ring and rotate together. Levels
-// 03-05 pair one guard of each kind so either one ALONE still fully
-// protects the puzzle -- verified by disabling each independently -- and
-// only destroying BOTH opens a solution. A Mirror was tried first for the
-// permanent/universal role and rejected: a mirror BENDS rather than kills,
-// so a "blocked" beam can accidentally bounce onto some other lock instead
-// of just dying, which silently breaks the "0 solutions" guarantee. Block
-// and Half-Block have no such failure mode -- they just stop the beam.
-//
-// ---- ROCKET 02 -- "Twin Signal". 1 ring, 2 beams, 1 pinned Block. The
-// block sits at spoke A's own antipode (0+6=slot9), pinned there forever --
-// beam A's own return crossing, the ONLY way it could ever reach anything,
-// always dies on it, for every one of the 12 rotations (verified: 0
-// solutions while it exists). Beam B is completely free and aims at the
-// coin lock (slot1) the whole time. THE TRAP: at R=3, beam A is safely on
-// the block, but beam B is SIMULTANEOUSLY sitting unguarded on the coin
-// lock -- sit there through a full rocket cycle and the same strike that
-// frees beam A also destroys the coin lock. R=7 is a second trap (beam A
-// alone exposes the coin lock). The safe play: park at R=11 first (beam B
-// is the one touching the block there, beam A sees nothing) and let it die
-// risk-free, THEN dial to R=3 to win instantly -- checkWin fires the moment
-// the rotation lands, before any further rocket can launch.
-// ---- ROCKET 03 -- "Cross Signal". 2 rings, 3 beams, 1 pinned Half-Block +
-// 1 unpinned Block -- both gimmicks must be destroyed, verified independently
-// (0 solutions with either ALONE removed, not just both present). Ring1
-// carries spoke C plus both gimmicks: the pinned Half-Block sits directly on
-// rim-slot 11, universally guarding it against all three beams; the unpinned
-// Block sits at spoke C's own antipode (1+6=slot7), permanently killing C's
-// own return trip regardless of ring1's rotation -- and lock 9 is C's
-// EXCLUSIVE natural target once free, so it stays dark as long as C is dead,
-// no matter what beams A/B are doing. Start [9,0] is completely inert and
-// beam C is already sitting on the Block for a free first kill; nudging
-// ring0 alone to R0=11 (ring1 untouched) exposes the Half-Block too, safely,
-// to a second beam -- one rocket cycle can clear both gimmicks at once with
-// zero risk. THE TRAP: R0 in {0,3} exposes lock9 directly to beam B,
-// unguarded; R0 in {5,8} exposes the coin the same way -- and R0=5 is HALF
-// of the eventual winning rotation [5,2], so closing in on the solve before
-// both gimmicks are gone risks the coin right as you get there.
-// ---- ROCKET 04 -- "Triple Threat". 3 rings, 4 beams, 1 pinned Half-Block +
-// 1 unpinned Block + 1 decoy Amplifier (verified fully inert: removing it
-// alone changes nothing, checked independently). Beam A on ring0 is NEVER
-// guarded by anything -- it's live danger literally from level load. Ring1's
-// spoke is walled off from lock4 by a permanent pinned Half-Block sitting
-// right on that rim slot; ring2's spoke is permanently killed on its own
-// return crossing by an unpinned Block at its own antipode, so lock5 (its
-// exclusive target) stays dark while that block survives, regardless of
-// anything else. Start [0,0,0] is fully safe with ring2's beam already on
-// the real Block for free; rotating ONLY ring1 from 0 to 3 brings a second
-// beam onto the Half-Block too -- [0,3,0] clears both gimmicks in one shared
-// cycle, nothing exposed. THE TRAP: lock0 (the never-guarded one) is only
-// ever exposed at R0 in {1,3} -- and R0=3 is exactly the ring0 rotation the
-// eventual win [3,3,3] needs, so arriving there too early, while a gimmick
-// still stands, can cost you the lock you already had.
-// ---- ROCKET 05 -- "Fivefold Signal" (the densest level in this set --
-// roughly Normal-25-30 interaction density: two genuinely load-bearing
-// kill-guards, a same-mechanic decoy, and two simultaneously-live required
-// locks instead of one). 3 rings, 5 beams, 1 pinned Half-Block + 1 unpinned
-// Block + 1 DECOY Block (same mechanic as the real one, on purpose, sitting
-// somewhere provably untouchable by any beam's path -- verified before it
-// was accepted). Ring0 carries beams A and B, BOTH permanently unguarded,
-// BOTH required -- protect two live locks at once while you work, not just
-// one. Ring1 carries beam C (walled off from lock1 by a permanent pinned
-// Half-Block on that rim slot) and beam D (always free, the coin route).
-// Ring2 carries beam E, permanently killed on its own return crossing by the
-// real unpinned Block at its own antipode -- lock9 is its exclusive target
-// and stays dark while that block survives. EVERY partial-destruction state
-// was checked independently, not just the two obvious endpoints: decoy alone
-// gone -> 0; decoy+HalfBlock gone (real Block remains) -> still 0, lock9
-// stays dark; decoy+realBlock gone (HalfBlock remains) -> still 0, lock1
-// stays dark. Only once BOTH real guards are gone does [8,11,5] light every
-// required lock and the coin at once (1 of 4 required-only solutions).
-// Destroying the decoy feels like progress and changes nothing -- the only
-// way to find out which Block is real is to actually trace it. Start
-// [3,3,3] is fully inert with beam E already on the real Block for a free
-// first kill. Clear the Half-Block next while ring0 sits anywhere in its
-// quiet zone -- R0 in {0,9} exposes the coin, and R0=8 exposes BOTH
-// unguarded locks (8 and 11) simultaneously, and is also the ring0 half of
-// the winning rotation, so it should be the very last move, not an early one.
+// Levels 01-10 were rebuilt for these rules by a brute-force search over the real engine (traceAllBeams
+// with branch-end recording), and every one was re-checked by an independent pass that:
+//   * finds every winning rotation (all gift locks lit at once) -- 1 to 3 per level;
+//   * confirms the authored start is not solved and that no beam ENDS on any lock there, so the first
+//     rocket never has a lock to aim at unless the player moves a beam onto one;
+//   * confirms every Light and Electricity Lock is a real "oops" trap: a beam lands on it when a single
+//     ring is turned 1-3 steps past/short of a solution (counts in each level's comment);
+//   * confirms every Mirror / Amplifier / Prism / Black Hole / Satellite is NEEDED (with it removed, no
+//     rotation lights every gift lock), and the usual structure rules (no antipodal spokes, no spoke/
+//     gimmick collisions, Black Holes off the outer ring and >=120 degrees apart, Light Locks one per
+//     equal sector).
+// Rocket 11 is the untouched sandbox level (kept verbatim on purpose).
 const ROCKET_LEVELS = [
+  // VERIFIED (v0.29 rules): 2 winning rotation(s) [[0,3],[9,6]]; start [6,11] is unsolved and aims no rocket at a lock; 48/144 rotations are safe parking (no beam ends on a lock); trap slot -> near-solution landings {"5":2,"7":4,"8":4,"10":2}.
   {name:'ROCKET 01 — FIRST CONTACT', slots:12, rings:[
-      {spokeSlots:[0], gimmicks:{}, initialRotation:0},
-      {spokeSlots:[], gimmicks:{0:{type:'mirror_l', fixed:true}}, initialRotation:0}
-    ], lockSlots:[6], bonusLockSlots:[]},
-  // ---- ROCKET 02 -- "Supply Line". First Amplifier-as-coin-enabler level
-  // in this set (previously only Block/Half-Block ever appeared here).
-  // Ring0 carries free beam A and guarded beam B (guard = pinned
-  // Half-Block-out on ring1, universally blocking Lock 9's rim approach).
-  // Ring1 carries coin beam C plus the guard AND an unpinned Amp sitting
-  // at C's OWN antipode -- always exactly there regardless of C's
-  // rotation, so C is always strengthened before it later crosses A's
-  // live spoke position (a real Source collision it cannot survive
-  // unstrengthened). Verified: guard present -> 0/144 required-only,
-  // regardless of Amp. Guard destroyed, Amp present -> 14/144
-  // required-only, exactly 1 with the coin ([2,7]). Guard AND Amp
-  // destroyed -> 12/144 required-only, 0 with the coin -- the level
-  // stays fully winnable, the coin is just gone for good.
+      {spokeSlots:[3], gimmicks:{}, initialRotation:6},
+      {spokeSlots:[9], gimmicks:{}, initialRotation:11}
+    ], lockSlots:[6,9], bonusLockSlots:[], lightLocks:[5,10], elecLocks:[7,8]},
+  // VERIFIED (v0.29 rules): 1 winning rotation(s) [[0,5]]; start [8,9] is unsolved and aims no rocket at a lock; 8/144 rotations are safe parking (no beam ends on a lock); trap slot -> near-solution landings {"0":3,"1":2,"2":2,"8":2,"10":2}; needed: amp:needed.
   {name:'ROCKET 02 — SUPPLY LINE', slots:12, rings:[
-      {spokeSlots:[0,1], gimmicks:{}, initialRotation:0},
-      {spokeSlots:[1], gimmicks:{7:'amp', 9:{type:'half_block', side:'out', fixed:true}}, initialRotation:0}
-    ], lockSlots:[8,9], bonusLockSlots:[2]},
-  // ---- ROCKET 03 -- "Split Signal". Prism as coin enabler. Ring0 carries
-  // free beam A and the guard (Half-Block-out, universal on Lock 5).
-  // Ring2 (an extra inner ring purely for travel distance, so the two
-  // split branches have room to diverge into genuinely different rim
-  // slots) carries beam B and an unpinned Prism at B's own antipode --
-  // always active, always splits B. A real engine fact this design had
-  // to route around: a split beam does not reliably re-cross the ring it
-  // split on, so a "universal" guard sitting there can be silently
-  // bypassed by the bent branches. This design never needs the guard to
-  // catch a split branch at all -- Lock 5 is delivered by B's plain,
-  // UNSPLIT path, which only exists once the Prism is destroyed. Guard
-  // present -> 0/1728. Guard destroyed, Prism present -> 60/1728
-  // required-only (5 distinct pairs x 12 free spins of the empty middle
-  // ring), 24 also light the coin (2 distinct pairs -- an honest double,
-  // not a claimed unique). Guard AND Prism destroyed -> 24/1728
-  // required-only, 0 with the coin.
+      {spokeSlots:[5,3], gimmicks:{}, initialRotation:8},
+      {spokeSlots:[4], gimmicks:{10:'amp'}, initialRotation:9}
+    ], lockSlots:[3,9,11], bonusLockSlots:[], lightLocks:[0,1,8], elecLocks:[10,2]},
+  // VERIFIED (v0.29 rules): 2 winning rotation(s) [[0,3],[11,3]]; start [6,7] is unsolved and aims no rocket at a lock; 20/144 rotations are safe parking (no beam ends on a lock); trap slot -> near-solution landings {"0":10,"2":3,"7":1,"8":3,"10":5}; needed: prism:needed.
   {name:'ROCKET 03 — SPLIT SIGNAL', slots:12, rings:[
-      {spokeSlots:[3], gimmicks:{5:{type:'half_block', side:'out', fixed:true}}, initialRotation:0},
-      {spokeSlots:[], gimmicks:{}, initialRotation:0},
-      {spokeSlots:[0], gimmicks:{6:{type:'prism'}}, initialRotation:3}
-    ], lockSlots:[9,5], bonusLockSlots:[7]},
-  // ROCKET 04 -- "Mirror Relay". REBUILT for the exact-90-degree Mirror rule (the old layout let a mirror-bent beam slip past the guard).
-  // Half-Block-out guard (pinned, on Lock 9) + unpinned Mirror as the coin enabler. Brute-force checked in all four states:
-  // guard present -> 0 required solutions whether or not the Mirror stands; guard destroyed + Mirror present -> exactly 1 coin solution;
-  // guard AND Mirror destroyed -> still winnable, 0 coin solutions. Start is safe (no beam touches a rim Lock).
+      {spokeSlots:[6,7], gimmicks:{}, initialRotation:6},
+      {spokeSlots:[0], gimmicks:{9:{type:'prism'}}, initialRotation:7}
+    ], lockSlots:[1,9,11], bonusLockSlots:[], lightLocks:[2,7,8], elecLocks:[10,0]},
+  // VERIFIED (v0.29 rules): 2 winning rotation(s) [[0,1],[4,1]]; start [6,6] is unsolved and aims no rocket at a lock; 11/144 rotations are safe parking (no beam ends on a lock); trap slot -> near-solution landings {"0":3,"1":2,"5":2,"6":5,"10":7,"11":4}; needed: mirror_r:needed.
   {name:'ROCKET 04 — MIRROR RELAY', slots:12, rings:[
-        {spokeSlots:[2,1], gimmicks:{3:'mirror_r', 9:{type:'half_block', side:'out', fixed:true}}, initialRotation:1},
-        {spokeSlots:[2], gimmicks:{}, initialRotation:6}
-    ], lockSlots:[4,9], bonusLockSlots:[10]},
-    // SATELLITE FIX (horizontal, dish RIGHT, pinned): brute-forced in all four guard/satellite states -- guard standing -> 0 required-only solutions whether or not the Satellite lives; guard destroyed + Satellite present -> 4 required-only solution(s), exactly 1 with the coin; guard AND Satellite destroyed -> 4 required-only, 0 with the coin (the Satellite is what carries the coin beam). Start is safe (no beam touches a Lock) and not pre-solved.
-    {name:'ROCKET 05 — ECHO RELAY', slots:12, rings:[
-        {spokeSlots:[0,11], gimmicks:{9:{type:'half_block', side:'out', fixed:true}}, initialRotation:2},
-        {spokeSlots:[4], gimmicks:{8:{type:'echo_portal', turn:90, fixed:true}}, initialRotation:11}
-      ], lockSlots:[1,9], bonusLockSlots:[4]},
-  // ---- ROCKET 06 -- "Portal Relay". Portal as coin enabler -- first
-  // paired-mouth use anywhere in Rocket Attack (every prior portal-style
-  // gimmick in this set was Block/Half-Block only). Ring0 carries B, C,
-  // the guard, and one mouth (at C's own antipode, unpinned -- always
-  // active). Ring1 carries free beam A and the paired mouth. Direction is
-  // preserved through the jump (Portal's defining trait vs. Mirror/Echo's
-  // bending). Guard present -> 0/144 regardless of either mouth. Guard
-  // destroyed, both mouths present -> 2/144 required-only, 1 with the
-  // coin. Guard destroyed AND either single mouth destroyed (pairing
-  // breaks, the surviving mouth silently kills anything crossing it) ->
-  // coin lost either way, required-only still achievable. Guard AND both
-  // mouths destroyed -> 4/144 required-only, 0 with the coin.
-  // BLACK HOLE (two-node footprint) rebuild: both mouths on ring 2 (slots 0 and 5, 150 degrees
-  // apart), re-aimed (turn -165 / 45). Brute-forced against the current engine: guard standing ->
-  // 0 required-only solutions, with or without the holes; guard gone + both holes -> 4 required-only,
-  // exactly 1 with the coin; guard gone + either hole also gone -> coin lost; guard + both holes
-  // gone -> 4 required-only, 0 with the coin. Start is not solved and no beam first-touches a rim Lock.
+      {spokeSlots:[4,8], gimmicks:{9:{type:'mirror_r', fixed:true}}, initialRotation:6},
+      {spokeSlots:[2], gimmicks:{3:'block'}, initialRotation:6}
+    ], lockSlots:[2,8], bonusLockSlots:[], lightLocks:[0,5,6,11], elecLocks:[1,10]},
+  // VERIFIED (v0.29 rules): 2 winning rotation(s) [[7,10],[9,6]]; start [1,2] is unsolved and aims no rocket at a lock; 8/144 rotations are safe parking (no beam ends on a lock); trap slot -> near-solution landings {"0":2,"1":5,"3":4,"5":2,"9":4,"11":6}; needed: echo_portal:needed.
+  {name:'ROCKET 05 — ECHO RELAY', slots:12, rings:[
+      {spokeSlots:[11,9], gimmicks:{6:{type:'half_block', side:'out'}}, initialRotation:1},
+      {spokeSlots:[10], gimmicks:{6:{type:'echo_portal', turn:270, fixed:true}}, initialRotation:2}
+    ], lockSlots:[2,8,10], bonusLockSlots:[], lightLocks:[1,3,5,9], elecLocks:[11,0]},
+  // VERIFIED (v0.29 rules): 3 winning rotation(s) [[0,8,5],[6,8,5],[9,1,5]]; start [3,7,10] is unsolved and aims no rocket at a lock; 89/1728 rotations are safe parking (no beam ends on a lock); trap slot -> near-solution landings {"2":4,"3":12,"4":14,"8":3,"9":13,"10":7}; needed: portal:needed,portal:needed.
   {name:'ROCKET 06 — PORTAL RELAY', slots:12, rings:[
-        {spokeSlots:[9,5], gimmicks:{2:{type:'half_block', side:'out', fixed:true}}, initialRotation:0},
-        {spokeSlots:[3], gimmicks:{0:{type:'portal', id:'P0', turn:-165}, 5:{type:'portal', id:'P0', turn:45}}, initialRotation:0}
-      ], lockSlots:[9,2], bonusLockSlots:[11]},
-  // ---- ROCKET 07 -- "Triple Supply". Same Amplifier+Half-Block-out pair
-  // as Level 02, with a second free beam (E) added purely for density --
-  // 4 beams, 3 required Locks + 1 coin, still only one guard and one
-  // enabler to actually track. Guard present -> 0/144. Guard destroyed,
-  // Amp present -> 12/144 required-only, 1 with the coin (unique). Guard
-  // AND Amp destroyed -> 9/144 required-only, 0 with the coin.
+      {spokeSlots:[9,5], gimmicks:{11:'block'}, initialRotation:3},
+      {spokeSlots:[10], gimmicks:{5:{type:'portal', id:'P0', turn:-60, fixed:true}}, initialRotation:7},
+      {spokeSlots:[8], gimmicks:{1:{type:'portal', id:'P0', turn:0, fixed:true}}, initialRotation:10}
+    ], lockSlots:[0,1,7], bonusLockSlots:[], lightLocks:[2,8,10], elecLocks:[4,3,9]},
+  // VERIFIED (v0.29 rules): 2 winning rotation(s) [[3,2,10],[7,2,10]]; start [1,0,4] is unsolved and aims no rocket at a lock; 78/1728 rotations are safe parking (no beam ends on a lock); trap slot -> near-solution landings {"0":7,"1":6,"3":4,"4":6,"5":4,"7":4,"11":6}; needed: mirror_r:needed,amp:needed.
   {name:'ROCKET 07 — TRIPLE SUPPLY', slots:12, rings:[
-      {spokeSlots:[0,1,3], gimmicks:{}, initialRotation:0},
-      {spokeSlots:[1], gimmicks:{7:'amp', 9:{type:'half_block', side:'out', fixed:true}}, initialRotation:0}
-    ], lockSlots:[8,9,11], bonusLockSlots:[2]},
-  // ---- ROCKET 08 -- "Split Supply". Same Prism+Half-Block-out pair as
-  // Level 03, plus a second free beam (E) for density -- 3 beams, 3
-  // required Locks + 1 coin. E's authored slot was deliberately chosen --
-  // an earlier draft put it right where one of the Prism's own split
-  // branches crosses the outer ring, and the free beam's own live source
-  // silently killed that branch every time, erasing the coin outright.
-  // Caught by the disable/re-trace check, not by inspection; fixed by
-  // relocating the beam. Guard present -> 0/1728. Guard destroyed, Prism
-  // present -> 36/1728 required-only, ALL of which also light the coin
-  // (the third required beam pins the winning rotation down tightly
-  // enough that once you're there at all, both Prism branches -- Lock 2
-  // and the coin -- come along together; there's no solve-without-coin
-  // side door here, an honest verified property, not an oversight).
-  // Guard AND Prism destroyed -> 36/1728 required-only, 0 with the coin.
+      {spokeSlots:[11,7], gimmicks:{10:{type:'mirror_r', fixed:true}}, initialRotation:1},
+      {spokeSlots:[2], gimmicks:{0:'amp'}, initialRotation:0},
+      {spokeSlots:[10], gimmicks:{8:'block'}, initialRotation:4}
+    ], lockSlots:[2,8,9], bonusLockSlots:[], lightLocks:[3,5,7,11], elecLocks:[1,4,0]},
+  // VERIFIED (v0.29 rules): 2 winning rotation(s) [[6,4,8],[11,4,8]]; start [5,9,0] is unsolved and aims no rocket at a lock; 39/1728 rotations are safe parking (no beam ends on a lock); trap slot -> near-solution landings {"0":15,"2":8,"5":4,"6":5,"7":12,"8":9,"11":9}; needed: mirror_r:needed,prism:needed.
   {name:'ROCKET 08 — SPLIT SUPPLY', slots:12, rings:[
-      {spokeSlots:[3,10], gimmicks:{5:{type:'half_block', side:'out', fixed:true}}, initialRotation:1},
-      {spokeSlots:[], gimmicks:{}, initialRotation:0},
-      {spokeSlots:[0], gimmicks:{6:{type:'prism'}}, initialRotation:0}
-    ], lockSlots:[9,5,4], bonusLockSlots:[7]},
-    // SATELLITE FIX (vertical, dish DOWN, pinned): brute-forced in all four guard/satellite states -- guard standing -> 0 required-only solutions whether or not the Satellite lives; guard destroyed + Satellite present -> 1 required-only solution(s), exactly 1 with the coin; guard AND Satellite destroyed -> 1 required-only, 0 with the coin (the Satellite is what carries the coin beam). Start is safe (no beam touches a Lock) and not pre-solved.
-    {name:'ROCKET 09 — ECHO SUPPLY', slots:12, rings:[
-        {spokeSlots:[4,6], gimmicks:{3:{type:'echo_portal', turn:180, fixed:true}, 5:{type:'half_block', side:'out', fixed:true}}, initialRotation:4},
-        {spokeSlots:[8,7], gimmicks:{}, initialRotation:9}
-      ], lockSlots:[0,1,5], bonusLockSlots:[4]},
-  // ---- ROCKET 10 -- "Supply Line Finale". The set's densest use of the
-  // Level 02 pattern -- 5 beams total (three plain free beams plus the
-  // guarded beam plus the Amp-gated coin beam), 4 required Locks + 1
-  // coin, still just Amplifier + Half-Block-out to actually track. Guard
-  // present -> 0/144. Guard destroyed, Amp present -> 14/144
-  // required-only, exactly 1 with the coin. Guard AND Amp destroyed ->
-  // 10/144 required-only, 0 with the coin.
+      {spokeSlots:[7,2], gimmicks:{9:'block'}, initialRotation:5},
+      {spokeSlots:[0], gimmicks:{4:{type:'mirror_r', fixed:true}}, initialRotation:9},
+      {spokeSlots:[6], gimmicks:{5:{type:'prism'}}, initialRotation:0}
+    ], lockSlots:[4,9,10], bonusLockSlots:[], lightLocks:[2,5,6,11], elecLocks:[8,0,7]},
+  // VERIFIED (v0.29 rules): 2 winning rotation(s) [[1,1,5],[1,10,8]]; start [9,4,8] is unsolved and aims no rocket at a lock; 131/1728 rotations are safe parking (no beam ends on a lock); trap slot -> near-solution landings {"1":4,"2":4,"3":2,"4":4,"7":2,"10":2}; needed: portal:needed,echo_portal:needed,portal:needed.
+  {name:'ROCKET 09 — ECHO SUPPLY', slots:12, rings:[
+      {spokeSlots:[11,2], gimmicks:{8:{type:'half_block', side:'out'}}, initialRotation:9},
+      {spokeSlots:[7], gimmicks:{0:{type:'portal', id:'P0', turn:90, fixed:true}, 2:{type:'echo_portal', turn:180, fixed:true}}, initialRotation:4},
+      {spokeSlots:[0], gimmicks:{6:{type:'portal', id:'P0', turn:0, fixed:true}}, initialRotation:8}
+    ], lockSlots:[5,6,11], bonusLockSlots:[], lightLocks:[2,3,10], elecLocks:[7,1,4]},
+  // VERIFIED (v0.29 rules): 2 winning rotation(s) [[10,0,3],[11,0,3]]; start [2,11,10] is unsolved and aims no rocket at a lock; 55/1728 rotations are safe parking (no beam ends on a lock); trap slot -> near-solution landings {"0":8,"1":6,"5":2,"6":4,"8":14,"9":7}; needed: prism:needed,portal:needed,mirror_r:needed,portal:needed,amp:needed.
   {name:'ROCKET 10 — SUPPLY LINE FINALE', slots:12, rings:[
-      {spokeSlots:[0,1,3,2], gimmicks:{}, initialRotation:6},
-      {spokeSlots:[1], gimmicks:{7:'amp', 9:{type:'half_block', side:'out', fixed:true}}, initialRotation:0}
-    ], lockSlots:[8,9,11,10], bonusLockSlots:[2]},
+      {spokeSlots:[4,3], gimmicks:{1:'block'}, initialRotation:2},
+      {spokeSlots:[1], gimmicks:{2:{type:'prism'}, 7:{type:'portal', id:'P0', turn:-150, fixed:true}, 11:{type:'mirror_r', fixed:true}}, initialRotation:11},
+      {spokeSlots:[1], gimmicks:{3:{type:'portal', id:'P0', turn:-90, fixed:true}, 4:'amp'}, initialRotation:10}
+    ], lockSlots:[2,3,7,10], bonusLockSlots:[], lightLocks:[1,5,6], elecLocks:[0,8,9]},
   // ---- ROCKET 11 -- pasted in verbatim, unverified, for testing as-is.
   // Not touched or rebalanced per instruction.
   {name:'NEW LEVEL', slots:12, rings:[
@@ -5189,72 +4952,69 @@ const MeteorGame = (function(){
 })();
 
 /* =========================================================================
-   ROCKET ATTACK -- "Special: Rocket Attack" runtime. Implements exactly
-   one rule on top of standard Ringshift: every beam has a flashing square
-   lock attached to whatever it FIRST touches (see findFirstTouch /
-   rocketFindFirstTouches above). Every ROCKET_LAUNCH_INTERVAL_MS (5s) the
-   boss launches a rocket AT that target -- a specific gimmick, or a
-   specific rim Lock. The rocket's TARGET IDENTITY is committed at launch
-   and never changes to something else, but if that target is a gimmick,
-   the rocket now CHASES it: every frame it re-aims at wherever that exact
-   gimmick's ring currently puts it, so rotating the gimmick's ring after
-   launch moves the incoming rocket right along with it (see
-   resolveAuthoredKey/liveGimmickPosition/getCurrentTargetPoint below). A
-   rim Lock never moves (the rim doesn't rotate), so its target point is
-   fixed regardless. ROCKET_TRAVEL_MS (10s) after launch, impact: the
-   target is destroyed wherever it currently is. If it was a gimmick, the
-   SAME beam (still firing) simply re-evaluates next tick and finds
-   whatever's now first in its path -- the chain reaction falls out for
-   free. If it was a REQUIRED rim Lock, the run ends (gstate.rocketFailed)
-   and the player must reset -- see the guards already added to
-   checkWin()/rotateRing()/attachRingDrag. If it was a coin/Bonus Lock,
-   that coin is simply lost for this run -- the run continues normally, no
-   lose banner, no reset (see the wasRequiredLock check inside tick()
-   below). Either way -- a landed impact, a win, or a loss -- is what ends
-   the chase; nothing else does.
-
-   No separate audio module (unlike MeteorGame/OrchestraAudio): the two
-   cues this needs (launch, impact) are routed through AudioSys itself
-   (see playRocketLaunch/playRocketImpact), so mute/volume are already
-   handled centrally with zero extra wiring.
+   ROCKET ATTACK runtime (v0.29 rules).
+   - LAST TOUCH: every ROCKET_LAUNCH_INTERVAL_MS (5s) the boss launches one
+     rocket at wherever each beam currently ENDS (every branch of a split
+     beam counts) -- a rim Lock it lands on, or the gimmick that stops it
+     (Block, a Half-Block's blocked side, a Satellite's dish side, an
+     unpaired Black Hole). Gimmicks a beam only passes through (Mirror,
+     Amplifier, Prism, Black Hole pair, Satellite relay) are never targets.
+     A beam that ends on empty rim glass or on another ring's source sends
+     no rocket. ROCKET_TRAVEL_MS (10s) later the target is destroyed. A
+     gimmick target is CHASED (the rocket follows it if its ring turns).
+   - GIFT LOCKS: every Lock (old required + old coin) is a gift lock. Lose
+     one to a rocket and that gift is gone for this attempt.
+   - LIGHT LOCKS (lvl.lightLocks): each one lights an equal share of the map
+     (1/k for k light locks). Destroyed -> its share goes dark; only beams
+     (and what they reach) still show there.
+   - ELECTRICITY LOCKS (lvl.elecLocks[ringIdx]): one per ring. Destroyed ->
+     that ring loses power and can't be turned again this attempt.
+   - NEVER LOSE: there is no fail state. The level finishes the moment every
+     surviving gift lock is lit, or -- if damage (a frozen ring, a lost
+     gimmick) means fewer can be lit together -- the moment the best still-
+     possible number is lit (gstate.rk.maxAch, brute-forced over every ring
+     that still has power). No gift locks left / none reachable -> it simply
+     finishes with what you have.
+   Audio cues go through AudioSys (playRocketLaunch/playRocketImpact).
    ========================================================================= */
 const ROCKET_LAUNCH_INTERVAL_MS = 5000, ROCKET_TRAVEL_MS = 10000;
+// What a beam can END on that a rocket can destroy (see traceBeamBranch's `ends`).
+const ROCKET_DESTROYABLE = {block:1, half_block:1, echo_portal:1, portal:1, prism:1};
+// Splits the map into one equal sector per Light Lock (k locks -> 1/k each), each sector
+// holding exactly one light. Returns [{slot, a0, a1}] (angles in the puzzle's frame).
+function rocketLightSectors(lights, n){
+  const k = lights.length; if(!k) return [];
+  if(k===1) return [{slot:lights[0], a0:-Math.PI/2, a1:Math.PI*1.5}];
+  const w = n/k, out = [];
+  if(w === Math.floor(w)){
+    let best = null;
+    for(let o=0; o<w; o++){
+      const owner = Array(k).fill(null); let ok = true;
+      lights.forEach(s=>{ const i = Math.floor(((((s-o)%n)+n)%n)/w); if(owner[i]!==null) ok = false; owner[i] = s; });
+      if(!ok || owner.some(x=>x===null)) continue;
+      // prefer the split that puts each light nearest the middle of its own sector
+      const err = owner.reduce((t,s,i)=>{ const c = o + i*w + (w-1)/2; const d = Math.abs(((s-c)%n+n+n/2)%n - n/2); return t+d; }, 0);
+      if(!best || err < best.err) best = {o, owner, err};
+    }
+    if(best){
+      best.owner.forEach((s,i)=>{ const f = best.o + i*w - 0.5; out.push({slot:s, a0:slotToAngle(f,n), a1:slotToAngle(f+w,n)}); });
+      return out;
+    }
+  }
+  // fallback: equal sector centred on each light
+  lights.forEach(s=>{ out.push({slot:s, a0:slotToAngle(s - n/(2*k), n), a1:slotToAngle(s + n/(2*k), n)}); });
+  return out;
+}
 const RocketGame = (function(){
   let running=false, paused=false, pauseStartedAt=0;
-  // Global metronome, anchored to level start -- launches happen at
-  // levelStartAt+10s, +20s, +30s, ... REGARDLESS of what the player does
-  // with rotation in between. This does NOT reset on player action; only
-  // pause() shifts it (see resume()).
-  let levelStartAt = 0;
-  let launchCount = 0;
-  // Every in-flight rocket is its own independent entry: {id, ring,
-  // authoredSlot, touch, launchedAt, impactAt}. `touch` identifies WHICH
-  // object the rocket is locked onto -- a specific gimmick (by ring index
-  // + authored key, see resolveAuthoredKey()) or a specific rim Lock --
-  // and that identity is captured ONCE at launch and never changes. What
-  // DOES keep updating for a gimmick target is its CURRENT POSITION: if
-  // the player rotates that gimmick's ring after launch, the rocket
-  // chases it there (see liveGimmickPosition/getCurrentTargetPoint) and
-  // still destroys that same gimmick, wherever it ends up, at impactAt.
-  // A rim Lock's position never moves either way. Multiple rockets can be
-  // in flight at once (one gets added per active beam at every 10s mark).
-  let inFlight = [];
-  let flightIdSeq = 1;
-  let tickTimer = null;
+  let levelStartAt = 0, launchCount = 0;
+  let inFlight = [], flightIdSeq = 1, tickTimer = null;
 
   function ensureTicking(){
     if(!running || tickTimer) return;
     tickTimer = setInterval(tick, 150);
   }
-
-  // CHASING: identifies WHICH authored gimmick entry produced a given
-  // live slot at a given rotation -- used ONCE, at launch (see
-  // launchRockets() below), to pin down the exact gimmick IDENTITY a
-  // rocket is locking onto. From that point on the rocket tracks this
-  // identity (ring index + authored key), not a slot NUMBER -- so if the
-  // ring keeps turning after launch, the rocket follows the gimmick to
-  // wherever it currently is instead of flying at a point it has since
-  // rotated away from.
+  // Which AUTHORED gimmick entry sits at a given live slot (used once, at launch).
   function resolveAuthoredKey(ring, n, liveSlotAtLaunch, rotAtLaunch){
     if(!ring || !ring.gimmicks) return null;
     let authoredKey = null;
@@ -5272,51 +5032,111 @@ const RocketGame = (function(){
     });
     return authoredKey;
   }
-
-  // CHASING: the CURRENT world position of a specific authored gimmick,
-  // using THIS INSTANT's rotation for its ring -- not whatever rotation
-  // was in effect at launch. This is what makes an in-flight rocket
-  // visibly re-aim every frame at a gimmick the player has since rotated
-  // elsewhere (see getCurrentTargetPoint below). A pinned gimmick's
-  // position never changes regardless (isFixed short-circuits to its
-  // authored slot, exactly like the engine's own live-content map).
-  // Returns null if the gimmick no longer exists (already destroyed by a
-  // different rocket) -- callers fall back to its last known point.
+  // CHASING: where that authored gimmick is RIGHT NOW (null if already destroyed).
   function liveGimmickPosition(lvl, ringIdx, authoredKey){
     const ring = lvl.rings[ringIdx];
     if(!ring || !ring.gimmicks || authoredKey === null || authoredKey === undefined) return null;
     const raw = ring.gimmicks[authoredKey];
     if(raw === undefined) return null;
     const isFixed = typeof raw === 'object' && (raw.fixed === true || raw.type === 'echo_portal');
-    const n = lvl.slots;
-    const s = parseInt(authoredKey, 10);
-    const rot = isFixed ? 0 : (gstate.rotations[ringIdx] || 0);
-    const live = isFixed ? s : (s + rot) % n;
-    const radius = ringRadiusFn(ringIdx);
-    const a = slotToAngle(live, n);
+    const n = lvl.slots, s = parseInt(authoredKey, 10);
+    const live = isFixed ? s : (s + (gstate.rotations[ringIdx] || 0)) % n;
+    const radius = ringRadiusFn(ringIdx), a = slotToAngle(live, n);
     return { slot: live, x: Math.cos(a)*radius, y: Math.sin(a)*radius };
   }
 
+  // ---- per-attempt state (gstate.rk) -- built from a fresh clone of the level on every load/reset.
+  function prepareLevel(lvl){
+    // GIFT LOCKS: every rim Lock -- old required AND old coin -- is a gift lock now.
+    lvl.lockSlots = [...new Set([...(lvl.lockSlots||[]), ...(lvl.bonusLockSlots||[])])];
+    lvl.bonusLockSlots = [];
+    const lights = (lvl.lightLocks||[]).slice();
+    const elecs = [];
+    (lvl.elecLocks||[]).forEach((s,ri)=>{ if(s!==null && s!==undefined && ri < lvl.rings.length) elecs.push({slot:s, ring:ri, alive:true}); });
+    gstate.rk = {
+      giftStart: lvl.lockSlots.slice(), lost: [],
+      lights: lights.map(s=>({slot:s, alive:true})), elecs, frozen: new Set(),
+      sectors: rocketLightSectors(lights, lvl.slots), maxAch: 0,
+    };
+    recomputeMax(lvl);
+  }
+  // Best number of surviving gift locks that can still be lit TOGETHER, trying every
+  // rotation of every ring that still has power (frozen rings stay where they are).
+  function recomputeMax(lvl){
+    const rk = gstate.rk; if(!rk) return;
+    const G = lvl.lockSlots; if(!G.length){ rk.maxAch = 0; return; }
+    const n = lvl.slots, rot = gstate.rotations.slice(), lvlLike = {slots:n, rings:lvl.rings, lockSlots:G};
+    let best = 0;
+    const rec = (i)=>{
+      if(best === G.length) return;
+      if(i === lvl.rings.length){
+        const t = traceAllBeams(lvlLike, rot); let c = 0;
+        G.forEach(s=>{ if(t.litLocks.has(s)) c++; });
+        if(c > best) best = c; return;
+      }
+      if(rk.frozen.has(i)) return rec(i+1);
+      for(let r=0; r<n && best<G.length; r++){ rot[i] = r; rec(i+1); }
+      rot[i] = gstate.rotations[i];
+    };
+    rec(0);
+    rk.maxAch = best;
+  }
+  function isFrozen(ringIdx){ return currentMode==='rocket' && !!(gstate.rk && gstate.rk.frozen.has(ringIdx)); }
+  function denyRotate(ringIdx){
+    AudioSys.playError();
+    const tag = document.getElementById('ringTag'); if(tag) shakeEl(tag);
+    showNewGimmickToast('⚡ RING '+(ringIdx+1)+' HAS NO POWER — a rocket hit its Electricity Lock. It can’t turn this attempt.');
+  }
+  function lightFrac(){
+    const k = gstate.rk ? gstate.rk.lights.length : 0;
+    return k===1 ? 'the whole board' : k===2 ? 'half the board' : k===3 ? 'a third of the board' : 'a quarter of the board';
+  }
+
+  // Every real target the beams END on right now: [{key, touch}] (one per target).
+  function currentTargets(lvl){
+    const rk = gstate.rk; if(!rk) return [];
+    const n = lvl.slots, gifts = new Set(lvl.lockSlots);
+    const lights = new Set(rk.lights.filter(l=>l.alive).map(l=>l.slot));
+    const elecs = new Set(rk.elecs.filter(e=>e.alive).map(e=>e.slot));
+    const seen = new Map();
+    (gstate.beamResults||[]).forEach(b=>{
+      ((b.result && b.result.ends)||[]).forEach(e=>{
+        let key = null, touch = null;
+        if(e.kind === 'rim'){
+          const what = gifts.has(e.slot) ? 'gift' : lights.has(e.slot) ? 'light' : elecs.has(e.slot) ? 'elec' : null;
+          if(!what) return;
+          key = 'rim:'+e.slot; touch = {kind:'rim', slot:e.slot, what, x:e.x, y:e.y};
+        } else if(ROCKET_DESTROYABLE[e.contentKind]){
+          const rotNow = gstate.rotations[e.ringIdx] || 0;
+          const ak = resolveAuthoredKey(lvl.rings[e.ringIdx], n, e.slot, rotNow);
+          if(ak === null) return;
+          key = 'ring:'+e.ringIdx+':'+ak; touch = {kind:'ring', ringIdx:e.ringIdx, slot:e.slot, contentKind:e.contentKind, authoredKey:ak, rotAtLaunch:rotNow, x:e.x, y:e.y};
+        }
+        if(key && !seen.has(key)) seen.set(key, {key, touch, ring:b.ring, authoredSlot:b.authoredSlot});
+      });
+    });
+    return [...seen.values()];
+  }
+
+  // Destroys a target; returns what kind of thing was lost (or null if it was already gone).
   function destroyTarget(lvl, touch){
+    const rk = gstate.rk;
     if(touch.kind === 'rim'){
-      const i = lvl.lockSlots.indexOf(touch.slot);
-      if(i !== -1) lvl.lockSlots.splice(i,1);
-      const bi = (lvl.bonusLockSlots||[]).indexOf(touch.slot);
-      if(bi !== -1) lvl.bonusLockSlots.splice(bi,1);
-      return;
+      const gi = lvl.lockSlots.indexOf(touch.slot);
+      if(gi !== -1){ lvl.lockSlots.splice(gi,1); rk.lost.push(touch.slot); return 'gift'; }
+      const L = rk.lights.find(l=>l.slot===touch.slot && l.alive);
+      if(L){ L.alive = false; return 'light'; }
+      const Ev = rk.elecs.find(e=>e.slot===touch.slot && e.alive);
+      if(Ev){ Ev.alive = false; rk.frozen.add(Ev.ring); if(_drag.on && _drag.ringIdx===Ev.ring) _drag.on = false; return 'elec:'+Ev.ring; }
+      return null;
     }
-    // touch.kind === 'ring': the rocket has been CHASING this exact
-    // authored gimmick (touch.authoredKey, resolved once at launch by
-    // resolveAuthoredKey() -- see launchRockets() below) for its whole
-    // flight, however many times its ring has rotated since. Delete it
-    // directly by that key -- no reverse lookup needed here, since the
-    // rocket tracked the gimmick's IDENTITY the entire time, not a slot
-    // number a rotation could have long since moved away from.
     const ring = lvl.rings[touch.ringIdx];
-    if(!ring || !ring.gimmicks) return;
+    if(!ring || !ring.gimmicks) return null;
     if(touch.authoredKey !== null && touch.authoredKey !== undefined && ring.gimmicks[touch.authoredKey] !== undefined){
       delete ring.gimmicks[touch.authoredKey];
+      return 'gimmick';
     }
+    return null;
   }
 
   function flashImpact(){
@@ -5324,148 +5144,103 @@ const RocketGame = (function(){
     if(app){ app.classList.remove('rocketStrike'); void app.offsetWidth; app.classList.add('rocketStrike'); }
   }
 
-  // Whatever every active beam is touching RIGHT NOW -- this is purely a
-  // live "what would get targeted if a launch happened this instant"
-  // read, recomputed fresh every call. Used both for the continuously-
-  // updating square-lock visual AND to decide each new rocket's target
-  // the moment a launch actually fires.
-  function currentTouchByBeam(lvl){
-    const touches = rocketFindFirstTouches(lvl, gstate.rotations);
-    const map = {};
-    touches.forEach(b=>{ map[b.ring+':'+b.authoredSlot] = b; });
-    return map;
-  }
-
   function launchRockets(lvl, launchAt){
-    const beamMap = currentTouchByBeam(lvl);
-    Object.keys(beamMap).forEach(key=>{
-      const b = beamMap[key];
-      if(!b.touch) return;
-      const rotAtLaunch = gstate.rotations[b.ring] || 0;
-      const touch = Object.assign({}, b.touch, { rotAtLaunch });
-      // CHASING: for a gimmick touch (kind:'ring'), pin down WHICH
-      // authored gimmick this rocket is locking onto, right now.
-      // From this point the rocket re-aims every frame at wherever THAT
-      // SPECIFIC gimmick currently lives (see liveGimmickPosition /
-      // getCurrentTargetPoint) -- rotating its ring after launch moves
-      // the rocket's target right along with it instead of leaving it
-      // aimed at an empty point. A rim Lock touch needs none of this --
-      // the rim never rotates, so its target point never moves.
-      if(touch.kind === 'ring'){
-        touch.authoredKey = resolveAuthoredKey(lvl.rings[touch.ringIdx], lvl.slots, touch.slot, rotAtLaunch);
-      }
-      inFlight.push({
-        id: flightIdSeq++,
-        ring: b.ring, authoredSlot: b.authoredSlot,
-        touch,
-        launchedAt: launchAt,
-        impactAt: launchAt + ROCKET_TRAVEL_MS,
-      });
+    recomputeFlow();
+    const busy = new Set(inFlight.map(r=>r.key));
+    let any = false;
+    currentTargets(lvl).forEach(t=>{
+      if(busy.has(t.key)) return;            // already a rocket on its way to this exact target
+      inFlight.push({ id: flightIdSeq++, key: t.key, ring: t.ring, authoredSlot: t.authoredSlot,
+        touch: Object.assign({}, t.touch), launchedAt: launchAt, impactAt: launchAt + ROCKET_TRAVEL_MS });
+      any = true;
     });
-    AudioSys.playRocketLaunch(); Fx.burst(0,0,'#a8ffc0',14); Fx.ring(0,0,10,50,'#7dff9d',.45);
+    if(any){ AudioSys.playRocketLaunch(); Fx.burst(0,0,'#a8ffc0',14); Fx.ring(0,0,10,50,'#7dff9d',.45); }
   }
 
-  // Text readout intentionally removed (it crowded the screen -- "next
-  // launch in Xs", "impact in Xs" etc.). The flashing square locks and
-  // the traveling rocket sprite already communicate what's targeted and
-  // incoming, so no text HUD is needed here.
   function updateHud(){
     const el2 = document.getElementById('rocketHudText');
     if(!el2) return;
-    el2.textContent = '';
+    const rk = gstate.rk, lvl = gstate.level;
+    if(!rk || !lvl){ el2.textContent = ''; return; }
+    const parts = [];
+    if(rk.lights.length) parts.push('💡'+rk.lights.filter(l=>l.alive).length+'/'+rk.lights.length);
+    if(rk.elecs.length) parts.push('⚡'+rk.elecs.filter(e=>e.alive).length+'/'+rk.elecs.length);
+    if(lvl.lockSlots.length && rk.maxAch < lvl.lockSlots.length) parts.push('max '+rk.maxAch);
+    const tx = parts.join(' · ');
+    if(el2.textContent !== tx) el2.textContent = tx;
   }
 
   function tick(){
     if(!running || paused) return;
     if(currentMode !== 'rocket' || !gstate.level) return;
-    if(gstate.won || gstate.rocketFailed) return;
-    const lvl = gstate.level;
-    const now = Date.now();
-
-    // 1) Resolve any impacts due first, so a launch evaluated later in
-    // this SAME tick sees the post-destruction state (this is exactly
-    // what makes the mirror -> lock chain reaction work: the rocket that
-    // lands on the mirror at t=20 and the fresh rocket launched at that
-    // same t=20 mark target the mirror and the (now newly-exposed) lock
-    // respectively, not both the mirror).
-    let justFailed = false;
-    const stillFlying = [];
+    if(gstate.won) return;
+    const lvl = gstate.level, now = Date.now();
+    // 1) impacts first, so a launch on this same tick sees the post-destruction board
+    const stillFlying = [], losses = [];
     inFlight.forEach(r=>{
       if(now >= r.impactAt){
         AudioSys.playRocketImpact();
-        // Only a REQUIRED Lock ends the run. A coin/Bonus Lock destroyed by
-        // a rocket is simply gone (the coin is lost for this run) -- it
-        // must NOT trigger gstate.rocketFailed/the lose-banner/reset. Check
-        // membership in lockSlots (not bonusLockSlots) BEFORE destroyTarget
-        // removes the slot from whichever array it's in.
-        const wasRequiredLock = r.touch.kind === 'rim' && lvl.lockSlots.includes(r.touch.slot);
-        { const q=getCurrentTargetPoint(r); Fx.shatter(q.x,q.y,r.touch.kind==='rim'?'rgba(190,235,255,.5)':'rgba(255,150,90,.55)'); Fx.burst(q.x,q.y,'#ffb347',16); Fx.ring(q.x,q.y,4,38,'#ffb347',.45); Fx.shake(r.touch.kind!=='rim'); }
-        destroyTarget(lvl, r.touch);
+        const q = getCurrentTargetPoint(r);
+        Fx.shatter(q.x,q.y,r.touch.kind==='rim'?'rgba(190,235,255,.5)':'rgba(255,150,90,.55)'); Fx.burst(q.x,q.y,'#ffb347',16); Fx.ring(q.x,q.y,4,38,'#ffb347',.45); Fx.shake(r.touch.kind!=='rim');
+        const what = destroyTarget(lvl, r.touch);
+        if(what) losses.push(what);
         flashImpact();
-        if(wasRequiredLock) justFailed = true;
-      } else {
-        stillFlying.push(r);
-      }
+      } else stillFlying.push(r);
     });
     inFlight = stillFlying;
-    if(justFailed) gstate.rocketFailed = true;
-
-    // 2) Fire any global launch marks that are due. This is a fixed
-    // metronome from level start -- 10s, 20s, 30s, ... -- and fires
-    // whether or not the player has touched a ring since the last mark.
-    // `while` (not `if`) defensively catches up if a long pause/tab-
-    // background gap ever let more than one interval slip by.
-    if(!gstate.rocketFailed){
-      while(now >= levelStartAt + (launchCount+1)*ROCKET_LAUNCH_INTERVAL_MS){
-        launchCount++;
-        launchRockets(lvl, levelStartAt + launchCount*ROCKET_LAUNCH_INTERVAL_MS);
-      }
+    if(losses.length){
+      recomputeFlow();
+      recomputeMax(lvl);
+      const msgs = [];
+      losses.forEach(w=>{
+        if(w==='light') msgs.push('💡 Light Lock lost — '+lightFrac()+' goes dark');
+        else if(w.indexOf('elec:')===0) msgs.push('⚡ Ring '+(+w.split(':')[1]+1)+' lost power');
+        else if(w==='gift') msgs.push('🎁 Gift Lock lost');
+      });
+      if(msgs.length) showNewGimmickToast(msgs.join(' · '));
+      updateRingTag();
     }
-
+    // 2) launches on the fixed 5s metronome from level start
+    while(now >= levelStartAt + (launchCount+1)*ROCKET_LAUNCH_INTERVAL_MS){
+      launchCount++;
+      launchRockets(lvl, levelStartAt + launchCount*ROCKET_LAUNCH_INTERVAL_MS);
+    }
     recomputeFlow();
     renderPuzzle();
     updateTopBar();
     updateHud();
-    if(gstate.rocketFailed){
-      if(tickTimer){ clearInterval(tickTimer); tickTimer = null; }
-      const b = document.getElementById('loseBanner');
-      if(b) b.classList.add('show');
-    } else {
-      checkWin();
+    checkWin();
+  }
+
+  // Finish rule (no lose state) -- see the header comment.
+  function handleCheckWin(lvl){
+    if(gstate.won || !gstate.rk) return;
+    const rk = gstate.rk, G = lvl.lockSlots;
+    const lit = G.filter(s=>gstate.litLocks.has(s)).length;
+    // never auto-finish a level the player hasn't touched yet (a level whose start happens to already
+    // light its best-possible count would otherwise end the instant it loads) -- unless damage forced it
+    if(gstate.moves === 0 && !rk.lost.length && !rk.frozen.size) return;
+    if(G.length === 0 || rk.maxAch === 0 || lit === G.length || lit >= rk.maxAch){
+      const perfect = rk.lost.length === 0 && lit === rk.giftStart.length;
+      finishLevel(perfect);
+      const ws = document.getElementById('winSub');
+      if(ws) ws.textContent = (G.length===0 || lit===0)
+        ? 'LEVEL CLEARED — no gift locks left to light'
+        : 'LEVEL CLEARED — 🎁 '+lit+'/'+rk.giftStart.length+' GIFT LOCKS'+(perfect?' · PERFECT':'');
     }
   }
 
-  function getLiveTouches(){
-    if(!gstate.level) return {};
-    return currentTouchByBeam(gstate.level);
-  }
+  function getLiveTouches(){ return gstate.level ? currentTargets(gstate.level) : []; }
   function getInFlight(){ return inFlight; }
-  // CHASING: the point an in-flight rocket is CURRENTLY flying toward.
-  // A rim Lock's point never moves (the rim doesn't rotate) -- return its
-  // fixed launch-time point as-is. A gimmick's point is recomputed fresh
-  // from wherever its ring's rotation currently puts it; if the gimmick
-  // has since been destroyed by something else, fall back to (and cache)
-  // its last known point so the sprite doesn't jump or vanish mid-flight.
   function getCurrentTargetPoint(r){
     if(!gstate.level || !r || !r.touch) return {x:0, y:0};
     if(r.touch.kind === 'rim') return {x: r.touch.x, y: r.touch.y};
     const live = liveGimmickPosition(gstate.level, r.touch.ringIdx, r.touch.authoredKey);
-    if(live){
-      r.touch.lastKnownX = live.x; r.touch.lastKnownY = live.y;
-      return {x: live.x, y: live.y};
-    }
-    return {
-      x: r.touch.lastKnownX !== undefined ? r.touch.lastKnownX : r.touch.x,
-      y: r.touch.lastKnownY !== undefined ? r.touch.lastKnownY : r.touch.y,
-    };
+    if(live){ r.touch.lastKnownX = live.x; r.touch.lastKnownY = live.y; return {x: live.x, y: live.y}; }
+    return { x: r.touch.lastKnownX !== undefined ? r.touch.lastKnownX : r.touch.x,
+             y: r.touch.lastKnownY !== undefined ? r.touch.lastKnownY : r.touch.y };
   }
-
-  function resetTimers(){
-    inFlight = [];
-    launchCount = 0;
-    levelStartAt = Date.now();
-  }
-
+  function resetTimers(){ inFlight = []; launchCount = 0; levelStartAt = Date.now(); }
   function start(){
     if(running) return;
     running = true; paused = false;
@@ -5478,14 +5253,10 @@ const RocketGame = (function(){
     if(tickTimer){ clearInterval(tickTimer); tickTimer = null; }
     document.body.classList.remove('rocketTheme');
     inFlight = [];
-    const b = document.getElementById('loseBanner');
-    if(b) b.classList.remove('show');
+    const b = document.getElementById('loseBanner'); if(b) b.classList.remove('show');
+    const h = document.getElementById('rocketHudText'); if(h) h.textContent = '';
   }
-  function pause(){
-    if(!running || paused) return;
-    paused = true;
-    pauseStartedAt = Date.now();
-  }
+  function pause(){ if(!running || paused) return; paused = true; pauseStartedAt = Date.now(); }
   function resume(){
     if(!running || !paused) return;
     paused = false;
@@ -5496,13 +5267,12 @@ const RocketGame = (function(){
   function onLevelStart(lvl, idx){
     resetTimers();
     paused = false;
-    const b = document.getElementById('loseBanner');
-    if(b) b.classList.remove('show');
+    const b = document.getElementById('loseBanner'); if(b) b.classList.remove('show');
     ensureTicking();
     recomputeFlow(); renderPuzzle(); updateTopBar(); updateHud();
   }
-
-  return { start, stop, pause, resume, onLevelStart, getLiveTouches, getInFlight, getCurrentTargetPoint, updateHud };
+  return { start, stop, pause, resume, onLevelStart, prepareLevel, handleCheckWin, isFrozen, denyRotate,
+           getLiveTouches, getInFlight, getCurrentTargetPoint, updateHud };
 })();
 
 
@@ -5964,7 +5734,17 @@ function renderShop(){
     kw.innerHTML = `<div class="invKeyRow ok"><span>\ud83d\udd11 Keys earned</span><b>${n} / ${KEY_REQ.rocket}</b></div>` +
       [['orchestra','Space Orchestra'],['special','Meteor Attack'],['rocket','UFO / Rocket Attack']].map(([m,nm])=>
         `<div class="invKeyRow ${n>=KEY_REQ[m]?'ok':''}"><span>${n>=KEY_REQ[m]?'\ud83d\udd13':'\ud83d\udd12'} ${nm}</span><span>${Math.min(n,KEY_REQ[m])} / ${KEY_REQ[m]}</span></div>`).join('') +
-      `<div class="invKeyRow"><span>\ud83c\udf81 Space Orchestra gift locks</span><span>${orchGiftLockCount()} / ${orchGiftLockTotal()}</span></div>`;
+      `<div class="invKeyRow"><span>\ud83c\udf81 Space Orchestra gift locks</span><span>${orchGiftLockCount()} / ${orchGiftLockTotal()}</span></div>` +
+      `<div class="invKeyRow"><span>\ud83c\udf81 Rocket Attack gift locks</span><span>${rocketGiftLockCount()} / ${rocketGiftLockTotal()}</span></div>`;
+  }
+  const rw = document.getElementById('invRocketRewards');
+  if(rw){
+    const have = rocketGiftLockCount(), claimed = save.rewards.claimed;
+    rw.innerHTML = Array.from({length: Math.max(rocketGiftCount(), 1)}, (_,k)=>{
+      const r = rewardForRocketGift(k), need = (k+1)*ROCKET_LOCKS_PER_GIFT, got = !!claimed[r.lvKey];
+      const label = r.id ? itemName(r.kind, r.id.split(':')[1]) + ' (' + REWARD_LABEL[r.kind] + ')' : r.emptyName;
+      return `<div class="invKeyRow ${got?'ok':''}"><span>${got?'\u2705':'\ud83c\udf81'} ${label}</span><span>${Math.min(have,need)} / ${need}</span></div>`;
+    }).join('');
   }
   invList('shopThemeList','theme', THEME_LIST.map(t=>({id:t.id, name:t.name, bg:THEME_SWATCH_GRADIENT[t.id]||'linear-gradient(135deg,#7fe7ff,#0a1020)', note:setDesc(t.id)})));
   invList('shopRimList','rim', RIM_IDS.map(id=>({id, name:rimName(id), bg:THEME_SWATCH_GRADIENT[id]||'linear-gradient(135deg,#2c5f80,#9fe8ff)'})));
@@ -6482,7 +6262,8 @@ function renderRocketSection(){
   card.className = 'rocketCard' + (unlocked ? '' : ' locked');
   if(unlocked){
     card.innerHTML = `<div class="rcTitle">\ud83d\ude80 ROCKET ATTACK \ud83d\ude80</div>
-      <div class="rcSub">A boss UFO locks a flashing square onto whatever your beam touches first. 10s later it launches. 10s after that, the target is gone.</div>
+      <div class="rcSub">Rockets hit wherever your beams END. Every Lock is a gift lock \u2014 and don't park a beam on a \ud83d\udca1 Light or \u26a1 Electricity Lock.</div>
+      <div class="rcProgress">\ud83c\udf81 ${rocketGiftLockCount()}/${rocketGiftLockTotal()} gift locks</div>
       <div class="rcProgress">${doneCount}/${totalLevels} levels cleared</div>`;
   } else {
     card.innerHTML = `<div class="rcTitle">\ud83d\ude80 ROCKET ATTACK \ud83d\ude80</div>
@@ -6922,6 +6703,8 @@ function loadLevel(mode, idx){
   const lvl = (mode === 'rocket' || mode === 'orchestra') ? JSON.parse(JSON.stringify(LEVELS[mode][idx])) : LEVELS[mode][idx];
   gstate.level = lvl;
   gstate.rotations = lvl.rings.map(r=>r.initialRotation||0);
+  gstate.rk = null;
+  if(mode === 'rocket') RocketGame.prepareLevel(lvl);   // gift / light / electricity locks for this attempt
   { const _rs=(renderPuzzle._lvl===lvl); renderPuzzle._lvl=null; renderPuzzle._rots=null; renderPuzzle._gh=null; renderPuzzle._echo=null; Fx.clear(); playLevelIntro(_rs); }
   gstate.selectedRing = 0;
   gstate.won = false;
@@ -6994,12 +6777,20 @@ function updateTopBar(){
     coinEl.textContent = '\ud83c\udf81 ' + orchGiftLockCount() + '/' + orchGiftLockTotal();
     coinEl.classList.toggle('lit', allLit);
   }
+  if(currentMode === 'rocket'){
+    // Rocket Attack: every Lock is a gift lock -- show banked gift locks; lit count is of the survivors.
+    const allLit = lvl.lockSlots.length>0 && lvl.lockSlots.every(s=>gstate.litLocks.has(s));
+    coinEl.textContent = '\ud83c\udf81 ' + rocketGiftLockCount() + '/' + rocketGiftLockTotal();
+    coinEl.classList.toggle('lit', allLit);
+    coinEl.classList.remove('off');
+  }
   document.getElementById('movesLabel').textContent = gstate.moves + (gstate.moves===1?' move':' moves');
   if(currentMode === 'special') MeteorGame.updateHud();
+  if(currentMode === 'rocket') RocketGame.updateHud();
 }
 
 function updateRingTag(){
-  document.getElementById('ringTag').textContent = `RING ${gstate.selectedRing+1}/${gstate.level.rings.length}`;
+  document.getElementById('ringTag').textContent = `RING ${gstate.selectedRing+1}/${gstate.level.rings.length}` + (RocketGame.isFrozen(gstate.selectedRing) ? ' \u00b7 \u26a1 NO POWER' : '');
 }
 
 // A continuous touch/mouse drag fires its move event far faster than the
@@ -7038,6 +6829,7 @@ function rotateRing(delta){
   if(gstate.won || gstate.rocketFailed) return;
   const n = gstate.level.slots;
   const r = gstate.selectedRing;
+  if(RocketGame.isFrozen(r)){ RocketGame.denyRotate(r); return; }   // Rocket Attack: Electricity Lock destroyed
   gstate.rotations[r] = ((gstate.rotations[r]+delta)%n + n) % n;
   gstate.moves++;
   AudioSys.playTick();
@@ -7065,6 +6857,7 @@ function checkWin(){
   // required Lock at once" rule every other mode uses, so it simply falls
   // through to the default logic below.
   if(gstate.rocketFailed) return;
+  if(currentMode === 'rocket'){ RocketGame.handleCheckWin(lvl); return; }   // no lose state; see RocketGame
   if(currentMode === 'orchestra'){
     // Space Orchestra routes every Movement's win check through its own
     // module so it can handle the Bell/fog logic first -- but every
@@ -7179,7 +6972,11 @@ function finishLevel(withCoin){
   const orchGifts = gm==='orchestra'
     ? bankOrchestraLocks(gi, [...gstate.level.lockSlots, ...(gstate.level.bonusLockSlots||[])].filter(sl=>gstate.litLocks.has(sl)))
     : [];
-  const gifts = (gift ? [gift] : []).concat(orchGifts);
+  // ROCKET ATTACK: every Lock is a gift lock too -- bank the surviving ones lit right now.
+  const rocketGifts = gm==='rocket'
+    ? bankRocketLocks(gi, gstate.level.lockSlots.filter(sl=>gstate.litLocks.has(sl)))
+    : [];
+  const gifts = (gift ? [gift] : []).concat(orchGifts, rocketGifts);
   const proceed = (fast)=>{
     if(currentMode !== gm || currentLevelIdx !== gi) return;   // player already left this level
     if(isLastLevelOfMode && !save.demoEndScreensShown.includes(gm)){
@@ -8553,6 +8350,81 @@ function bakeEnv(host){
 // returns past, so rockets naturally launch outward from where the
 // conflict actually is.
 const ROCKET_BOSS_POS = {x:0, y:0};
+// ---- ROCKET ATTACK rim traps: Light Locks (lamp) and Electricity Locks (bolt). Drawn in the
+// overlay layer (not the theme rim) so every theme/rim shows them the same way.
+function drawRocketTrapLocks(g, lvl){
+  const rk = gstate.rk; if(!rk) return;
+  const n = lvl.slots, k = optScale('rimSize'), half = RIM_BAND.half*k;
+  const rIn = RIM_R - half, rOut = RIM_R + half;
+  const at = (slot)=>{ const a = slotToAngle(slot, n); return {x:Math.cos(a)*RIM_R, y:Math.sin(a)*RIM_R}; };
+  rk.lights.forEach(L=>{
+    el('path',{d:rimPanelPath(L.slot, n, rIn, rOut, RIM_BAND.gap), fill: L.alive?'rgba(255,226,120,0.42)':'rgba(10,12,18,0.85)', stroke: L.alive?'#fff1a8':'#3a3f48', 'stroke-width':1.5}, g);
+    const p = at(L.slot), s = el('g',{transform:`translate(${p.x},${p.y}) scale(${k})`}, g);
+    el('circle',{r:13, fill:'rgba(0,0,0,.6)', stroke: L.alive?'#ffe27a':'#555b66', 'stroke-width':1.6}, s);
+    if(L.alive){
+      [0,45,90,135,180,225,270,315].forEach(a=> el('line',{x1:0,y1:-10.5,x2:0,y2:-12.5, stroke:'#fff6c0','stroke-width':1.3,'stroke-linecap':'round', transform:`rotate(${a})`}, s));
+      el('circle',{cx:0, cy:-2, r:6, fill:'#ffe680', stroke:'#fff9d8', 'stroke-width':1, filter:'url(#glowTight)'}, s);
+    } else {
+      el('circle',{cx:0, cy:-2, r:6, fill:'#2a2e36', stroke:'#5c636e', 'stroke-width':1}, s);
+      el('path',{d:'M -2 -6 L 0 -2 L -1 1', fill:'none', stroke:'#7d8590', 'stroke-width':0.9}, s);
+    }
+    el('rect',{x:-3, y:3.6, width:6, height:4.2, rx:1, fill: L.alive?'#c9b46a':'#4a4f58'}, s);
+  });
+  rk.elecs.forEach(E=>{
+    el('path',{d:rimPanelPath(E.slot, n, rIn, rOut, RIM_BAND.gap), fill: E.alive?'rgba(90,200,255,0.38)':'rgba(10,12,18,0.85)', stroke: E.alive?'#9fe8ff':'#3a3f48', 'stroke-width':1.5}, g);
+    const p = at(E.slot), s = el('g',{transform:`translate(${p.x},${p.y}) scale(${k})`}, g);
+    el('circle',{r:13, fill:'rgba(0,0,0,.6)', stroke: E.alive?'#5ad8ff':'#555b66', 'stroke-width':1.6}, s);
+    const bolt = el('polygon',{points:'2,-10 -5.5,1 -0.5,1 -2.5,10 5.5,-2 0.5,-2', fill: E.alive?'#7ff0ff':'#3c424c', stroke: E.alive?'#e6fdff':'#6b7380', 'stroke-width':0.8, 'stroke-linejoin':'round'}, s);
+    if(E.alive) bolt.setAttribute('filter','url(#glowTight)');
+    else el('path',{d:'M -7 -7 L 7 7 M 7 -7 L -7 7', stroke:'#ff6a6a', 'stroke-width':1.6, 'stroke-linecap':'round', opacity:0.8}, s);
+    // which ring this lock powers
+    el('circle',{cx:9.5, cy:9.5, r:5.2, fill:'#0b1420', stroke: E.alive?'#5ad8ff':'#555b66', 'stroke-width':1}, s);
+    const t = el('text',{x:9.5, y:10, 'text-anchor':'middle', 'dominant-baseline':'middle', 'font-size':7, 'font-weight':'bold', fill: E.alive?'#c9f6ff':'#7d8590', 'font-family':'monospace'}, s);
+    t.textContent = String(E.ring+1);
+  });
+}
+// ---- ROCKET ATTACK darkness: every destroyed Light Lock blacks out its share of the map. The beams
+// (and the things they reach) are the only light left there -- cut out of the dark with a soft mask.
+function drawRocketDarkness(svg, lvl){
+  const rk = gstate.rk; if(!rk) return;
+  const dead = rk.sectors.filter(sc=>{ const L = rk.lights.find(l=>l.slot===sc.slot); return L && !L.alive; });
+  if(!dead.length) return;
+  const B = 420, defs = el('defs',{}, svg);
+  const soft = el('filter',{id:'rkDarkSoft', filterUnits:'userSpaceOnUse', x:-B, y:-B, width:2*B, height:2*B}, defs);
+  el('feGaussianBlur',{stdDeviation:'7'}, soft);
+  const mask = el('mask',{id:'rkDarkMask', maskUnits:'userSpaceOnUse', x:-B, y:-B, width:2*B, height:2*B}, defs);
+  el('rect',{x:-B, y:-B, width:2*B, height:2*B, fill:'#fff'}, mask);
+  const cut = el('g',{filter:'url(#rkDarkSoft)'}, mask);
+  (gstate.beamResults||[]).forEach(b=>{
+    const res = b.result || {};
+    (res.segments||[]).forEach(sg=> el('line',{x1:sg.x1, y1:sg.y1, x2:sg.x2, y2:sg.y2, stroke:'#000', 'stroke-width':26, 'stroke-linecap':'round'}, cut));
+    (res.ends||[]).forEach(e=> el('circle',{cx:e.x, cy:e.y, r:24, fill:'#000'}, cut));
+  });
+  const g = el('g',{mask:'url(#rkDarkMask)', 'pointer-events':'none'}, svg);
+  // the dark covers the play disc only (rings + rim band), never the screen around it
+  const R = RIM_R + RIM_BAND.half*optScale('rimSize') + 10;
+  dead.forEach(sc=>{
+    let a0 = sc.a0, a1 = sc.a1; while(a1 <= a0) a1 += Math.PI*2;
+    const large = (a1-a0) > Math.PI ? 1 : 0;
+    if((a1-a0) >= Math.PI*2-1e-6){ el('circle',{cx:0, cy:0, r:R, fill:'#020308', opacity:0.95}, g); return; }
+    const d = `M 0 0 L ${(Math.cos(a0)*R).toFixed(1)} ${(Math.sin(a0)*R).toFixed(1)} A ${R} ${R} 0 ${large} 1 ${(Math.cos(a1)*R).toFixed(1)} ${(Math.sin(a1)*R).toFixed(1)} Z`;
+    el('path',{d, fill:'#020308', opacity:0.95, 'stroke-linejoin':'round'}, g);
+  });
+}
+// ---- ROCKET ATTACK: a ring whose Electricity Lock was destroyed is drawn powered-down.
+function drawRocketFrozenRings(g, lvl){
+  const rk = gstate.rk; if(!rk || !rk.frozen.size) return;
+  rk.frozen.forEach(ri=>{
+    const r = ringRadiusFn(ri);
+    el('circle',{cx:0, cy:0, r, fill:'none', stroke:'rgba(14,18,26,0.7)', 'stroke-width':13}, g);
+    el('circle',{cx:0, cy:0, r, fill:'none', stroke:'#7d8a99', 'stroke-width':2.2, 'stroke-dasharray':'3 8', opacity:0.9}, g);
+    const tg = el('g',{transform:`translate(0,${-r})`}, g);
+    el('rect',{x:-33, y:-8, width:66, height:16, rx:8, fill:'rgba(10,14,20,0.92)', stroke:'#ff6a6a', 'stroke-width':1}, tg);
+    const t = el('text',{x:0, y:0.8, 'text-anchor':'middle', 'dominant-baseline':'middle', 'font-size':8.5, 'font-weight':'bold', fill:'#ffb0b0', 'font-family':'monospace'}, tg);
+    t.textContent = '⚡R'+(ri+1)+' NO POWER';
+  });
+}
+
 // Toy-rocket sprite for an in-flight projectile -- a white capsule body,
 // a red nose cone + accent stripe, swept-back yellow fins, and a
 // layered flame trailing off the tail (matching the reference art).
@@ -8580,6 +8452,11 @@ function drawRocketProjectile(parent){
 function renderRocketOverlay(svg){
   Fx.kick();
   const now = Date.now();
+  if(gstate.level && gstate.rk){
+    drawRocketTrapLocks(el('g', {'pointer-events':'none'}, svg), gstate.level);
+    drawRocketDarkness(svg, gstate.level);
+    drawRocketFrozenRings(el('g', {'pointer-events':'none'}, svg), gstate.level);
+  }
   const g = el('g', {'pointer-events':'none'}, svg);
   const bossO = el('g', {transform:`translate(${ROCKET_BOSS_POS.x},${ROCKET_BOSS_POS.y}) scale(1.35)`}, g);
   const bossG = el('g', {class:'ufo-bob', style:ph(4.2)}, bossO);
@@ -8589,16 +8466,10 @@ function renderRocketOverlay(svg){
   el('circle', {cx:0,cy:0,r:3, fill:'#eaffef'}, bossG);
   [-13,13].forEach((x,i)=>el('circle',{cx:x,cy:3,r:1.7,fill:'#ffe27a',class:'ufo-light',style:ph(1.2,i*.6)},bossG));
 
-  // Live "currently watched" squares -- one per beam, continuously
-  // follows whatever it touches RIGHT NOW as the player rotates. Purely
-  // informational: shows what WOULD get targeted if the next global
-  // launch mark happened this instant. Never itself destroys anything.
-  const live = RocketGame.getLiveTouches();
-  Object.keys(live).forEach(k=>{
-    const b = live[k];
-    if(!b.touch) return;
-    const tx = b.touch.x, ty = b.touch.y;
-    const sq = 14;
+  // Live "currently watched" squares -- one per place a beam ENDS right now (its LAST touch) that a
+  // rocket would hit if the next launch mark happened this instant. Never itself destroys anything.
+  RocketGame.getLiveTouches().forEach(t=>{
+    const tx = t.touch.x, ty = t.touch.y, sq = 14;
     el('rect', {x:tx-sq, y:ty-sq, width:sq*2, height:sq*2, rx:2, class:'rocketLockSquare'}, g);
   });
 
@@ -9059,6 +8930,7 @@ function _dragAng(ev){
 function attachRingDrag(dragRing, ringIdx, slotCount){
   function onDown(ev){
     if(gstate.won || gstate.rocketFailed || PowerSys.targeting()) return;
+    if(RocketGame.isFrozen(ringIdx)){ RocketGame.denyRotate(ringIdx); return; }
     _drag.on=true; _drag.accum=0; _drag.moves=0; _drag.ringIdx=ringIdx; _drag.n=slotCount;
     _drag.startAngle=_dragAng(ev); _drag.startRot=gstate.rotations[ringIdx];
     ev.preventDefault();
@@ -9068,6 +8940,7 @@ function attachRingDrag(dragRing, ringIdx, slotCount){
 }
 function _dragMove(ev){
   if(!_drag.on) return;
+  if(RocketGame.isFrozen(_drag.ringIdx)){ _drag.on=false; return; }
   let delta=_dragAng(ev)-_drag.startAngle;
   while(delta>Math.PI) delta-=Math.PI*2;
   while(delta<-Math.PI) delta+=Math.PI*2;
@@ -10521,6 +10394,62 @@ function bankOrchestraLocks(levelIdx, slots){
   persistSave();
   return out;
 }
+/* =========================================================================
+   ROCKET ATTACK GIFT LOCKS -- every Lock in Rocket Attack is a gift lock
+   (v0.29). When a level is cleared, every surviving Lock lit at that moment is
+   banked in save.rewards.rocketLocks ('<level index>:<rim slot>', once per
+   Lock, so replays can't farm). Every ROCKET_LOCKS_PER_GIFT banked Locks opens
+   the next gift box in ROCKET_GIFT_REWARDS.
+   ROCKET_GIFT_REWARDS: entries with id:null are EMPTY reward slots -- each is
+   named so it's obvious what still has to be made. To fill one, give it an id
+   ('source:<id>' | 'background:<id>' | 'lit:<id>' | 'rim:<id>' | 'theme:<id>')
+   pointing at an existing cosmetic; nothing else needs to change.
+   ========================================================================= */
+const ROCKET_LOCKS_PER_GIFT = 4;
+const ROCKET_GIFT_REWARDS = [
+  {kind:'source',     id:null, name:'EMPTY \u00b7 Rocket Gift #1 \u2014 Source Beam Color (Rocket Set A)'},
+  {kind:'background', id:null, name:'EMPTY \u00b7 Rocket Gift #2 \u2014 Background Beam Color (Rocket Set A)'},
+  {kind:'rim',        id:null, name:'EMPTY \u00b7 Rocket Gift #3 \u2014 Rim (Rocket Set A)'},
+  {kind:'theme',      id:null, name:'EMPTY \u00b7 Rocket Gift #4 \u2014 Theme (Rocket Set A)'},
+  {kind:'source',     id:null, name:'EMPTY \u00b7 Rocket Gift #5 \u2014 Source Beam Color (Rocket Set B)'},
+  {kind:'background', id:null, name:'EMPTY \u00b7 Rocket Gift #6 \u2014 Background Beam Color (Rocket Set B)'},
+  {kind:'rim',        id:null, name:'EMPTY \u00b7 Rocket Gift #7 \u2014 Rim (Rocket Set B)'},
+  {kind:'theme',      id:null, name:'EMPTY \u00b7 Rocket Gift #8 \u2014 Theme (Rocket Set B)'},
+];
+function rocketGiftLockTotal(){ return (LEVELS.rocket||[]).reduce((n,l)=>n+new Set([...(l.lockSlots||[]), ...(l.bonusLockSlots||[])]).size, 0); }
+function rocketBanked(){
+  ensureRewardShape();
+  const o = save.rewards.rocketLocks;
+  if(!o || typeof o !== 'object' || Array.isArray(o)) save.rewards.rocketLocks = {};
+  return save.rewards.rocketLocks;
+}
+function rocketGiftLockCount(){ return Object.keys(rocketBanked()).length; }
+function rocketGiftCount(){ return Math.floor(rocketGiftLockTotal()/ROCKET_LOCKS_PER_GIFT); }
+function rewardForRocketGift(k){
+  const def = ROCKET_GIFT_REWARDS[k] || {kind:'source', id:null, name:'EMPTY \u00b7 Rocket Gift #'+(k+1)+' \u2014 not in the reward list yet'};
+  const r = {lvKey:'rocket:gift'+k, type:def.kind, kind:def.kind, themeId:null, id:def.id||null, missing:null, rocketGift:k, emptyName:null};
+  if(!r.id){ r.emptyName = def.name; r.missing = 'Nothing is assigned to this reward slot yet ('+(k+1)*ROCKET_LOCKS_PER_GIFT+' Rocket Attack gift locks).'; }
+  else r.kind = r.id.split(':')[0];
+  return r;
+}
+// Banks the lit gift locks of a cleared Rocket level; returns every gift box newly earned.
+function bankRocketLocks(levelIdx, slots){
+  const bank = rocketBanked();
+  slots.forEach(sl=>{ bank[levelIdx+':'+sl] = true; });
+  const earned = Math.floor(Object.keys(bank).length/ROCKET_LOCKS_PER_GIFT), out = [];
+  const claimed = save.rewards.claimed;
+  for(let k=0; k<earned; k++){
+    const r = rewardForRocketGift(k);
+    if(claimed[r.lvKey]) continue;
+    let dup = false;
+    if(r.id) dup = grantReward(r);
+    claimed[r.lvKey] = r.id || ('missing:rocket:'+k);
+    r.dup = dup; r.orchNote = 'Rocket Attack \u00b7 '+((k+1)*ROCKET_LOCKS_PER_GIFT)+' gift locks';
+    out.push(r);
+  }
+  persistSave();
+  return out;
+}
 const MODE_NAME = {orchestra:'Space Orchestra', special:'Meteor Attack', rocket:'UFO / Rocket Attack'};
 function giftPreview(g){
   const v = g.id ? g.id.split(':')[1] : null, k = g.kind;
@@ -10555,7 +10484,7 @@ function showGiftBox(g, done){
       const unlockedNow = Object.keys(KEY_REQ).filter(k=>KEY_REQ[k]===n), next = Object.keys(KEY_REQ).find(k=>n<KEY_REQ[k]);
       sub = 'Keys: '+n+' / '+KEY_REQ.rocket + (unlockedNow.length ? '<br>\ud83d\udd13 '+MODE_NAME[unlockedNow[0]]+' unlocked!' : '') + (next ? '<br>Next: '+MODE_NAME[next]+' at '+KEY_REQ[next]+' keys' : '');
       tag = 'KEY ADDED';
-    } else if(!g.id){ name = 'Nothing to reveal'; sub = g.missing; tag = 'NEEDS REVIEW'; tcls = 'miss'; }
+    } else if(!g.id){ name = g.emptyName || 'Nothing to reveal'; sub = (g.orchNote ? g.orchNote+'<br>' : '') + g.missing; tag = g.emptyName ? 'EMPTY REWARD' : 'NEEDS REVIEW'; tcls = 'miss'; }
     else {
       name = itemName(g.kind, v) + (g.kind==='lit' ? ' lit beam' : '');
       sub = g.themeId ? themeName(g.themeId)+' \u2014 '+setDesc(g.themeId) : '';
