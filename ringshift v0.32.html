@@ -1745,8 +1745,8 @@ body.theme-v2 .screenSub, body.theme-v2 #titleScreen .press, body.theme-v2 #game
   <div id="shopBackdrop"></div>
   <div id="shopPanelBox">
     <h2>INVENTORY</h2>
-    <div class="modalSub">Everything here is earned from gift boxes: the end of Easy, Normal and Hard levels, and every 4 gift locks lit in Space Orchestra. Nothing is bought.</div>
-    <div class="shopSectionTitle">KEYS \u00b7 SPECIAL MODES</div>
+    <div class="modalSub">Everything here is earned from gift boxes: the end of Easy, Normal and Hard levels, and every 4 gift locks banked in Space Orchestra, Meteor Attack and Rocket Attack. Nothing is bought. Special modes unlock by levels won.</div>
+    <div class="shopSectionTitle">WINS · KEYS · SPECIAL MODES</div>
     <div id="invKeys"></div>
     <div class="shopSectionTitle">ROCKET ATTACK GIFT REWARDS</div>
     <div id="invRocketRewards"></div>
@@ -1775,14 +1775,14 @@ body.theme-v2 .screenSub, body.theme-v2 #titleScreen .press, body.theme-v2 #game
     <div class="ringdeco r3"></div>
     <div class="ringdeco r2"></div>
     <h1 class="logo">RINGSHIFT</h1>
-    <div class="sub">DEMO · v0.31</div>
+    <div class="sub">DEMO · v0.32</div>
     <div class="press">PRESS ANY BUTTON</div>
   </div>
 
   <!-- MODE SELECT -->
   <div id="modeScreen" class="screen">
     <div class="shopCornerBtn" id="shopBtnMode" title="Inventory">🎒 INVENTORY</div>
-    <div class="coinTally">🔑 <span id="coinTallyVal">0</span> / 15 KEYS<br><span style="font-size:10px;color:var(--text2);font-weight:normal;">★ <span id="starTallyVal">0</span> stars · 🎁 <span id="walletTallyVal">0</span> gift boxes (Hard unlocks at 8)</span></div>
+    <div class="coinTally">🏆 <span id="winTallyVal">0</span> WINS · 🔑 <span id="coinTallyVal">0</span> KEYS<br><span style="font-size:10px;color:var(--text2);font-weight:normal;">★ <span id="starTallyVal">0</span> stars · 🎁 <span id="walletTallyVal">0</span> gift boxes (Hard unlocks at 8)</span></div>
     <h2 class="screenTitle">SELECT DIFFICULTY</h2>
     <div class="screenSub">Rotate the rings. Light every Lock at once to breach.</div>
     <button class="actBtn powerEquipBtn">⚡ POWER: NONE</button>
@@ -3606,10 +3606,15 @@ const LEVELS = {
   special: METEOR_LEVELS,
   rocket: ROCKET_LEVELS,
 };
-// Space Orchestra is the demo's ultimate reward, so it should feel like
-// the last thing a dedicated player unlocks. Well within reach (the demo
-// has far more than 24 collectible coins across Easy/Normal/Hard combined).
-const KEY_REQ = { orchestra:4, special:9, rocket:15 }; // cumulative keys (never spent): Space Orchestra 4, Meteor Attack 9, UFO/Rocket Attack 15
+// v0.32: the three special modes unlock by LEVELS WON (first clears in Easy +
+// Normal + Hard only -- Space Orchestra / Meteor / Rocket levels never count).
+// Keys are still earned from gift boxes but unlock nothing until assigned.
+const WIN_REQ = { special:10, orchestra:30, rocket:50 };   // Meteor Attack 10, Space Orchestra 30, Rocket Attack 50
+const WIN_COUNT_MODES = ['easy','normal','hard'];
+function levelWinCount(){
+  if(typeof save==='undefined' || !save || !save.progress) return 0;
+  return WIN_COUNT_MODES.reduce((n,m)=>n + (save.progress[m]||[]).filter(p=>p && p.completed).length, 0);
+}
 
 /* =========================================================================
    AUDIO -- ambient generative background music (one mood per difficulty)
@@ -5553,15 +5558,7 @@ function isModeUnlocked(mode){
   if(mode==='hard'){
     return save.totalCoins >= HARD_COIN_REQUIREMENT;
   }
-  if(mode==='orchestra'){
-    return keyCount() >= KEY_REQ.orchestra;
-  }
-  if(mode==='special'){
-    return keyCount() >= KEY_REQ.special;
-  }
-  if(mode==='rocket'){
-    return keyCount() >= KEY_REQ.rocket;
-  }
+  if(WIN_REQ[mode]!==undefined) return levelWinCount() >= WIN_REQ[mode];   // Meteor / Orchestra / Rocket: levels won
   return false;
 }
 
@@ -5739,6 +5736,8 @@ function equipSet(tid){
   if(document.body.classList.contains('inGame') && gstate.level) renderPuzzle();
 }
 function invSourceText(kind,id){
+  if(kind==='theme' && UNASSIGNED_THEMES.includes(id)) return 'Unlock not assigned yet';
+  if(kind==='rim' && UNASSIGNED_THEMES.includes(id)) return 'Comes with its theme \u2014 unlock not assigned yet';
   for(const m of GIFT_MODES){
     for(let idx=0; idx<(LEVELS[m]||[]).length; idx++){
       const r = rewardForLevel(m, idx);
@@ -5785,9 +5784,11 @@ function renderShop(){
   ensureRewardShape();
   const n = keyCount(), kw = document.getElementById('invKeys');
   if(kw){
-    kw.innerHTML = `<div class="invKeyRow ok"><span>\ud83d\udd11 Keys earned</span><b>${n} / ${KEY_REQ.rocket}</b></div>` +
-      [['orchestra','Space Orchestra'],['special','Meteor Attack'],['rocket','UFO / Rocket Attack']].map(([m,nm])=>
-        `<div class="invKeyRow ${n>=KEY_REQ[m]?'ok':''}"><span>${n>=KEY_REQ[m]?'\ud83d\udd13':'\ud83d\udd12'} ${nm}</span><span>${Math.min(n,KEY_REQ[m])} / ${KEY_REQ[m]}</span></div>`).join('') +
+    const w = levelWinCount();
+    kw.innerHTML = `<div class="invKeyRow ok"><span>\ud83d\udd11 Keys earned</span><b>${n}</b></div>` +
+      `<div class="invKeyRow ok"><span>\ud83c\udfc6 Levels won (Easy + Normal + Hard)</span><b>${w}</b></div>` +
+      [['special','Meteor Attack'],['orchestra','Space Orchestra'],['rocket','UFO / Rocket Attack']].map(([m,nm])=>
+        `<div class="invKeyRow ${w>=WIN_REQ[m]?'ok':''}"><span>${w>=WIN_REQ[m]?'\ud83d\udd13':'\ud83d\udd12'} ${nm}</span><span>${Math.min(w,WIN_REQ[m])} / ${WIN_REQ[m]} wins</span></div>`).join('') +
       `<div class="invKeyRow"><span>\ud83c\udf81 Space Orchestra gift locks</span><span>${orchGiftLockCount()} / ${orchGiftLockTotal()}</span></div>` +
       `<div class="invKeyRow"><span>\ud83c\udf81 Meteor Attack gift locks</span><span>${meteorGiftLockCount()} / ${meteorGiftLockTotal()}</span></div>` +
       `<div class="invKeyRow"><span>\ud83c\udf81 Rocket Attack gift locks</span><span>${rocketGiftLockCount()} / ${rocketGiftLockTotal()}</span></div>`;
@@ -5857,6 +5858,7 @@ function goTitle(){ AudioSys.stopMusic(); OrchestraAudio.stop(); showScreen('tit
 function goModeSelect(){
   recomputeTotalCoins(); persistSave();
   document.getElementById('coinTallyVal').textContent = keyCount();
+  { const wv = document.getElementById('winTallyVal'); if(wv) wv.textContent = levelWinCount(); }
   document.getElementById('walletTallyVal').textContent = save.totalCoins;
   document.getElementById('starTallyVal').textContent = starCount();
   renderModeGrid();
@@ -6009,7 +6011,7 @@ document.getElementById('debugModeToggle').addEventListener('click', ()=>{
   
   persistSave(); applyOptionsToUI(); AudioSys.playMenuBlip();
   recomputeTotalCoins(); persistSave();
-  const wt = document.getElementById('walletTallyVal'); if(wt) wt.textContent = save.totalCoins; const stv = document.getElementById('starTallyVal'); if(stv) stv.textContent = starCount(); const kt=document.getElementById('coinTallyVal'); if(kt) kt.textContent=keyCount();
+  const wt = document.getElementById('walletTallyVal'); if(wt) wt.textContent = save.totalCoins; const stv = document.getElementById('starTallyVal'); if(stv) stv.textContent = starCount(); const kt=document.getElementById('coinTallyVal'); if(kt) kt.textContent=keyCount(); const wv=document.getElementById('winTallyVal'); if(wv) wv.textContent=levelWinCount();
   
   // Refresh whatever's currently on screen so unlocks show immediately.
   if(document.getElementById('modeScreen').classList.contains('active')) goModeSelect();
@@ -6253,7 +6255,7 @@ function renderBonusSection(){
   } else {
     card.innerHTML = `<div class="bcTitle">\u2726 SPACE ORCHESTRA \u2726</div>
       <div class="bcSub">A ten-movement puzzle set -- your reward for mastering Ringshift.</div>
-      <div class="bcLock">\ud83d\udd12 Collect ${KEY_REQ.orchestra} keys to unlock (${keyCount()}/${KEY_REQ.orchestra})</div>`;
+      <div class="bcLock">\ud83d\udd12 Win ${WIN_REQ.orchestra} levels to unlock (${Math.min(levelWinCount(),WIN_REQ.orchestra)}/${WIN_REQ.orchestra})</div>`;
   }
   card.addEventListener('click', ()=>{
     if(!unlocked){ AudioSys.playError(); shakeEl(card); return; }
@@ -6295,7 +6297,7 @@ function renderMeteorSection(){
   } else {
     card.innerHTML = `${streaks}<div class="mcTitle">\u2604 METEOR ATTACK \u2604</div>
       <div class="mcSub">Solve fast. Every 7 seconds a meteor destroys one Lock or Electricity Lock, picked completely at random.</div>
-      <div class="mcLock">\ud83d\udd12 Collect ${KEY_REQ.special} keys to unlock (${keyCount()}/${KEY_REQ.special})</div>`;
+      <div class="mcLock">\ud83d\udd12 Win ${WIN_REQ.special} levels to unlock (${Math.min(levelWinCount(),WIN_REQ.special)}/${WIN_REQ.special})</div>`;
   }
   card.addEventListener('click', ()=>{
     if(!unlocked){ AudioSys.playError(); shakeEl(card); return; }
@@ -6332,7 +6334,7 @@ function renderRocketSection(){
   } else {
     card.innerHTML = `<div class="rcTitle">\ud83d\ude80 ROCKET ATTACK \ud83d\ude80</div>
       <div class="rcSub">Anticipate what the boss will destroy next \u2014 and route around it before it's too late.</div>
-      <div class="rcLock">\ud83d\udd12 Collect ${KEY_REQ.rocket} keys to unlock (${keyCount()}/${KEY_REQ.rocket})</div>`;
+      <div class="rcLock">\ud83d\udd12 Win ${WIN_REQ.rocket} levels to unlock (${Math.min(levelWinCount(),WIN_REQ.rocket)}/${WIN_REQ.rocket})</div>`;
   }
   card.addEventListener('click', ()=>{
     if(!unlocked){ AudioSys.playError(); shakeEl(card); return; }
@@ -7013,6 +7015,14 @@ function finishLevel(withCoin){
   
   AudioSys.playBreach();
   document.getElementById('winSub').textContent = withCoin ? 'LEVEL COMPLETE \u2014 \u2605 STAR + \ud83c\udf81 GIFT BOX' : 'LEVEL COMPLETE \u2014 \u2605 STAR';
+  // v0.32: a first clear that reaches 10 / 30 / 50 wins (Easy+Normal+Hard) unlocks a special mode
+  if(isFirstClear && WIN_COUNT_MODES.includes(currentMode)){
+    const w = levelWinCount(), um = Object.keys(WIN_REQ).find(k=>WIN_REQ[k]===w);
+    if(um){
+      document.getElementById('winSub').textContent += ' \u00b7 \ud83d\udd13 '+MODE_NAME[um].toUpperCase()+' UNLOCKED';
+      showNewGimmickToast('\ud83d\udd13 '+MODE_NAME[um]+' unlocked \u2014 '+w+' levels won!');
+    }
+  }
   document.getElementById('winStatsLine').textContent = `${gstate.moves} ${gstate.moves===1?'move':'moves'} \u00b7 ${formatTime(gstate.elapsed)}`;
   { const showWin = ()=>{
       document.getElementById('winBanner').classList.add('show');
@@ -10649,8 +10659,7 @@ function showGiftBox(g, done){
     let name, sub = '', tag = '', tcls = '';
     if(g.kind==='key'){
       const n = keyCount(); name = 'Key \u00d7 1';
-      const unlockedNow = Object.keys(KEY_REQ).filter(k=>KEY_REQ[k]===n), next = Object.keys(KEY_REQ).find(k=>n<KEY_REQ[k]);
-      sub = 'Keys: '+n+' / '+KEY_REQ.rocket + (unlockedNow.length ? '<br>\ud83d\udd13 '+MODE_NAME[unlockedNow[0]]+' unlocked!' : '') + (next ? '<br>Next: '+MODE_NAME[next]+' at '+KEY_REQ[next]+' keys' : '');
+      sub = 'Keys: '+n;
       tag = 'KEY ADDED';
     } else if(!g.id){ name = g.emptyName || 'Nothing to reveal'; sub = (g.orchNote ? g.orchNote+'<br>' : '') + g.missing; tag = g.emptyName ? 'EMPTY REWARD' : 'NEEDS REVIEW'; tcls = 'miss'; }
     else {
@@ -13542,6 +13551,541 @@ THEME_V2.patch = {
   rim:{ base:['#2a3c72','#101a38'], seam:'#ffd860', seamW:1.2, hi:'#ffffff', edge:'#ffd860', inner:'#ffd860', gap:2.4,
     deco(rimG, s, n, rIn, rOut, c, t){ if(t) return; const st = Math.PI*2/n*0.38, r = (rIn+rOut)/2;
       el('path',{d:`M ${f1(Math.cos(c-st)*r)} ${f1(Math.sin(c-st)*r)} A ${f1(r)} ${f1(r)} 0 0 1 ${f1(Math.cos(c+st)*r)} ${f1(Math.sin(c+st)*r)}`, fill:'none', stroke:'#f4f0e6', 'stroke-width':1, 'stroke-dasharray':'3 2.4', opacity:0.6}, rimG); } },
+};
+
+/* =========================================================================
+   THEMES V2 -- BATCH 7 (v0.32): ten new worlds, INVENTORY ONLY -- no unlock is
+   assigned yet (UNASSIGNED_THEMES). Each comes with its matching rim. Same
+   redesign language as the rest of THEME_V2: a real crafted surface seen from
+   above, one board, light from the top-left. Cosmetic only.
+     Vinyl Record, Marbled Endpaper, Copper Verdigris, Persian Carpet, Curling Sheet,
+     Lido Pool, Chalkboard, Topographic Map, Autumn Millstone, Honeycomb
+   To hand one out later: give it a reward slot (gift box / gift lock / key) and
+   remove its id from UNASSIGNED_THEMES.
+   ========================================================================= */
+const UNASSIGNED_THEMES = ['vinyl','marbled','verdigris','carpet','curling','lido','chalk','topo','autumn','honey'];
+THEME_LIST.push(
+ {id:'vinyl', name:'Vinyl Record', cost:3, free:false, blurb:'A record on a walnut turntable.'},
+ {id:'marbled', name:'Marbled Endpaper', cost:3, free:false, blurb:'Marbled paper and tooled leather.'},
+ {id:'verdigris', name:'Copper Verdigris', cost:3, free:false, blurb:'A copper roof gone green.'},
+ {id:'carpet', name:'Persian Carpet', cost:3, free:false, blurb:'A hand-knotted medallion rug.'},
+ {id:'curling', name:'Curling Sheet', cost:3, free:false, blurb:'Pebbled ice and a granite stone.'},
+ {id:'lido', name:'Lido Pool', cost:3, free:false, blurb:'Mosaic tiles under moving sunlight.'},
+ {id:'chalk', name:'Chalkboard', cost:3, free:false, blurb:'A slate full of chalk geometry.'},
+ {id:'topo', name:'Topographic Map', cost:3, free:false, blurb:'A contour map and a field compass.'},
+ {id:'autumn', name:'Autumn Millstone', cost:3, free:false, blurb:'Maple leaves on old cobbles.'},
+ {id:'honey', name:'Honeycomb', cost:3, free:false, blurb:'Capped comb and a beeswax disc.'});
+UNASSIGNED_THEMES.forEach(id=>{ THEME_SETS[id] = {rim:id}; if(!RIM_IDS.includes(id)) RIM_IDS.push(id); });
+
+// shared: concentric rings of fine alternating strokes (record grooves, turned metal)
+function v2Rings(g, r0, r1, step, light, dark, wL, wD, opL, opD){
+  let dl = '', dd = '';
+  for(let r=r0, i=0; r<=r1; r+=step, i++){ const arc = `M ${f1(r)} 0 A ${f1(r)} ${f1(r)} 0 1 0 ${f1(-r)} 0 A ${f1(r)} ${f1(r)} 0 1 0 ${f1(r)} 0 `; if(i%2) dl += arc; else dd += arc; }
+  el('path',{d:dl, fill:'none', stroke:light, 'stroke-width':wL, opacity:opL}, g);
+  el('path',{d:dd, fill:'none', stroke:dark, 'stroke-width':wD, opacity:opD}, g);
+}
+// shared: a maple leaf (five toothed lobes, veins and a stem) centred on (x,y), tip up before rotation
+const V2_MAPLE = (()=>{ const h = [[0,1],[8,.66],[14,.72],[22,.5],[30,.48],[40,.78],[50,.98],[58,.74],[66,.82],[78,.56],[90,.46],[100,.6],[112,.64],[124,.44],[140,.3],[160,.2],[180,.16]];
+  return h.concat(h.slice(1,-1).reverse().map(([d,r])=>[360-d,r])); })();
+function v2Maple(x, y, s, rot, fill, vein){
+  const P = (d,r)=>{ const a = d*Math.PI/180, px = Math.sin(a)*r*s, py = -Math.cos(a)*r*s, c = Math.cos(rot*Math.PI/180), sn = Math.sin(rot*Math.PI/180);
+    return [x + px*c - py*sn, y + px*sn + py*c]; };
+  const pts = V2_MAPLE.map(([d,r])=>P(d,r).map(f1).join(',')).join(' ');
+  const L = (d,r)=>{ const [a,b] = P(d,r); return f1(a)+' '+f1(b); };
+  const veins = [0,50,310,112,248].map(d=>`M ${L(0,0.04)} L ${L(d, d===0 ? 0.85 : d%112===0 || d===248 ? 0.55 : 0.8)}`).join(' ');
+  return v2Tag('polygon',{points:pts, fill, stroke:'#000', 'stroke-width':0.6, 'stroke-opacity':0.3, 'stroke-linejoin':'round'})
+    + v2Tag('path',{d:veins, fill:'none', stroke:vein||'#ffe0a0', 'stroke-width':f1(Math.max(0.6,s*0.035)), opacity:0.55})
+    + v2Tag('path',{d:`M ${L(180,0.14)} L ${L(182,0.62)}`, fill:'none', stroke:'#5a2a10', 'stroke-width':f1(Math.max(0.8,s*0.05)), 'stroke-linecap':'round', opacity:0.85});
+}
+
+/* ---- VINYL -> "Vinyl Record": a black LP on a turntable seen from above -- a walnut plinth, the
+   platter's strobe dots, a chrome tonearm resting on the run-in. The board IS the record: thousands
+   of fine grooves catching a bow-tie of light, a red paper label for the hub. */
+THEME_V2.vinyl = {
+  id:'vinyl', name:'Vinyl Record', blurb:'A black LP on a walnut turntable: fine grooves catching the light, a strobe-dotted platter and a chrome tonearm.',
+  pal:{ sockHi:'#e8e8ee', sockLo:'#3a3a42', sockIn:'#08080a', sockEdge:'#000000' },
+  stageFx:'v2-sheen', swatch:'linear-gradient(135deg,#d8d8de,#141416 50%,#e0402a)', badge:{icon:'💿', color:'#ff7a5a'},
+  ui: v2UiMk({ink:[12,12,14], line:'#3a3a42', bright:'#ff7a5a', ring:'#e8e8ee', sel:'#ffcf7a', t0:'#f6f6f8', t1:'#c4c4cc', t2:'#7c7c86', accent:'#ff7a5a', win:'rgba(255,190,140,.4)', bg:'#2a1a10', font:"'Futura','Century Gothic','Segoe UI',sans-serif"}),
+  env(){
+    const R = v2Rand(71), woods = ['#5a3418','#6a3e1e','#4e2c14','#734424','#62391b'];
+    let wood = '';
+    for(let y=0; y<1000; y+=6+R()*10){ const h = 5+R()*12, a = R()*40, f = 120+R()*240, ph = R()*6;
+      let d = `M -10 ${f1(y)} `; for(let x=0; x<=1010; x+=40) d += `L ${x} ${f1(y + Math.sin(x/f+ph)*a*0.15)} `;
+      wood += v2Tag('path',{d, fill:'none', stroke:woods[Math.floor(R()*woods.length)], 'stroke-width':f1(h), opacity:(0.5+R()*0.5).toFixed(2)}); }
+    for(let i=0;i<5;i++){ const cx = R()*1000, cy = R()*1000; for(let k=1;k<6;k++) wood += v2Tag('ellipse',{cx:f1(cx), cy:f1(cy), rx:f1(k*16), ry:f1(k*4.5), fill:'none', stroke:'#2a1608', 'stroke-width':1.2, opacity:0.35}); }
+    const cx = 470, cy = 530, PR = 455;
+    let strobe = '';
+    [PR-14, PR-28, PR-42].forEach((r,k)=>{ const N = 180 - k*12; for(let i=0;i<N;i++){ const a = i/N*Math.PI*2; strobe += v2Tag('circle',{cx:f1(cx+Math.cos(a)*r), cy:f1(cy+Math.sin(a)*r), r:2.4, fill:'#c8ccd4', opacity:0.75}); } });
+    const platter = v2Tag('circle',{cx:cx+10, cy:cy+14, r:PR+8, fill:'#000', opacity:0.5}) + v2Tag('circle',{cx, cy, r:PR, fill:'url(#pl)'}) + strobe
+      + v2Tag('circle',{cx, cy, r:PR-52, fill:'#18181c'}) + v2Tag('circle',{cx, cy, r:PR-54, fill:'none', stroke:'#2e2e34', 'stroke-width':3});
+    let mat = ''; for(let r=60; r<PR-60; r+=5) mat += v2Tag('circle',{cx, cy, r, fill:'none', stroke:r%10 ? '#26262c' : '#101012', 'stroke-width':2});
+    // tonearm: pivot base top-right, arm across, headshell over the outer grooves
+    const px = 900, py = 150, hx = 650, hy = 440;
+    const arm = v2Tag('circle',{cx:px+6, cy:py+9, r:62, fill:'#000', opacity:0.45}) + v2Tag('circle',{cx:px, cy:py, r:58, fill:'url(#ch)', stroke:'#2a2a30', 'stroke-width':2})
+      + v2Tag('circle',{cx:px, cy:py, r:30, fill:'#2a2a30'}) + v2Tag('circle',{cx:px, cy:py, r:20, fill:'url(#ch)'})
+      + v2Tag('rect',{x:px-16, y:py-120, width:32, height:70, rx:8, fill:'url(#ch)', stroke:'#2a2a30', 'stroke-width':1.5})
+      + v2Tag('path',{d:`M ${px+8} ${py+10} L ${hx+10} ${hy+12}`, stroke:'#000', 'stroke-width':14, opacity:0.4, 'stroke-linecap':'round'})
+      + v2Tag('path',{d:`M ${px} ${py} L ${hx} ${hy}`, stroke:'#9a9ea8', 'stroke-width':11, 'stroke-linecap':'round'})
+      + v2Tag('path',{d:`M ${px} ${py} L ${hx} ${hy}`, stroke:'#f4f6fa', 'stroke-width':3, 'stroke-linecap':'round', transform:'translate(-2 -3)', opacity:0.8})
+      + v2Tag('rect',{x:hx-22, y:hy-14, width:58, height:30, rx:4, fill:'#202024', stroke:'#c8ccd4', 'stroke-width':1.5, transform:`rotate(${f1(Math.atan2(hy-py,hx-px)*180/Math.PI)} ${hx} ${hy})`});
+    const knob = (x,y,l)=>v2Tag('circle',{cx:x+4, cy:y+6, r:34, fill:'#000', opacity:0.45}) + v2Tag('circle',{cx:x, cy:y, r:32, fill:'url(#ch)', stroke:'#2a2a30', 'stroke-width':2})
+      + v2Tag('circle',{cx:x, cy:y, r:22, fill:'none', stroke:'#7a7e88', 'stroke-width':1}) + v2Tag('text',{x, y:y+52, 'text-anchor':'middle', 'font-family':'Futura,Century Gothic,sans-serif', 'font-size':15, fill:'#e8d8c0', opacity:0.75}, l);
+    return [
+      { svg: v2Tag('defs',{}, v2Grad('pl',[['0','#4a4a52'],['0.85','#2a2a30'],['1','#16161a']],'radialGradient',{}) + v2Grad('ch',[['0','#ffffff'],['0.5','#a8acb6'],['1','#3a3c44']],'linearGradient',{x1:0.1,y1:0,x2:0.9,y2:1})
+            + v2Grad('sh',[['0','#ffe8c8',0.14],['0.5','#ffffff',0],['1','#000',0.3]],'linearGradient',{x1:0,y1:0,x2:1,y2:1}) + v2Grad('vg',[['0.5','#000',0],['1','#000',0.6]],'radialGradient',{}))
+          + v2Tag('rect',{width:1000,height:1000,fill:'#3e2210'}) + wood + platter + mat + arm + knob(90,900,'33') + knob(190,920,'45')
+          + v2Tag('rect',{width:1000,height:1000,fill:'url(#sh)'}) + v2Tag('rect',{width:1000,height:1000,fill:'url(#vg)'}) },
+      { cls:'v2Drift', svg: v2Tag('defs',{}, v2Grad('lt',[['0','#fff0d8',0.13],['1','#fff0d8',0]],'radialGradient',{})) + v2Tag('ellipse',{cx:330, cy:280, rx:480, ry:380, fill:'url(#lt)'}) },
+    ];
+  },
+  arena(svg, defs){
+    v2Arena(svg, defs, { lip:[['0','#5a5a62'],['0.5','#1a1a1e'],['1','#000000']], field:[['0','#1c1c20'],['0.7','#141416'],['1','#0c0c0e']], edge:'#c8ccd4', edgeOp:0.35, inner:0.3,
+      tex(g, defs){
+        v2Rings(g, 30, RIM_R+2, 1.6, '#ffffff', '#000000', 0.5, 0.7, 0.05, 0.45);
+        [RIM_R-8, 120, 68].forEach(r=>el('circle',{r, fill:'none', stroke:'#2e2e34', 'stroke-width':4, opacity:0.9}, g));
+        const gr = el('radialGradient',{id:'v2vnAn', cx:0, cy:0, r:RIM_R+4, gradientUnits:'userSpaceOnUse'}, defs);
+        [['0',0],['0.25',0.16],['0.75',0.1],['1',0]].forEach(([o,a])=>el('stop',{offset:o,'stop-color':'#ffffff','stop-opacity':a}, gr));
+        [-130, 50].forEach((deg,k)=>{ const a = deg*Math.PI/180, w = 0.2, R = RIM_R+4;
+          el('path',{d:`M 0 0 L ${f1(Math.cos(a-w)*R)} ${f1(Math.sin(a-w)*R)} A ${R} ${R} 0 0 1 ${f1(Math.cos(a+w)*R)} ${f1(Math.sin(a+w)*R)} Z`, fill:'url(#v2vnAn)', opacity:k?0.5:1}, g); });
+        el('circle',{r:32, fill:'#5a1a2a'}, g); el('circle',{r:32, fill:'none', stroke:'#2a0810', 'stroke-width':1.5}, g);
+        el('circle',{r:25, fill:'none', stroke:'#f4e2c8', 'stroke-width':0.7, opacity:0.45}, g); } });
+  },
+  hub(h){ v2HubStd(h, {stops:[['0','#ffffff'],['0.45','#c8ccd4'],['1','#3a3c44']], edge:'#08080a', ring:'#5a1a2a', dot:'#1a1a1e'}); },
+  track(g, r, sel, n){ v2TrackStd(g, r, sel, n, { groove:['#000000','#8a8a94',4.5], line:['#c8ccd4',0.9,0.32], mark:['#e8e8ee',1.4,1.8,0.4],
+    sel:{glow:['#ffb050',14,0.13], under:['#4a2408',3.6], main:['#ffcf7a',2.2], hi:'#fff4e0', edges:['#ffb050',0.5], mark:['#ffffff',0.9]} }); },
+  beam:{ halo:0.10, haloC:0.17 },
+  rim:{ base:['#3a3a42','#0e0e10'], seam:'#000000', seamW:1.4, hi:'#a8acb6', edge:'#c8ccd4', inner:'#4a4a52', gap:2,
+    deco(rimG, s, n, rIn, rOut, c, t){ if(t) return; const st = Math.PI*2/n*0.3;
+      for(let k=-2;k<=2;k++) v2RimDot(rimG, c + k*st*0.45, rOut-4.4, 1.3, '#c8ccd4', 0.7); } },
+};
+
+/* ---- MARBLED -> "Marbled Endpaper": the inside cover of an old book -- a sheet of combed Turkish
+   marbling (indigo, carmine, ochre, cream) bleeding off the edges, the brown calf spine with gold
+   fillets. The board is a green morocco roundel with gold-tooled fillets and a ring of tooled dots. */
+THEME_V2.marbled = {
+  id:'marbled', name:'Marbled Endpaper', blurb:'Combed marbled endpaper beside a gilt calf spine, with a gold-tooled green morocco roundel.',
+  pal:{ sockHi:'#fff0b8', sockLo:'#7a5418', sockIn:'#0a1e16', sockEdge:'#2a1a04' },
+  stageFx:'v2-gloss', swatch:'linear-gradient(135deg,#c83a3a,#2a4a8a 35%,#e8c060 60%,#1e4a3a)', badge:{icon:'🖋️', color:'#e8c060'},
+  ui: v2UiMk({ink:[10,26,20], line:'#3a5a4a', bright:'#e8c060', ring:'#f4ecd8', sel:'#ffe08a', t0:'#fffaf0', t1:'#d8d4c4', t2:'#8a9488', accent:'#e8c060', win:'rgba(255,224,138,.42)', bg:'#1e2a40', font:"'Palatino Linotype',Palatino,Georgia,serif"}),
+  env(){
+    const R = v2Rand(83), cols = ['#2a4a8a','#c8323a','#e8b048','#f4ecd8','#1e6a6a','#3a2a6a','#d86a3a'];
+    let bands = '';
+    for(let y=-60; y<1080; y+=14+R()*22){ const c = cols[Math.floor(R()*cols.length)], w = 10+R()*30, A = 12+R()*30, L = 90+R()*120, ph = R()*6;
+      let d = `M -40 ${f1(y)} `; for(let x=-40; x<=1040; x+=20) d += `L ${x} ${f1(y + Math.sin(x/L+ph)*A)} `;
+      bands += v2Tag('path',{d, fill:'none', stroke:c, 'stroke-width':f1(w), opacity:0.95}); }
+    let stones = ''; for(let i=0;i<70;i++){ const x = R()*1000, y = R()*1000, r = 10+R()*34, s = Math.floor(R()*999);
+      stones += v2Tag('path',{d:v2Blob(x,y,r,s,0.25), fill:cols[Math.floor(R()*cols.length)], stroke:'#1a1410', 'stroke-width':1.2, 'stroke-opacity':0.5}); }
+    let comb = ''; for(let x=0; x<1000; x+=16) comb += `M ${x} -20 L ${x+20} 1020 `;
+    const spine = v2Tag('rect',{x:0, y:0, width:96, height:1000, fill:'url(#calf)'}) + v2Speckle(500, 5, 0, 0, 96, 1000, ['#2a1408','#c8945a'], 0.5, 1.6, 0.1, 0.35)
+      + [140,160,420,440,700,720].map(y=>v2Tag('rect',{x:6, y, width:84, height:3, fill:'#e8c060', opacity:0.85})).join('')
+      + [290,570,850].map(y=>v2Tag('polygon',{points:v2Star5(48,y,14,0), fill:'#e8c060', opacity:0.8})).join('')
+      + v2Tag('rect',{x:96, y:0, width:5, height:1000, fill:'#000', opacity:0.4}) + v2Tag('rect',{x:101, y:0, width:3, height:1000, fill:'#e8c060', opacity:0.55});
+    return [
+      { svg: v2Tag('defs',{}, v2Tag('filter',{id:'mb',x:'-5%',y:'-5%',width:'110%',height:'110%'}, v2Tag('feTurbulence',{type:'fractalNoise', baseFrequency:'0.006 0.014', numOctaves:2, seed:7, result:'n'}) + v2Tag('feDisplacementMap',{in:'SourceGraphic', in2:'n', scale:90, xChannelSelector:'R', yChannelSelector:'G'}))
+            + v2Grad('calf',[['0','#5a3418'],['0.5','#7a4a24'],['1','#3a200c']],'linearGradient',{x1:0,y1:0,x2:1,y2:0}) + v2Grad('vg',[['0.5','#000',0],['1','#000',0.5]],'radialGradient',{}))
+          + v2Tag('rect',{width:1000,height:1000,fill:'#f4ecd8'}) + v2Tag('g',{filter:'url(#mb)'}, bands + stones + v2Tag('path',{d:comb, stroke:'#f4ecd8', 'stroke-width':1.6, opacity:0.35, fill:'none'}))
+          + v2Speckle(1200, 31, 0, 0, 1000, 1000, ['#3a2a10','#fffaf0'], 0.4, 1.1, 0.05, 0.15) + v2Tag('rect',{width:1000,height:1000,fill:'#1a1008',opacity:0.28}) + spine + v2Tag('rect',{width:1000,height:1000,fill:'url(#vg)'}) },
+      { cls:'v2Drift', svg: v2Tag('defs',{}, v2Grad('lt',[['0','#fff4dc',0.12],['1','#fff4dc',0]],'radialGradient',{})) + v2Tag('ellipse',{cx:360, cy:300, rx:520, ry:420, fill:'url(#lt)'}) },
+    ];
+  },
+  arena(svg, defs){
+    v2Arena(svg, defs, { lip:[['0','#fff0b0'],['0.5','#c89a3a'],['1','#5a3a0a']], field:[['0','#22503e'],['0.7','#16382a'],['1','#0c2218']], gloss:0.05, edge:'#fff4c8', edgeOp:0.55,
+      tex(g){ const R = v2Rand(29);
+        let gr = ''; for(let i=0;i<900;i++){ const a = R()*Math.PI*2, r = Math.sqrt(R())*(RIM_R+2); gr += `M ${f1(Math.cos(a)*r)} ${f1(Math.sin(a)*r)} l ${f1(1+R()*2.5)} ${f1(R()*1.2)} `; }
+        el('path',{d:gr, stroke:'#04120c', 'stroke-width':1.2, opacity:0.4, fill:'none', 'stroke-linecap':'round'}, g);
+        [RIM_R-6, RIM_R-10].forEach(r=>el('circle',{r, fill:'none', stroke:'#e8c060', 'stroke-width':r===RIM_R-6?1.6:0.8, opacity:0.75}, g));
+        for(let i=0;i<72;i++){ const a = i/72*Math.PI*2, r = RIM_R-14.5; el('circle',{cx:f1(Math.cos(a)*r), cy:f1(Math.sin(a)*r), r:1.1, fill:'#e8c060', opacity:0.7}, g); }
+        el('circle',{r:44, fill:'none', stroke:'#e8c060', 'stroke-width':1, opacity:0.55}, g);
+        for(let i=0;i<8;i++){ const a = i/8*Math.PI*2; el('polygon',{points:v2Star5(Math.cos(a)*52, Math.sin(a)*52, 3.4, a), fill:'#e8c060', opacity:0.55}, g); } } });
+  },
+  hub(h){ v2HubStd(h, {stops:[['0','#fff6d0'],['0.45','#e0b450'],['1','#5a3a0a']], edge:'#2a1a04', shape:'star8', ring:'#2a1a04'}); },
+  track(g, r, sel, n){ v2TrackStd(g, r, sel, n, { groove:['#020c08','#c8a050',4], line:['#e8c060',1,0.42], mark:['#f0d48a',1.4,2,0.48],
+    sel:{glow:['#ffe08a',14,0.13], under:['#5a3a08',3.6], main:['#ffe08a',2.2], hi:'#fffbe8', edges:['#ffe08a',0.5], mark:['#ffffff',0.9]} }); },
+  beam:{ halo:0.10, haloC:0.17 },
+  rim:{ base:['#2e5e48','#0e2a1e'], seam:'#c89a3a', seamW:1.3, hi:'#fff0b0', edge:'#e8c060', inner:'#e8c060', gap:2.2,
+    deco(rimG, s, n, rIn, rOut, c, t){ if(t) return; const r = (rIn+rOut)/2, st = Math.PI*2/n*0.18;
+      [-1,0,1].forEach(k=>v2RimDot(rimG, c+k*st, r, k ? 0.9 : 1.6, '#e8c060', 0.8)); } },
+};
+
+/* ---- VERDIGRIS -> "Copper Verdigris": an old standing-seam copper roof seen from above -- bright
+   copper where the rain never reached, chalky green-blue patina everywhere else, run-off streaks
+   below the rivets. The board is a hammered bronze plate with patina pooling in its dimples. */
+THEME_V2.verdigris = {
+  id:'verdigris', name:'Copper Verdigris', blurb:'A standing-seam copper roof gone green, and a hammered bronze plate with patina in its dimples.',
+  pal:{ sockHi:'#ffd0a8', sockLo:'#6a2e14', sockIn:'#0a1a18', sockEdge:'#1e0e06' },
+  stageFx:'v2-sheen', swatch:'linear-gradient(135deg,#ffb07a,#b85a2a 40%,#4aa89a 70%,#1e4a44)', badge:{icon:'🪙', color:'#6af0d0'},
+  ui: v2UiMk({ink:[12,24,22], line:'#2e5a52', bright:'#6af0d0', ring:'#e8f4f0', sel:'#6af0d0', t0:'#f4fbf8', t1:'#c0d8d2', t2:'#76948e', accent:'#ffa86a', win:'rgba(106,240,208,.4)', bg:'#1e3a36', font:"'Copperplate','Copperplate Gothic Light','Trebuchet MS',serif"}),
+  env(){
+    const R = v2Rand(97), W = 112;
+    let panels = '', pat = '', streaks = '', rivets = '';
+    for(let i=-1; i*W<1040; i++){ const x = i*W;
+      panels += v2Tag('rect',{x, y:0, width:W, height:1000, fill:'url(#cu)'}) + v2Tag('rect',{x:x+W-9, y:0, width:9, height:1000, fill:'url(#seam)'});
+      for(let k=0;k<9;k++){ const y = R()*1000, r = 30+R()*90; pat += v2Tag('path',{d:v2Blob(x+W/2+(R()-0.5)*W, y, r, Math.floor(R()*999), 0.3), fill:R()<0.5 ? '#4aa89a' : '#6ac0a8', opacity:(0.55+R()*0.4).toFixed(2)}); }
+      for(let y=60; y<1000; y+=170){ const yy = y + (i%2)*40; rivets += v2Tag('circle',{cx:x+W-14, cy:yy, r:5, fill:'url(#rv)'});
+        streaks += v2Tag('ellipse',{cx:x+W-16, cy:yy+70, rx:7, ry:70, fill:'#3a9a88', opacity:0.5}); } }
+    return [
+      { svg: v2Tag('defs',{}, v2Grad('cu',[['0','#d88a5a'],['0.5','#b8683a'],['1','#8a4a24']],'linearGradient',{x1:0,y1:0,x2:1,y2:0}) + v2Grad('seam',[['0','#ffd0a8'],['0.4','#c87a4a'],['1','#3a1a0a']],'linearGradient',{x1:0,y1:0,x2:1,y2:0})
+            + v2Grad('rv',[['0','#ffe0c0'],['1','#5a2a10']],'radialGradient',{cx:'35%',cy:'30%'}) + v2Tag('filter',{id:'tx',x:'-5%',y:'-5%',width:'110%',height:'110%'}, v2Tag('feTurbulence',{type:'fractalNoise', baseFrequency:0.02, numOctaves:3, seed:3, result:'n'}) + v2Tag('feDisplacementMap',{in:'SourceGraphic', in2:'n', scale:40, xChannelSelector:'R', yChannelSelector:'G'}))
+            + v2Grad('vg',[['0.5','#000',0],['1','#000',0.55]],'radialGradient',{}))
+          + v2Tag('rect',{width:1000,height:1000,fill:'#8a4a24'}) + panels + v2Tag('g',{filter:'url(#tx)'}, pat + streaks)
+          + v2Speckle(1400, 11, 0, 0, 1000, 1000, ['#e8fff8','#1e4a40'], 0.6, 2.2, 0.08, 0.3) + rivets + v2Tag('rect',{width:1000,height:1000,fill:'#081a16',opacity:0.3}) + v2Tag('rect',{width:1000,height:1000,fill:'url(#vg)'}) },
+      { cls:'v2Drift', svg: v2Tag('defs',{}, v2Grad('lt',[['0','#ffe0c0',0.14],['1','#ffe0c0',0]],'radialGradient',{})) + v2Tag('ellipse',{cx:340, cy:280, rx:520, ry:400, fill:'url(#lt)'}) },
+    ];
+  },
+  arena(svg, defs){
+    v2Arena(svg, defs, { lip:[['0','#ffd8b0'],['0.45','#c0703a'],['1','#3a1608']], field:[['0','#3c2c22'],['0.7','#2a1e16'],['1','#180f0a']], gloss:0.05, edge:'#ffe0c0', edgeOp:0.5,
+      tex(g){ const R = v2Rand(43);
+        for(let i=0;i<120;i++){ const a = R()*Math.PI*2, r = Math.sqrt(R())*(RIM_R-6), x = Math.cos(a)*r, y = Math.sin(a)*r, d = 5+R()*7;
+          el('circle',{cx:f1(x+1), cy:f1(y+1.2), r:f1(d), fill:'#000', opacity:0.16}, g); el('circle',{cx:f1(x-0.8), cy:f1(y-1), r:f1(d*0.8), fill:'#d8885a', opacity:0.08}, g);
+          if(R()<0.35) el('circle',{cx:f1(x), cy:f1(y), r:f1(d*0.55), fill:'#4aa89a', opacity:0.35}, g); }
+        for(let i=0;i<10;i++){ const a = R()*Math.PI*2, r = 60+R()*170; el('ellipse',{cx:f1(Math.cos(a)*r), cy:f1(Math.sin(a)*r), rx:f1(14+R()*30), ry:f1(8+R()*16), fill:'#4aa89a', opacity:0.16, transform:`rotate(${f1(R()*180)} ${f1(Math.cos(a)*r)} ${f1(Math.sin(a)*r)})`}, g); }
+        el('circle',{r:RIM_R-4, fill:'none', stroke:'#4aa89a', 'stroke-width':5, opacity:0.3}, g); } });
+  },
+  hub(h){ v2HubStd(h, {stops:[['0','#ffe0c0'],['0.45','#c0703a'],['1','#3a1608']], edge:'#1e0e06', shape:'oct', ring:'#4aa89a', dot:'#4aa89a'}); },
+  track(g, r, sel, n){ v2TrackStd(g, r, sel, n, { groove:['#0a0604','#e0a070',4], line:['#e0a070',1,0.38], mark:['#ffd0a8',1.4,2,0.45],
+    sel:{glow:['#6af0d0',14,0.13], under:['#0e3a32',3.6], main:['#6af0d0',2.2], hi:'#e8fff8', edges:['#6af0d0',0.5], mark:['#ffffff',0.9]} }); },
+  beam:{ halo:0.10, haloC:0.17 },
+  rim:{ base:['#5ab8a4','#1e5a50'], alt:[['#62c0ac','#1e5a50'],['#d08050','#6a2e14'],['#4aa89a','#184a42']], seam:'#0e2a26', seamW:1.6, hi:'#e8fff8', edge:'#ffd0a8', inner:'#0e2a26', gap:2.4,
+    fleck:{count:5, colors:['#e8fff8','#2a6a5e'], op:0.45} },
+};
+
+/* ---- CARPET -> "Persian Carpet": a hand-knotted medallion rug seen from above -- a carmine field
+   scattered with small palmettes, an indigo main border of repeating rosettes between ivory guard
+   stripes, soft pile catching the light. The board is the central medallion: an indigo ground ringed
+   with ivory petals and a crown of knots. */
+THEME_V2.carpet = {
+  id:'carpet', name:'Persian Carpet', blurb:'A hand-knotted rug: carmine field, indigo rosette border, and a medallion at its heart.',
+  pal:{ sockHi:'#f4e2b0', sockLo:'#7a1418', sockIn:'#0e1430', sockEdge:'#2a0608' },
+  stageFx:'v2-spot', swatch:'linear-gradient(135deg,#f0dcb0,#a8242a 45%,#22306a)', badge:{icon:'🧶', color:'#ffd27a'},
+  ui: v2UiMk({ink:[30,10,12], line:'#6a2a2a', bright:'#ffd27a', ring:'#f4e6c8', sel:'#ffd27a', t0:'#fff8ec', t1:'#e0ccb0', t2:'#9a7e70', accent:'#ffd27a', win:'rgba(255,210,122,.42)', bg:'#3a0e10', font:"'Palatino Linotype',Palatino,Georgia,serif"}),
+  env(){
+    const R = v2Rand(101);
+    const rosette = (x,y,s,c1,c2)=>{ let o = ''; for(let i=0;i<8;i++){ const a = i/8*Math.PI*2; o += v2Tag('ellipse',{cx:f1(x+Math.cos(a)*7*s), cy:f1(y+Math.sin(a)*7*s), rx:f1(6*s), ry:f1(3*s), fill:c1, transform:`rotate(${f1(a*180/Math.PI)} ${f1(x+Math.cos(a)*7*s)} ${f1(y+Math.sin(a)*7*s)})`}); }
+      return o + v2Tag('circle',{cx:f1(x), cy:f1(y), r:f1(4*s), fill:c2}); };
+    const palm = (x,y,s,c)=>v2Tag('path',{d:`M ${f1(x)} ${f1(y-12*s)} Q ${f1(x+10*s)} ${f1(y-4*s)} ${f1(x+6*s)} ${f1(y+8*s)} L ${f1(x)} ${f1(y+4*s)} L ${f1(x-6*s)} ${f1(y+8*s)} Q ${f1(x-10*s)} ${f1(y-4*s)} ${f1(x)} ${f1(y-12*s)} Z`, fill:c});
+    let field = '';
+    for(let j=0, y=150; y<870; y+=46, j++) for(let i=0, x=150; x<870; x+=46, i++){ const o = j%2 ? 23 : 0; if(x+o>860) continue;
+      field += ((i+j)%2 ? palm(x+o, y, 1, j%4<2 ? '#f0dcb0' : '#2a3a7a') : rosette(x+o, y, 0.9, '#e8a040', '#22306a')); }
+    // lattice of fine stems
+    let st = ''; for(let k=-1000; k<2000; k+=92) st += `M ${k} 120 L ${k+780} 900 M ${k} 900 L ${k+780} 120 `;
+    const band = (inset, w, fill)=>v2Tag('rect',{x:inset, y:inset, width:1000-inset*2, height:1000-inset*2, fill:'none', stroke:fill, 'stroke-width':w});
+    let border = band(36, 24, '#f0dcb0') + band(78, 60, '#22306a') + band(118, 10, '#f0dcb0') + band(130, 8, '#e8a040');
+    for(let i=0;i<20;i++){ const t = 78 + i*(844/19); [[t,78],[t,922],[78,t],[922,t]].forEach(([x,y])=>border += rosette(x, y, 1.5, '#c8323a', '#f0dcb0')); }
+    for(let i=0;i<60;i++){ const t = 36 + i*(928/59); [[t,36],[t,964],[36,t],[964,t]].forEach(([x,y])=>border += v2Tag('rect',{x:f1(x-4), y:f1(y-4), width:8, height:8, fill:'#22306a', transform:`rotate(45 ${f1(x)} ${f1(y)})`})); }
+    const corners = [[150,150],[850,150],[150,850],[850,850]].map(([x,y])=>v2Tag('path',{d:v2Blob(x,y,70,x+y,0.1), fill:'#22306a', opacity:0.85}) + rosette(x, y, 2.2, '#e8a040', '#f0dcb0')).join('');
+    return [
+      { svg: v2Tag('defs',{}, v2Grad('vg',[['0.5','#000',0],['1','#000',0.55]],'radialGradient',{}) + v2Grad('nap',[['0','#ffffff',0.08],['0.5','#ffffff',0],['1','#000',0.22]],'linearGradient',{x1:0,y1:0,x2:1,y2:1}))
+          + v2Tag('rect',{width:1000,height:1000,fill:'#a8242a'}) + v2Tag('path',{d:st, stroke:'#6a1418', 'stroke-width':2, opacity:0.5, fill:'none'}) + field + corners + border
+          + v2Speckle(5000, 13, 0, 0, 1000, 1000, ['#000000','#ffe8d0'], 0.5, 1.3, 0.06, 0.2)
+          + v2Tag('rect',{width:1000,height:1000,fill:'url(#nap)'}) + v2Tag('rect',{width:1000,height:1000,fill:'#1a0406',opacity:0.28}) + v2Tag('rect',{width:1000,height:1000,fill:'url(#vg)'}) },
+      { cls:'v2Drift', svg: v2Tag('defs',{}, v2Grad('lt',[['0','#fff0d0',0.12],['1','#fff0d0',0]],'radialGradient',{})) + v2Tag('ellipse',{cx:380, cy:320, rx:520, ry:420, fill:'url(#lt)'}) },
+    ];
+  },
+  arena(svg, defs){
+    v2Arena(svg, defs, { lip:[['0','#f8e8c0'],['0.5','#c8963a'],['1','#5a3008']], field:[['0','#26346e'],['0.7','#1c2858'],['1','#121a3e']], edge:'#fff0d0', edgeOp:0.5, shadow:0.6,
+      tex(g){ const R = v2Rand(57);
+        for(let i=0;i<24;i++){ const a = i/24*Math.PI*2 - Math.PI/2, x = Math.cos(a)*(RIM_R-26), y = Math.sin(a)*(RIM_R-26);
+          el('path',{d:`M ${f1(Math.cos(a)*(RIM_R-6))} ${f1(Math.sin(a)*(RIM_R-6))} Q ${f1(x+Math.cos(a+1.6)*10)} ${f1(y+Math.sin(a+1.6)*10)} ${f1(Math.cos(a)*(RIM_R-44))} ${f1(Math.sin(a)*(RIM_R-44))} Q ${f1(x+Math.cos(a-1.6)*10)} ${f1(y+Math.sin(a-1.6)*10)} ${f1(Math.cos(a)*(RIM_R-6))} ${f1(Math.sin(a)*(RIM_R-6))} Z`, fill:i%2 ? '#f0dcb0' : '#a8242a', opacity:0.22}, g); }
+        for(let i=0;i<96;i++){ const a = i/96*Math.PI*2; el('rect',{x:f1(Math.cos(a)*(RIM_R-3)-2), y:f1(Math.sin(a)*(RIM_R-3)-2), width:4, height:4, fill:i%2 ? '#e8a040' : '#f0dcb0', opacity:0.55, transform:`rotate(45 ${f1(Math.cos(a)*(RIM_R-3))} ${f1(Math.sin(a)*(RIM_R-3))})`}, g); }
+        let d = ''; for(let i=0;i<2600;i++){ const a = R()*Math.PI*2, r = Math.sqrt(R())*(RIM_R-2); d += `M ${f1(Math.cos(a)*r)} ${f1(Math.sin(a)*r)} l 0.9 0.9 `; }
+        el('path',{d, stroke:'#000', 'stroke-width':1.3, opacity:0.22, fill:'none'}, g);
+        el('circle',{r:52, fill:'none', stroke:'#f0dcb0', 'stroke-width':3, opacity:0.3}, g); } });
+  },
+  hub(h){ v2HubStd(h, {stops:[['0','#fff4dc'],['0.4','#e8a040'],['1','#7a1418']], edge:'#2a0608', shape:'star8', ring:'#2a0608'}); },
+  track(g, r, sel, n){ v2TrackStd(g, r, sel, n, { groove:['#060a1e','#c8a070',4], line:['#f0dcb0',1,0.4], mark:['#f4e6c8',1.4,2,0.46],
+    sel:{glow:['#ffd27a',14,0.13], under:['#5a1a08',3.6], main:['#ffd27a',2.2], hi:'#fff8e0', edges:['#ffd27a',0.5], mark:['#ffffff',0.9]} }); },
+  beam:{ halo:0.10, haloC:0.17 },
+  rim:{ base:['#b02a2e','#5a0e10'], alt:[['#b02a2e','#5a0e10'],['#2a3a7a','#121a40']], seam:'#f0dcb0', seamW:1.3, hi:'#ffe8d0', edge:'#f0dcb0', inner:'#f0dcb0', gap:2.2,
+    deco(rimG, s, n, rIn, rOut, c, t){ if(t) return; const r = (rIn+rOut)/2, x = Math.cos(c)*r, y = Math.sin(c)*r;
+      el('rect',{x:f1(x-2.6), y:f1(y-2.6), width:5.2, height:5.2, fill:'#f0dcb0', opacity:0.8, transform:`rotate(${f1(c*180/Math.PI+45)} ${f1(x)} ${f1(y)})`}, rimG); } },
+};
+
+/* ---- CURLING -> "Curling Sheet": pebbled ice under arena lights -- the painted house (blue twelve-foot,
+   red four-foot), the tee and centre lines, a few red- and yellow-handled stones and their curling skid
+   marks. The board is a polished granite stone seen from above, its handle as the hub. */
+THEME_V2.curling = {
+  id:'curling', name:'Curling Sheet', blurb:'Pebbled ice with the painted house, and a polished granite curling stone for the board.',
+  pal:{ sockHi:'#f4f8fc', sockLo:'#4a525c', sockIn:'#0e1218', sockEdge:'#0a0c10' },
+  stageFx:'v2-gloss', swatch:'linear-gradient(135deg,#f4f8fc,#3a7ad8 40%,#d8302a 70%,#3a3f46)', badge:{icon:'🥌', color:'#ff6a5a'},
+  ui: v2UiMk({ink:[14,20,30], line:'#3a4a62', bright:'#ff6a5a', ring:'#eef4fa', sel:'#ff6a5a', t0:'#ffffff', t1:'#c8d4e2', t2:'#7a8aa0', accent:'#ff6a5a', win:'rgba(200,230,255,.45)', bg:'#a8bccc', font:"'Bahnschrift','DIN Alternate','Segoe UI',sans-serif"}),
+  env(){
+    const cx = 500, cy = 500;
+    const house = [[470,'#2a6ad0'],[318,'#eef4fa'],[170,'#d8302a'],[60,'#eef4fa']].map(([r,c])=>v2Tag('circle',{cx, cy, r, fill:c, opacity:c==='#eef4fa'?1:0.6})).join('')
+      + v2Tag('path',{d:`M 0 ${cy} L 1000 ${cy} M ${cx} 0 L ${cx} 1000`, stroke:'#1a2a4a', 'stroke-width':3, opacity:0.55})
+      + v2Tag('rect',{x:0, y:40, width:1000, height:12, fill:'#d8302a', opacity:0.7}) + v2Tag('rect',{x:0, y:950, width:1000, height:12, fill:'#1a2a4a', opacity:0.4});
+    const stone = (x,y,c,rot)=>v2Tag('ellipse',{cx:x+8, cy:y+12, rx:58, ry:56, fill:'#1a2a40', opacity:0.25}) + v2Tag('circle',{cx:x, cy:y, r:56, fill:'url(#gr)'}) + v2Tag('circle',{cx:x, cy:y, r:56, fill:'url(#gs)'})
+      + v2Tag('circle',{cx:x, cy:y, r:46, fill:'none', stroke:'#c8d0d8', 'stroke-width':2, opacity:0.6}) + v2Tag('circle',{cx:x, cy:y, r:22, fill:c})
+      + v2Tag('rect',{x:x-8, y:y-40, width:16, height:56, rx:7, fill:c, stroke:'#000', 'stroke-opacity':0.3, transform:`rotate(${rot} ${x} ${y})`})
+      + v2Tag('ellipse',{cx:x-16, cy:y-20, rx:16, ry:7, fill:'#ffffff', opacity:0.35, transform:`rotate(-35 ${x-16} ${y-20})`});
+    let skid = ''; [[60,980,880,120],[180,1000,770,40],[940,1000,140,90]].forEach(([x0,y0,x1,y1],i)=>{ skid += v2Tag('path',{d:`M ${x0} ${y0} Q ${f1((x0+x1)/2 + (i%2?-180:180))} ${f1((y0+y1)/2)} ${x1} ${y1}`, fill:'none', stroke:'#8aa0b8', 'stroke-width':30, opacity:0.12}); });
+    const frost = seed=>{ const Q = v2Rand(seed); let s = ''; for(let i=0;i<30;i++){ const x = Q()*1000, y = Q()*1000, L = 3+Q()*5;
+      s += v2Tag('path',{d:`M ${f1(x-L)} ${f1(y)} L ${f1(x+L)} ${f1(y)} M ${f1(x)} ${f1(y-L)} L ${f1(x)} ${f1(y+L)}`, stroke:'#ffffff', 'stroke-width':1.2, opacity:0.9}); } return s; };
+    return [
+      { svg: v2Tag('defs',{}, v2Grad('ice',[['0','#f4f9fd'],['0.6','#dfeaf3'],['1','#c4d6e4']],'radialGradient',{cx:0.4,cy:0.35,r:0.8}) + v2Grad('gr',[['0','#8a929c'],['0.7','#5a626c'],['1','#3a4048']],'radialGradient',{cx:'40%',cy:'38%'})
+            + v2Grad('gs',[['0.8','#ffffff',0],['0.92','#e8eef4',0.5],['1','#ffffff',0]],'radialGradient',{}) + v2Grad('vg',[['0.55','#1a2a40',0],['1','#1a2a40',0.45]],'radialGradient',{}))
+          + v2Tag('rect',{width:1000,height:1000,fill:'url(#ice)'}) + house + v2Speckle(5000, 17, 0, 0, 1000, 1000, ['#ffffff','#9ab0c4'], 0.6, 1.8, 0.15, 0.45) + skid
+          + stone(130,210,'#d8302a',30) + stone(860,820,'#f0c020',-60) + stone(880,250,'#f0c020',80) + stone(150,820,'#d8302a',-20)
+          + v2Tag('rect',{width:1000,height:1000,fill:'#1a2a40',opacity:0.12}) + v2Tag('rect',{width:1000,height:1000,fill:'url(#vg)'}) },
+      { cls:'v2Twinkle', svg: frost(3) },
+      { cls:'v2Twinkle2', svg: frost(19) },
+    ];
+  },
+  arena(svg, defs){
+    v2Arena(svg, defs, { lip:[['0','#f2f6fa'],['0.45','#9aa4ae'],['1','#2a3036']], field:[['0','#3e434a'],['0.7','#2e3238'],['1','#1e2226']], gloss:0.07, edge:'#ffffff', edgeOp:0.6,
+      tex(g){ const R = v2Rand(33); let lt = '', dk = '';
+        for(let i=0;i<2200;i++){ const a = R()*Math.PI*2, r = Math.sqrt(R())*(RIM_R+2), s = `M ${f1(Math.cos(a)*r)} ${f1(Math.sin(a)*r)} l ${f1(0.8+R()*1.4)} ${f1(R()*1.2)} `; if(R()<0.4) lt += s; else dk += s; }
+        el('path',{d:lt, stroke:'#c8ccd2', 'stroke-width':1.5, opacity:0.22, fill:'none', 'stroke-linecap':'round'}, g);
+        el('path',{d:dk, stroke:'#0a0c0e', 'stroke-width':1.6, opacity:0.35, fill:'none', 'stroke-linecap':'round'}, g);
+        el('circle',{r:RIM_R-8, fill:'none', stroke:'#c8d0d8', 'stroke-width':6, opacity:0.12}, g);
+        el('circle',{r:RIM_R-12, fill:'none', stroke:'#c8d0d8', 'stroke-width':1, opacity:0.3}, g); } });
+  },
+  hub(h){ v2HubStd(h, {stops:[['0','#ffb8a8'],['0.45','#d8302a'],['1','#5a0a08']], edge:'#2a0404', shape:'square', ring:'#ffd0c8'}); },
+  track(g, r, sel, n){ v2TrackStd(g, r, sel, n, { groove:['#08090b','#c8d0d8',4], line:['#d8e0e8',1,0.38], mark:['#f4f8fc',1.4,2,0.45],
+    sel:{glow:['#ff6a5a',14,0.13], under:['#4a0e08',3.6], main:['#ff8a7a',2.2], hi:'#fff0ec', edges:['#ff6a5a',0.5], mark:['#ffffff',0.9]} }); },
+  beam:{ halo:0.10, haloC:0.17 },
+  rim:{ base:['#3a7ad8','#163a7a'], alt:[['#3a7ad8','#163a7a'],['#4a86e0','#1a428a']], seam:'#f4f8fc', seamW:1.4, hi:'#ffffff', edge:'#f4f8fc', inner:'#f4f8fc', gap:2.2,
+    deco(rimG, s, n, rIn, rOut, c, t){ if(t) return; const r = (rIn+rOut)/2, st = Math.PI*2/n*0.32;
+      el('path',{d:`M ${f1(Math.cos(c-st)*r)} ${f1(Math.sin(c-st)*r)} A ${f1(r)} ${f1(r)} 0 0 1 ${f1(Math.cos(c+st)*r)} ${f1(Math.sin(c+st)*r)}`, fill:'none', stroke:'#ffffff', 'stroke-width':1, opacity:0.35}, rimG); } },
+};
+
+/* ---- LIDO -> "Lido Pool": the floor of an outdoor pool seen from above -- small aqua mosaic tiles, a
+   navy lane line with its T-end, white stone coping at the top edge, and sunlight caustics sliding across
+   everything. The board is the deep-end drain medallion: dark teal tiles in a white coping ring. */
+THEME_V2.lido = {
+  id:'lido', name:'Lido Pool', blurb:'Aqua mosaic tiles, a navy lane line and moving sunlight caustics around a deep-end medallion.',
+  pal:{ sockHi:'#ffffff', sockLo:'#3a7a8a', sockIn:'#041a20', sockEdge:'#062a32' },
+  stageFx:'v2-gloss', swatch:'linear-gradient(135deg,#bff0f4,#2ab0c0 45%,#0a3644)', badge:{icon:'🏊', color:'#ffe680'},
+  ui: v2UiMk({ink:[6,30,38], line:'#2a6a78', bright:'#bff0f4', ring:'#effcfd', sel:'#ffe680', t0:'#ffffff', t1:'#c8eaee', t2:'#78a8b0', accent:'#ffe680', win:'rgba(191,240,244,.45)', bg:'#1a7a8a', font:"'Avenir Next','Avenir','Segoe UI',sans-serif"}),
+  env(){
+    const R = v2Rand(113), T = 22, aq = ['#3cc0cc','#36b4c2','#44c8d2','#2eaab8','#4cd0d8','#38bac6'];
+    let tiles = '';
+    for(let y=0; y<1000; y+=T) for(let x=0; x<1000; x+=T){ const lane = x>=434 && x<566 && y>110 && y<940, tee = y>=860 && y<940 && x>=346 && x<654;
+      tiles += v2Tag('rect',{x:x+1, y:y+1, width:T-2, height:T-2, rx:2, fill:(lane||tee) ? (R()<0.5 ? '#16306a' : '#1a3a7a') : aq[Math.floor(R()*aq.length)]}); }
+    const coping = v2Tag('rect',{x:0, y:0, width:1000, height:96, fill:'url(#cp)'}) + v2Tag('rect',{x:0, y:96, width:1000, height:10, fill:'#0a3a44', opacity:0.5})
+      + v2Speckle(500, 9, 0, 0, 1000, 92, ['#c8c0b0','#ffffff'], 0.6, 1.8, 0.2, 0.5) + [0,250,500,750].map(x=>v2Tag('rect',{x, y:0, width:2, height:94, fill:'#a89e8e', opacity:0.6})).join('')
+      + v2Tag('rect',{x:840, y:30, width:110, height:40, rx:4, fill:'#d8d4cc', stroke:'#8a8478', 'stroke-width':2}) + [0,1,2,3,4,5,6,7].map(k=>v2Tag('rect',{x:850+k*12.5, y:36, width:5, height:28, fill:'#5a564e', opacity:0.7})).join('');
+    const caustic = (seed, op)=>{ const Q = v2Rand(seed); let s = '';
+      for(let y=-40; y<1060; y+=70) for(let x=-40; x<1060; x+=78){ const xx = x + (Q()-0.5)*40, yy = y + (Q()-0.5)*40; s += v2Tag('path',{d:v2Blob(xx, yy, 30+Q()*14, Math.floor(Q()*999), 0.32), fill:'none', stroke:'#ffffff', 'stroke-width':f1(2+Q()*3), opacity:op}); }
+      return v2Tag('defs',{}, v2Tag('filter',{id:'cb'+seed,x:'-10%',y:'-10%',width:'120%',height:'120%'}, v2Tag('feGaussianBlur',{stdDeviation:2}))) + v2Tag('g',{filter:`url(#cb${seed})`}, s); };
+    return [
+      { svg: v2Tag('defs',{}, v2Grad('cp',[['0','#f4f0e8'],['1','#d0c8b8']],'linearGradient',{x1:0,y1:0,x2:0,y2:1}) + v2Grad('dp',[['0','#000',0],['1','#062a40',0.4]],'linearGradient',{x1:0,y1:0,x2:0,y2:1}) + v2Grad('vg',[['0.55','#002030',0],['1','#002030',0.5]],'radialGradient',{}))
+          + v2Tag('rect',{width:1000,height:1000,fill:'#e8f4f4'}) + tiles + v2Tag('rect',{width:1000,height:1000,fill:'url(#dp)'}) + coping + v2Tag('rect',{width:1000,height:1000,fill:'url(#vg)'}) },
+      { cls:'v2Slide', svg: caustic(5, 0.42) },
+      { cls:'v2Drift', svg: caustic(23, 0.22) },
+    ];
+  },
+  arena(svg, defs){
+    v2Arena(svg, defs, { lip:[['0','#ffffff'],['0.45','#d8d4cc'],['1','#6a7a7e']], field:[['0','#0e4048'],['0.7','#0a3038'],['1','#061e24']], edge:'#ffffff', edgeOp:0.7, gloss:0.06,
+      tex(g){ const R = v2Rand(61), T = 11; let d = '';
+        for(let v=-RIM_R; v<=RIM_R; v+=T) d += `M ${v} ${-RIM_R} L ${v} ${RIM_R} M ${-RIM_R} ${v} L ${RIM_R} ${v} `;
+        for(let i=0;i<260;i++){ const x = Math.floor((R()-0.5)*2*RIM_R/T)*T, y = Math.floor((R()-0.5)*2*RIM_R/T)*T; el('rect',{x, y, width:T, height:T, fill:R()<0.5 ? '#14525c' : '#082830', opacity:0.55}, g); }
+        el('path',{d, stroke:'#8ad8e0', 'stroke-width':0.8, opacity:0.14}, g);
+        el('circle',{r:RIM_R-6, fill:'none', stroke:'#16306a', 'stroke-width':8, opacity:0.55}, g);
+        let w = ''; for(let i=0;i<40;i++){ const a = R()*Math.PI*2, r = 40+R()*170; w += `M ${f1(Math.cos(a)*r)} ${f1(Math.sin(a)*r)} q ${f1(8+R()*10)} ${f1(-6)} ${f1(18+R()*14)} ${f1(R()*4)} `; }
+        el('path',{d:w, stroke:'#bff0f4', 'stroke-width':1.6, opacity:0.12, fill:'none', 'stroke-linecap':'round'}, g); } });
+  },
+  hub(h){ v2HubStd(h, {stops:[['0','#ffffff'],['0.45','#b8c8cc'],['1','#3a4a50']], edge:'#062a32', ring:'#062a32', dot:'#0a3038'}); },
+  track(g, r, sel, n){ v2TrackStd(g, r, sel, n, { groove:['#021418','#8ad8e0',4], line:['#bff0f4',1,0.4], mark:['#effcfd',1.4,2,0.46],
+    sel:{glow:['#ffe680',14,0.13], under:['#3a3008',3.6], main:['#ffe680',2.2], hi:'#fffbe8', edges:['#ffe680',0.5], mark:['#ffffff',0.9]} }); },
+  beam:{ halo:0.10, haloC:0.17 },
+  rim:{ base:['#2a9aa8','#0e4a58'], alt:[['#2a9aa8','#0e4a58'],['#34a8b6','#105462'],['#1e3a7a','#0e1e48']], seam:'#e8f6f8', seamW:1.6, hi:'#ffffff', edge:'#ffffff', inner:'#e8f6f8', gap:2.4 },
+};
+
+/* ---- CHALK -> "Chalkboard": a green-black slate in a classroom -- chalk geometry (a circle and its
+   radius, a triangle with angle arcs, a parabola), equations, half-erased smudges, and the wooden chalk
+   ledge with sticks and a felt eraser along the bottom. The board is a darker slate disc drawn with a
+   chalk compass. */
+THEME_V2.chalk = {
+  id:'chalk', name:'Chalkboard', blurb:'Chalk geometry and half-erased equations on a green slate, above a wooden ledge of chalk sticks.',
+  pal:{ sockHi:'#f4f4ee', sockLo:'#4a5a50', sockIn:'#0a120e', sockEdge:'#0a100c' },
+  stageFx:'', swatch:'linear-gradient(135deg,#f4f4ee,#2a3a32 45%,#ffe86a)', badge:{icon:'✏️', color:'#ffe86a'},
+  ui: v2UiMk({ink:[14,22,18], line:'#3a4e44', bright:'#ffe86a', ring:'#f0f2ec', sel:'#ffe86a', t0:'#ffffff', t1:'#cdd6cf', t2:'#83928a', accent:'#ffe86a', win:'rgba(255,255,240,.4)', bg:'#1e2a24', font:"'Segoe Print','Bradley Hand','Comic Sans MS',cursive"}),
+  env(){
+    const R = v2Rand(127), ch = (d,w,op,c)=>v2Tag('path',{d, fill:'none', stroke:c||'#f0f2ec', 'stroke-width':w||3, opacity:op==null?0.6:op, 'stroke-linecap':'round', 'stroke-linejoin':'round'});
+    const tx = (x,y,s,t,rot,c)=>v2Tag('text',{x, y, 'font-family':"'Segoe Print','Bradley Hand','Comic Sans MS',cursive", 'font-size':s, fill:c||'#f0f2ec', opacity:0.6, transform:rot?`rotate(${rot} ${x} ${y})`:''}, t);
+    let smudge = ''; for(let i=0;i<9;i++) smudge += v2Tag('ellipse',{cx:f1(R()*1000), cy:f1(R()*860), rx:f1(90+R()*160), ry:f1(40+R()*70), fill:'#c8d4cc', opacity:(0.04+R()*0.05).toFixed(3), transform:`rotate(${f1(R()*40-20)} 500 500)`});
+    let wob = ''; for(let i=0;i<=60;i++){ const a = i/60*Math.PI*2, r = 92 + Math.sin(a*3)*1.5; wob += (i?'L ':'M ')+f1(170+Math.cos(a)*r)+' '+f1(180+Math.sin(a)*r)+' '; }
+    const art = ch(wob) + ch('M 170 180 L 252 135', 2.5) + tx(200,148,22,'r') + v2Tag('circle',{cx:170, cy:180, r:4, fill:'#f0f2ec', opacity:0.7})
+      + ch('M 730 120 L 900 300 L 680 300 Z') + ch('M 700 300 A 22 22 0 0 0 694 284', 2) + ch('M 878 300 A 24 24 0 0 1 884 278', 2, 0.6, '#ffe86a') + tx(700,340,20,'a² + b² = c²',0)
+      + ch('M 60 640 Q 180 380 300 640', 2.5, 0.55, '#8ad8ff') + ch('M 40 640 L 330 640 M 180 660 L 180 380', 2, 0.45) + tx(210,410,20,'y = x²',0,'#8ad8ff')
+      + tx(720,560,24,'π ≈ 3.14159') + tx(700,620,22,'sin θ = o / h',-3) + tx(60,90,22,'∠ABC = 60°',-2,'#ffb0c8') + ch('M 690 650 L 900 640', 1.6, 0.4)
+      + tx(380,820,18,'360° ÷ n',-4,'#ffe86a');
+    const ledge = v2Tag('rect',{x:0, y:912, width:1000, height:88, fill:'url(#wd)'}) + v2Tag('rect',{x:0, y:906, width:1000, height:8, fill:'#000', opacity:0.4})
+      + [[120,'#f4f4ee'],[180,'#ffe86a'],[250,'#ffb0c8'],[660,'#8ad8ff'],[720,'#f4f4ee']].map(([x,c],i)=>v2Tag('rect',{x, y:936, width:58, height:12, rx:6, fill:c, transform:`rotate(${i%2?-6:4} ${x+29} 942)`})).join('')
+      + v2Tag('rect',{x:400, y:922, width:150, height:48, rx:6, fill:'#6a4a2a'}) + v2Tag('rect',{x:400, y:950, width:150, height:20, rx:4, fill:'#3a3a40'}) + v2Speckle(200, 4, 0, 960, 1000, 40, ['#f4f4ee'], 0.5, 1.4, 0.2, 0.5);
+    const dust = seed=>v2Speckle(60, seed, 0, 0, 1000, 900, ['#ffffff'], 0.6, 1.6, 0.2, 0.6);
+    return [
+      { svg: v2Tag('defs',{}, v2Grad('sl',[['0','#2e4038'],['1','#1a2620']],'radialGradient',{cx:0.4,cy:0.35,r:0.8}) + v2Grad('wd',[['0','#b8844a'],['0.5','#8a5a2a'],['1','#4a2a10']],'linearGradient',{x1:0,y1:0,x2:0,y2:1}) + v2Grad('vg',[['0.5','#000',0],['1','#000',0.55]],'radialGradient',{}))
+          + v2Tag('rect',{width:1000,height:1000,fill:'url(#sl)'}) + v2Speckle(2400, 23, 0, 0, 1000, 910, ['#ffffff','#000000'], 0.4, 1.2, 0.04, 0.12) + smudge + art + ledge + v2Tag('rect',{width:1000,height:1000,fill:'url(#vg)'}) },
+      { cls:'v2Twinkle', svg: dust(7) },
+      { cls:'v2Drift', svg: v2Tag('defs',{}, v2Grad('lt',[['0','#fffaf0',0.08],['1','#fffaf0',0]],'radialGradient',{})) + v2Tag('ellipse',{cx:360, cy:300, rx:520, ry:420, fill:'url(#lt)'}) },
+    ];
+  },
+  arena(svg, defs){
+    v2Arena(svg, defs, { lip:[['0','#e0b070'],['0.5','#a06a30'],['1','#3a2008']], field:[['0','#283830'],['0.7','#1c2822'],['1','#121a16']], edge:'#ffe0b0', edgeOp:0.4,
+      tex(g){ const R = v2Rand(19);
+        for(let i=0;i<6;i++) el('ellipse',{cx:f1((R()-0.5)*300), cy:f1((R()-0.5)*300), rx:f1(60+R()*90), ry:f1(24+R()*40), fill:'#c8d4cc', opacity:0.05, transform:`rotate(${f1(R()*180)})`}, g);
+        [RIM_R-6, RIM_R-12].forEach((r0,k)=>{ let d = ''; for(let i=0;i<=72;i++){ const a = i/72*Math.PI*2, r = r0 + Math.sin(a*4+k)*0.9 + (R()-0.5)*0.6; d += (i?'L ':'M ')+f1(Math.cos(a)*r)+' '+f1(Math.sin(a)*r)+' '; }
+          el('path',{d, fill:'none', stroke:'#f0f2ec', 'stroke-width':k?1.2:2, opacity:k?0.25:0.4, 'stroke-linecap':'round'}, g); });
+        let t = ''; for(let i=0;i<36;i++){ const a = i/36*Math.PI*2, L = i%9===0 ? 10 : 5; t += `M ${f1(Math.cos(a)*(RIM_R-14))} ${f1(Math.sin(a)*(RIM_R-14))} L ${f1(Math.cos(a)*(RIM_R-14-L))} ${f1(Math.sin(a)*(RIM_R-14-L))} `; }
+        el('path',{d:t, stroke:'#f0f2ec', 'stroke-width':1.4, opacity:0.32, 'stroke-linecap':'round'}, g);
+        el('circle',{r:3, fill:'#f0f2ec', opacity:0.4}, g); } });
+  },
+  hub(h){ v2HubStd(h, {stops:[['0','#ffffff'],['0.5','#e0e4dc'],['1','#7a847c']], edge:'#1a2420', ring:'#1a2420'}); },
+  track(g, r, sel, n){
+    if(sel){
+      el('circle',{r, fill:'none', stroke:'#ffe86a', 'stroke-width':14, opacity:0.12}, g);
+      el('circle',{r, fill:'none', stroke:'#2a2a10', 'stroke-width':3.8, opacity:0.8}, g);
+      el('circle',{r, fill:'none', stroke:'#ffe86a', 'stroke-width':2.4, opacity:0.95, 'stroke-dasharray':'28 3 14 2', 'stroke-linecap':'round'}, g);
+      v2SlotMarks(g, r, n, 3, '#ffffff', 0.9, 2.2);
+    } else {
+      v2Groove(g, r, 4, '#050806', '#a8b4ac', 0.5, 0.22);
+      el('circle',{r, fill:'none', stroke:'#f0f2ec', 'stroke-width':1.4, opacity:0.4, 'stroke-dasharray':'22 2 9 3', 'stroke-linecap':'round'}, g);
+      v2SlotMarks(g, r, n, 2.2, '#f0f2ec', 0.45, 1.8);
+    }
+  },
+  beam:{ halo:0.10, haloC:0.17 },
+  rim:{ base:['#34463c','#16201a'], seam:'#a06a30', seamW:1.6, hi:'#c8d4cc', edge:'#e0b070', inner:'#a06a30', gap:2.4,
+    deco(rimG, s, n, rIn, rOut, c, t){ if(t) return; const st = Math.PI*2/n*0.07;
+      for(let k=-2;k<=2;k++){ const a = c + k*st; el('line',{x1:f1(Math.cos(a)*(rIn+4)), y1:f1(Math.sin(a)*(rIn+4)), x2:f1(Math.cos(a+0.006)*(rOut-4)), y2:f1(Math.sin(a+0.006)*(rOut-4)), stroke:'#f0f2ec', 'stroke-width':1.2, opacity:0.45, 'stroke-linecap':'round'}, rimG); } } },
+};
+
+/* ---- TOPO -> "Topographic Map": a folded survey sheet -- brown contour lines climbing three summits
+   (every fifth one heavier, with spot heights), a blue lake and rivers, green woodland tint, the blue
+   kilometre grid. The board is a field compass: a black dial with a luminous bezel and degree ring. */
+THEME_V2.topo = {
+  id:'topo', name:'Topographic Map', blurb:'Contour lines, a lake and rivers on a folded survey sheet, under a luminous field compass.',
+  pal:{ sockHi:'#f0e8cc', sockLo:'#4a4a3a', sockIn:'#0a0c0e', sockEdge:'#0e1008' },
+  stageFx:'', swatch:'linear-gradient(135deg,#f0e8cc,#8a6a3a 40%,#3a7a4a 65%,#1e2428)', badge:{icon:'🗺️', color:'#a8ff8a'},
+  ui: v2UiMk({ink:[16,18,14], line:'#4a5040', bright:'#a8ff8a', ring:'#f0ecdc', sel:'#a8ff8a', t0:'#fffcf0', t1:'#d8d4c0', t2:'#8a8a74', accent:'#ff8a3a', win:'rgba(168,255,138,.38)', bg:'#3a3a2e', font:"'Gill Sans','Gill Sans MT','Segoe UI',sans-serif"}),
+  env(){
+    const R = v2Rand(139), br = '#9a5a24';
+    const peaks = [[260,300,330,4,1243],[760,260,260,11,986],[640,760,300,17,1108]];
+    let wood = ''; for(let i=0;i<7;i++) wood += v2Tag('path',{d:v2Blob(R()*1000, R()*1000, 70+R()*120, Math.floor(R()*999), 0.35), fill:'#b8d8a0', opacity:0.55});
+    let con = '';
+    peaks.forEach(([x,y,r0,s,h])=>{ for(let k=0, r=r0; r>10; r-=17, k++){ con += v2Tag('path',{d:v2Blob(x + (r0-r)*0.12, y - (r0-r)*0.08, r, s, 0.16), fill:'none', stroke:br, 'stroke-width':k%5===0 ? 2.2 : 1, opacity:k%5===0 ? 0.75 : 0.5}); }
+      con += v2Tag('path',{d:`M ${x+r0*0.12-6} ${y-r0*0.08} l 6 -10 l 6 10 z`, fill:'#4a2a10', opacity:0.8}) + v2Tag('text',{x:x+r0*0.12+10, y:y-r0*0.08+4, 'font-family':'Gill Sans,Segoe UI,sans-serif', 'font-size':15, fill:'#4a2a10', opacity:0.8}, String(h)); });
+    const lake = v2Tag('path',{d:v2Blob(140,820,90,31,0.3), fill:'#9ad0ee'}) + v2Tag('path',{d:v2Blob(140,820,90,31,0.3), fill:'none', stroke:'#2a7ac0', 'stroke-width':1.6})
+      + v2Tag('text',{x:110, y:826, 'font-family':'Georgia,serif', 'font-style':'italic', 'font-size':16, fill:'#1a5a9a', opacity:0.85}, 'Lake');
+    const river = v2Tag('path',{d:'M 210 760 C 330 700 380 560 470 520 S 560 380 690 410 S 860 470 1000 420', fill:'none', stroke:'#2a7ac0', 'stroke-width':3, opacity:0.75})
+      + v2Tag('path',{d:'M 470 520 C 460 640 520 720 500 1000', fill:'none', stroke:'#2a7ac0', 'stroke-width':1.8, opacity:0.65});
+    let grid = ''; for(let v=0; v<=1000; v+=125) grid += `M ${v} 0 L ${v} 1000 M 0 ${v} L 1000 ${v} `;
+    const trail = v2Tag('path',{d:'M 0 120 C 160 160 220 360 380 420 S 560 600 820 640 S 940 900 1000 960', fill:'none', stroke:'#c0302a', 'stroke-width':2, 'stroke-dasharray':'8 6', opacity:0.65});
+    const folds = [500].map(x=>v2Tag('rect',{x:x-1, y:0, width:2, height:1000, fill:'#000', opacity:0.12}) + v2Tag('rect',{x:0, y:x-1, width:1000, height:2, fill:'#000', opacity:0.12})).join('');
+    return [
+      { svg: v2Tag('defs',{}, v2Grad('pp',[['0','#f6f0da'],['1','#e2d8b8']],'radialGradient',{cx:0.4,cy:0.35,r:0.8}) + v2Grad('vg',[['0.4','#1a1408',0],['1','#1a1408',0.6]],'radialGradient',{}))
+          + v2Tag('rect',{width:1000,height:1000,fill:'url(#pp)'}) + wood + v2Tag('path',{d:grid, stroke:'#3a7ac0', 'stroke-width':1, opacity:0.3, fill:'none'}) + con + lake + river + trail + folds
+          + v2Speckle(900, 7, 0, 0, 1000, 1000, ['#6a5a3a'], 0.4, 1.1, 0.06, 0.16) + v2Tag('rect',{width:1000,height:1000,fill:'#1a1408',opacity:0.18}) + v2Tag('rect',{width:1000,height:1000,fill:'url(#vg)'}) },
+      { cls:'v2Drift', svg: v2Tag('defs',{}, v2Grad('lt',[['0','#fff8e0',0.14],['1','#fff8e0',0]],'radialGradient',{})) + v2Tag('ellipse',{cx:360, cy:300, rx:520, ry:420, fill:'url(#lt)'}) },
+    ];
+  },
+  arena(svg, defs){
+    v2Arena(svg, defs, { lip:[['0','#5a5a52'],['0.4','#2a2a26'],['1','#0a0a08']], field:[['0','#22282c'],['0.7','#181c20'],['1','#0e1114']], gloss:0.07, edge:'#a8ff8a', edgeOp:0.3,
+      tex(g){ let d = ''; for(let i=0;i<360;i+=2){ const a = i*Math.PI/180 - Math.PI/2, L = i%30===0 ? 10 : i%10===0 ? 6 : 3; d += `M ${f1(Math.cos(a)*(RIM_R-2))} ${f1(Math.sin(a)*(RIM_R-2))} L ${f1(Math.cos(a)*(RIM_R-2-L))} ${f1(Math.sin(a)*(RIM_R-2-L))} `; }
+        el('path',{d, stroke:'#f0ecdc', 'stroke-width':0.9, opacity:0.45}, g);
+        ['N','E','S','W'].forEach((t,i)=>{ const a = i*Math.PI/2 - Math.PI/2; el('text',{x:f1(Math.cos(a)*(RIM_R-22)), y:f1(Math.sin(a)*(RIM_R-22)+5), 'text-anchor':'middle', 'font-family':'Gill Sans,Segoe UI,sans-serif', 'font-size':14, fill:t==='N'?'#ff6a3a':'#f0ecdc', opacity:0.55}, g).textContent = t; });
+        for(let i=0;i<8;i++){ const a = i/8*Math.PI*2; el('path',{d:`M 0 0 L ${f1(Math.cos(a-0.07)*90)} ${f1(Math.sin(a-0.07)*90)} L ${f1(Math.cos(a)*(i%2?130:200))} ${f1(Math.sin(a)*(i%2?130:200))} L ${f1(Math.cos(a+0.07)*90)} ${f1(Math.sin(a+0.07)*90)} Z`, fill:'#f0ecdc', opacity:i%2?0.03:0.05}, g); }
+        [0, Math.PI/2, Math.PI, Math.PI*1.5].forEach(a=>el('circle',{cx:f1(Math.cos(a-Math.PI/2)*(RIM_R-36)), cy:f1(Math.sin(a-Math.PI/2)*(RIM_R-36)), r:2.6, fill:'#a8ff8a', opacity:0.6}, g)); } });
+  },
+  hub(h){ v2HubStd(h, {stops:[['0','#ffe8d0'],['0.45','#ff6a3a'],['1','#5a1a08']], edge:'#1a0a04', shape:'gem', ring:'#f0ecdc'}); },
+  track(g, r, sel, n){ v2TrackStd(g, r, sel, n, { groove:['#040506','#8a9078',4], line:['#d8d4c0',1,0.34], mark:['#f0ecdc',1.4,1.8,0.42],
+    sel:{glow:['#a8ff8a',14,0.12], under:['#183a10',3.6], main:['#a8ff8a',2.2], hi:'#f0ffe8', edges:['#a8ff8a',0.45], mark:['#ffffff',0.9]} }); },
+  beam:{ halo:0.10, haloC:0.17 },
+  rim:{ base:['#5e6444','#262a18'], seam:'#0e1008', seamW:1.4, hi:'#d8dcb8', edge:'#a8ac88', inner:'#0e1008', gap:2,
+    deco(rimG, s, n, rIn, rOut, c, t){ if(t) return; const st = Math.PI*2/n;
+      for(let k=-3;k<=3;k++){ const a = c + k*st*0.09, L = k===0 ? 5 : 2.4;
+        el('line',{x1:f1(Math.cos(a)*(rOut-1.5)), y1:f1(Math.sin(a)*(rOut-1.5)), x2:f1(Math.cos(a)*(rOut-1.5-L)), y2:f1(Math.sin(a)*(rOut-1.5-L)), stroke:'#f0ecdc', 'stroke-width':0.9, opacity:0.6}, rimG); }
+      if(s%2===0) v2RimDot(rimG, c, rIn+4, 1.2, '#a8ff8a', 0.6); } },
+};
+
+/* ---- AUTUMN -> "Autumn Millstone": an old cobbled mill yard in October -- rounded setts with dark
+   joints, a rain puddle holding a little sky, fallen maple leaves in red, orange and gold, a few still
+   drifting down. The board is a retired millstone: grey granite dressed with eight harps of furrows. */
+THEME_V2.autumn = {
+  id:'autumn', name:'Autumn Millstone', blurb:'Fallen maple leaves on an old cobbled mill yard, around a granite millstone dressed with furrows.',
+  pal:{ sockHi:'#ece4d6', sockLo:'#5a5048', sockIn:'#0e0c0a', sockEdge:'#14100c' },
+  stageFx:'v2-spot', swatch:'linear-gradient(135deg,#ffc04a,#d8402a 40%,#5a4a3a 70%,#3a3632)', badge:{icon:'🍁', color:'#ff8a2a'},
+  ui: v2UiMk({ink:[24,18,12], line:'#5a4a38', bright:'#ff8a2a', ring:'#f2ead8', sel:'#ffa040', t0:'#fffaf0', t1:'#ddd0bc', t2:'#958672', accent:'#ff8a2a', win:'rgba(255,170,80,.4)', bg:'#2a2018', font:"'Hoefler Text','Book Antiqua',Georgia,serif"}),
+  env(){
+    const R = v2Rand(151), stones = ['#6a625a','#5a524a','#746a5e','#4e4840','#625a50','#7a7064'];
+    let setts = '';
+    for(let y=-20; y<1040; y+=50){ const off = (y/50)%2 ? 30 : 0; for(let x=-40+off; x<1040; x+=62){ const s = Math.floor(R()*9999);
+      setts += v2Tag('path',{d:v2Blob(x+2, y+3, 27, s, 0.15), fill:'#000', opacity:0.35}) + v2Tag('path',{d:v2Blob(x, y, 26, s, 0.15), fill:stones[Math.floor(R()*stones.length)]})
+        + v2Tag('path',{d:v2Blob(x-5, y-6, 14, s+1, 0.2), fill:'#ffffff', opacity:0.07}); } }
+    const puddle = v2Tag('path',{d:v2Blob(790,830,120,77,0.25), fill:'url(#pd)', opacity:0.9}) + v2Tag('path',{d:v2Blob(770,805,46,79,0.3), fill:'#d8e8f4', opacity:0.14})
+      + v2Tag('ellipse',{cx:820, cy:850, rx:34, ry:20, fill:'none', stroke:'#d8e8f4', 'stroke-width':1.4, opacity:0.3}) + v2Tag('ellipse',{cx:820, cy:850, rx:56, ry:32, fill:'none', stroke:'#d8e8f4', 'stroke-width':1, opacity:0.16});
+    const pal = ['#d8402a','#e86a24','#f0a020','#c82a1e','#e8c040','#a8361a'];
+    let leaves = ''; for(let i=0;i<46;i++){ const x = R()*1000, y = R()*1000, s = 18+R()*26; leaves += v2Tag('g',{opacity:(0.75+R()*0.25).toFixed(2)}, v2Maple(x, y, s, R()*360, pal[Math.floor(R()*pal.length)])); }
+    const fall = seed=>{ const Q = v2Rand(seed); let s = ''; for(let i=0;i<9;i++) s += v2Maple(Q()*1000, Q()*1000, 16+Q()*16, Q()*360, pal[Math.floor(Q()*pal.length)]); return s; };
+    return [
+      { svg: v2Tag('defs',{}, v2Grad('pd',[['0','#6a8098'],['1','#26323e']],'linearGradient',{x1:0,y1:0,x2:1,y2:1}) + v2Grad('vg',[['0.45','#140c04',0],['1','#140c04',0.6]],'radialGradient',{}) + v2Grad('wm',[['0','#ffb060',0.12],['1','#ffb060',0]],'radialGradient',{cx:0.3,cy:0.25,r:0.8}))
+          + v2Tag('rect',{width:1000,height:1000,fill:'#2a241e'}) + setts + puddle + leaves + v2Tag('rect',{width:1000,height:1000,fill:'url(#wm)'}) + v2Tag('rect',{width:1000,height:1000,fill:'url(#vg)'}) },
+      { cls:'v2Sway', svg: fall(5) },
+    ];
+  },
+  arena(svg, defs){
+    v2Arena(svg, defs, { lip:[['0','#e0d8cc'],['0.45','#8a8278'],['1','#26221e']], field:[['0','#4a4642'],['0.7','#38342f'],['1','#24211d']], edge:'#f2ead8', edgeOp:0.45,
+      tex(g){ const R = v2Rand(67);
+        let sp = ''; for(let i=0;i<1600;i++){ const a = R()*Math.PI*2, r = Math.sqrt(R())*(RIM_R+2); sp += `M ${f1(Math.cos(a)*r)} ${f1(Math.sin(a)*r)} l 0.9 0.6 `; }
+        el('path',{d:sp, stroke:'#d8d0c4', 'stroke-width':1.3, opacity:0.12, fill:'none'}, g);
+        for(let h=0; h<8; h++){ const gg = el('g',{transform:`rotate(${h*45})`}, g); let dk = '', lt = '';
+          for(let k=0;k<5;k++){ const off = 8 + k*13; dk += `M ${off} ${-24-k*4} L ${f1(RIM_R*0.92)} ${f1(-RIM_R*0.38+off*0.4)} `; lt += `M ${off+2.4} ${-21-k*4} L ${f1(RIM_R*0.92+2)} ${f1(-RIM_R*0.38+off*0.4+3)} `; }
+          el('path',{d:dk, stroke:'#0c0a08', 'stroke-width':3.2, opacity:0.4, fill:'none'}, gg);
+          el('path',{d:lt, stroke:'#e0d8cc', 'stroke-width':0.9, opacity:0.14, fill:'none'}, gg); }
+        el('circle',{r:44, fill:'#1a1814', opacity:0.5}, g); } });
+  },
+  hub(h){ v2HubStd(h, {stops:[['0','#b8b0a4'],['0.45','#4a4440'],['1','#141210']], edge:'#060504', shape:'square', ring:'#a87040', dot:'#a87040'}); },
+  track(g, r, sel, n){ v2TrackStd(g, r, sel, n, { groove:['#0a0806','#b8b0a4',4], line:['#d8cfc0',1,0.36], mark:['#f2ead8',1.4,2,0.44],
+    sel:{glow:['#ffa040',14,0.13], under:['#4a2408',3.6], main:['#ffb060',2.2], hi:'#fff4e0', edges:['#ffa040',0.5], mark:['#ffffff',0.9]} }); },
+  beam:{ halo:0.10, haloC:0.17 },
+  rim:{ base:['#7a5a3a','#3a2614'], alt:[['#7a5a3a','#3a2614'],['#6a4c30','#30200e'],['#846040','#40280e']], seam:'#1a1008', seamW:1.8, hi:'#d8b890', edge:'#d8b890', inner:'#1a1008', gap:2.4,
+    fleck:{count:3, colors:['#d8402a','#f0a020','#e86a24'], op:0.6} },
+};
+
+/* ---- HONEY -> "Honeycomb": a frame of comb pulled from the hive -- glossy amber honey in open cells,
+   pale wax caps on the ripe ones, a few empty brown cells, the pine frame at the edges and bees busy
+   on the surface. The board is a disc of dark beeswax foundation pressed with tiny hexagons. */
+THEME_V2.honey = {
+  id:'honey', name:'Honeycomb', blurb:'Capped and open honeycomb in a pine frame, with bees at work, around a disc of dark beeswax.',
+  pal:{ sockHi:'#fff0b0', sockLo:'#8a5208', sockIn:'#1a0e02', sockEdge:'#2a1602' },
+  stageFx:'v2-gloss', swatch:'linear-gradient(135deg,#fff0b0,#f0a020 45%,#5a3608)', badge:{icon:'🐝', color:'#ffc030'},
+  ui: v2UiMk({ink:[28,18,4], line:'#6a4a14', bright:'#ffc030', ring:'#fff0c8', sel:'#fff0a0', t0:'#fffbea', t1:'#e8d8b0', t2:'#a08a5a', accent:'#ffc030', win:'rgba(255,200,60,.42)', bg:'#3a2408', font:"'Optima','Candara','Segoe UI',sans-serif"}),
+  env(){
+    const R = v2Rand(163), hr = 26, dx = hr*Math.sqrt(3), dy = hr*1.5;
+    let cells = '';
+    for(let row=-1; row*dy<1040; row++) for(let c=-1; c*dx<1040; c++){
+      const x = c*dx + (row%2 ? dx/2 : 0), y = row*dy, k = R();
+      cells += v2Tag('polygon',{points:v2HexPts(x, y, hr-0.5, Math.PI/6), fill:'#c88a20', stroke:'#7a4a08', 'stroke-width':2.2});
+      if(k < 0.38) cells += v2Tag('polygon',{points:v2HexPts(x, y, hr-4, Math.PI/6), fill:'url(#cap)'}) + v2Tag('ellipse',{cx:f1(x-5), cy:f1(y-6), rx:7, ry:3.4, fill:'#ffffff', opacity:0.35});
+      else if(k < 0.9) cells += v2Tag('polygon',{points:v2HexPts(x, y, hr-3.6, Math.PI/6), fill:'url(#hn)'}) + v2Tag('ellipse',{cx:f1(x-6), cy:f1(y-7), rx:6, ry:2.6, fill:'#fff8d0', opacity:0.6, transform:`rotate(-30 ${f1(x-6)} ${f1(y-7)})`});
+      else cells += v2Tag('polygon',{points:v2HexPts(x, y, hr-4, Math.PI/6), fill:'#3a2006'});
+    }
+    const frame = v2Tag('rect',{x:0, y:0, width:1000, height:60, fill:'url(#pine)'}) + v2Tag('rect',{x:0, y:940, width:1000, height:60, fill:'url(#pine)'}) + v2Tag('rect',{x:0, y:60, width:1000, height:6, fill:'#000', opacity:0.35});
+    const bee = (x,y,rot,s)=>v2Tag('g',{transform:`translate(${f1(x)} ${f1(y)}) rotate(${f1(rot)}) scale(${s})`},
+        v2Tag('ellipse',{cx:3, cy:4, rx:16, ry:9, fill:'#000', opacity:0.3}) + v2Tag('ellipse',{cx:-8, cy:-10, rx:12, ry:7, fill:'#eef6ff', opacity:0.55, transform:'rotate(-30 -8 -10)'}) + v2Tag('ellipse',{cx:4, cy:-10, rx:12, ry:7, fill:'#eef6ff', opacity:0.55, transform:'rotate(30 4 -10)'})
+        + v2Tag('ellipse',{cx:0, cy:0, rx:15, ry:8, fill:'#f0b020'}) + v2Tag('path',{d:'M -4 -7.5 L -4 7.5 M 3 -8 L 3 8 M 9 -6 L 9 6', stroke:'#1a1006', 'stroke-width':3}) + v2Tag('circle',{cx:-14, cy:0, r:5.5, fill:'#1a1006'}));
+    const bees = seed=>{ const Q = v2Rand(seed); let s = ''; for(let i=0;i<7;i++) s += bee(80+Q()*840, 110+Q()*780, Q()*360, 0.9+Q()*0.5); return s; };
+    const glints = seed=>{ const Q = v2Rand(seed); let s = ''; for(let i=0;i<30;i++){ const x = Q()*1000, y = Q()*1000; s += v2Tag('circle',{cx:f1(x), cy:f1(y), r:f1(1.4+Q()*2), fill:'#fffbe0', opacity:0.8}); } return s; };
+    return [
+      { svg: v2Tag('defs',{}, v2Grad('hn',[['0','#ffd860'],['0.6','#e8960e'],['1','#a85a04']],'radialGradient',{cx:'40%',cy:'38%'}) + v2Grad('cap',[['0','#fff4c8'],['1','#e0c070']],'radialGradient',{cx:'40%',cy:'38%'})
+            + v2Grad('pine',[['0','#e8c890'],['0.5','#c8a060'],['1','#8a6a30']],'linearGradient',{x1:0,y1:0,x2:0,y2:1}) + v2Grad('vg',[['0.5','#1a0e02',0],['1','#1a0e02',0.6]],'radialGradient',{}))
+          + v2Tag('rect',{width:1000,height:1000,fill:'#7a4a08'}) + cells + frame + v2Tag('rect',{width:1000,height:1000,fill:'#1a0e02',opacity:0.2}) + v2Tag('rect',{width:1000,height:1000,fill:'url(#vg)'}) },
+      { cls:'v2Twinkle', svg: glints(9) },
+      { cls:'v2Bob', svg: bees(4) },
+    ];
+  },
+  arena(svg, defs){
+    v2Arena(svg, defs, { lip:[['0','#ffe8a0'],['0.5','#d8a030'],['1','#6a4008']], field:[['0','#5a3a0c'],['0.7','#422806'],['1','#2a1804']], gloss:0.07, edge:'#fff0b0', edgeOp:0.5,
+      tex(g){ const hr = 11, dx = hr*Math.sqrt(3), dy = hr*1.5; let d = '';
+        for(let row=-24; row<=24; row++) for(let c=-14; c<=14; c++){ const x = c*dx + (row%2 ? dx/2 : 0), y = row*dy; if(Math.hypot(x,y) > RIM_R+hr) continue; d += 'M ' + v2HexPts(x, y, hr-0.6, Math.PI/6).split(' ').join(' L ') + ' Z '; }
+        el('path',{d, fill:'none', stroke:'#120a02', 'stroke-width':1.6, opacity:0.5}, g);
+        el('path',{d, fill:'none', stroke:'#f0b030', 'stroke-width':0.6, opacity:0.18, transform:'translate(-0.8 -0.8)'}, g); } });
+  },
+  hub(h){ v2HubStd(h, {stops:[['0','#fff4c8'],['0.45','#f0a020'],['1','#5a3008']], edge:'#2a1602', shape:'hex', ring:'#2a1602'}); },
+  track(g, r, sel, n){ v2TrackStd(g, r, sel, n, { groove:['#140a02','#e0a040',4], line:['#ffd870',1,0.4], mark:['#fff0c8',1.4,2,0.46],
+    sel:{glow:['#fff0a0',14,0.13], under:['#5a3a08',3.6], main:['#fff0a0',2.2], hi:'#ffffff', edges:['#ffd870',0.5], mark:['#ffffff',0.9]} }); },
+  beam:{ halo:0.10, haloC:0.17 },
+  rim:{ base:['#f0b030','#8a5208'], alt:[['#f0b030','#8a5208'],['#f8c848','#9a6010'],['#e0a020','#7a4606']], seam:'#4a2a04', seamW:1.6, hi:'#fff4c8', edge:'#fff0b0', inner:'#4a2a04', gap:2.2 },
 };
 
 /*@@V2-THEMES@@*/
