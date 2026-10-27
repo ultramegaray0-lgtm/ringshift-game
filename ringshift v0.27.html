@@ -631,7 +631,7 @@ body.theme-sakura .gimmickChip, body.theme-sakura #powerStatus, body.theme-sakur
   #app.orchSweep::before{content:''; position:fixed; inset:0; z-index:39; pointer-events:none;
     animation:orchSweepAnim 1.1s ease-out;}
 
-  /* ---------- SPACE ORCHESTRA: fog / White Bell / ring coins ----------
+  /* ---------- SPACE ORCHESTRA: fog / gray UFOs ----------
      Fog overlay is a persistent DOM element (not part of the rebuilt SVG)
      so it can cross-fade smoothly across renderPuzzle()'s full rebuilds,
      the same trick #meteorWarnBanner already uses. Hidden entirely
@@ -660,19 +660,19 @@ body.theme-sakura .gimmickChip, body.theme-sakura #powerStatus, body.theme-sakur
      regardless of any leftover JS state. */
   body:not(.orchestraTheme) #orchFogOverlay{display:none !important;}
 
-  /* Ring coin-status row -- one small chip per ring showing its Coin's
-     remaining rotations, "R1 🪙▰▰▱" style (or "COIN LOST" once spent).
-     Hidden entirely outside Space Orchestra. */
+  /* UFO status row -- one small chip per gray UFO: its countdown until it
+     flees, "✓ CLEAR" once hit, or "✕ FLED". Hidden outside Space Orchestra. */
   #orchestraBatteryRow{display:none; gap:6px; flex-wrap:wrap; justify-content:center; padding:2px 6px 0;}
   body.orchestraTheme #orchestraBatteryRow{display:flex;}
   .orchBatteryChip{font-size:11px; letter-spacing:0.5px; color:var(--text0); font-family:var(--font-mono);
     background:rgba(127,231,255,0.06); border:1px solid var(--panel-line); border-radius:10px; padding:3px 10px;}
   .orchBatteryChip.sel{border-color:var(--ring-selected); color:var(--ring-selected);}
   .orchBatteryChip.dead{color:#ff9aa8; border-color:#5a2230; background:rgba(255,93,93,0.08);}
+  .orchBatteryChip.ok{color:#9ff0c0; border-color:#2a6a48; background:rgba(80,255,160,0.07);}
 
   /* Space Orchestra hides Hint (Auto-Ring) only -- it directly sets a
      ring's rotation, which would let a player skip straight past the
-     deliberate back-and-forth this mode's Coin mechanic is built around.
+     UFO-hunting this mode is built around.
      NEXT behaves normally (every Movement is its own standalone level
      with the same win banner every other mode gets). */
   body.orchestraTheme #hintBtn{display:none;}
@@ -1622,10 +1622,10 @@ body.theme-v2 .screenSub, body.theme-v2 #titleScreen .press, body.theme-v2 #game
     </div>
 
     <div class="htpSection">
-      <h3>// ✦ SPACE ORCHESTRA — FOG, THE GRAY UFO &amp; RING COINS</h3>
-      <div class="htpRow"><span class="htpIcon" style="color:#eaf6fb; border-color:#eaf6fb;">🌫️</span><div><b>Fog</b>Every Lock in Space Orchestra is fogged. While the fog is active it's a physical wall — a beam that reaches a fogged Lock is blocked there, no matter how correctly the rings are set, and the Lock's true state stays hidden.</div></div>
-      <div class="htpRow"><span class="htpIcon" style="color:#eaf6fb; border-color:#eaf6fb;">🛸</span><div><b>Gray UFO</b>Every movement hides one gray UFO behind Blocks and Mirrors. Route a beam onto it and the fog lifts for a few seconds, then comes back one Lock at a time, 5 seconds apart. If you have a Lock lit, the fog holds off until you move a ring. The UFO flees 30 seconds after the movement begins — if it escapes you may not be able to win; reset and try again.</div></div>
-      <div class="htpRow"><span class="htpIcon" style="color:#ffd23f; border-color:#ffd23f;">🪙</span><div><b>Ring Coins</b>Every ring that fires a beam carries a gold Coin. Rotating that ring spends its Coin's charge; after 9 rotations of that ring, its Coin is destroyed for good. Rings never stop rotating and losing a Coin never fails the movement — but a Coin still sitting safely on the board looks better than an empty ring. RESET always restores every ring's Coin, rotation count, the fog, and the Bell.</div></div>
+      <h3>// ✦ SPACE ORCHESTRA — FOG, GRAY UFOS &amp; GIFT LOCKS</h3>
+      <div class="htpRow"><span class="htpIcon" style="color:#eaf6fb; border-color:#eaf6fb;">🌫️</span><div><b>Fog</b>Every Lock in Space Orchestra starts fogged. A fogged Lock is a physical wall — a beam that reaches it is blocked there, no matter how correctly the rings are set, and its true state stays hidden.</div></div>
+      <div class="htpRow"><span class="htpIcon" style="color:#eaf6fb; border-color:#eaf6fb;">🛸</span><div><b>One UFO per Lock</b>Each fogged Lock has its own numbered gray UFO. Route any beam onto UFO 1 and Lock 1's fog is gone for good; UFO 2 clears Lock 2, and so on. Hit only one and only that Lock becomes visible and solvable. The UFOs leave one by one — UFO 1 at 0:30, UFO 2 at 1:30, UFO 3 at 2:30, UFO 4 at 4:00 — and a Lock whose UFO escaped stays fogged, so reset and try again.</div></div>
+      <div class="htpRow"><span class="htpIcon" style="color:#ffd23f; border-color:#ffd23f;">🎁</span><div><b>Gift Locks</b>Every Lock in Space Orchestra is a gift lock. Each Lock you light when you clear a movement is banked (once per Lock), and every 4 banked Locks opens a gift box: two beam colors, then a rim, then a theme, and the cycle repeats.</div></div>
     </div>
 
     <div class="htpFooter">
@@ -1734,7 +1734,7 @@ body.theme-v2 .screenSub, body.theme-v2 #titleScreen .press, body.theme-v2 #game
   <div id="shopBackdrop"></div>
   <div id="shopPanelBox">
     <h2>INVENTORY</h2>
-    <div class="modalSub">Everything here is earned from the gift box at the end of Easy, Normal and Hard levels. Nothing is bought.</div>
+    <div class="modalSub">Everything here is earned from gift boxes: the end of Easy, Normal and Hard levels, and every 4 gift locks lit in Space Orchestra. Nothing is bought.</div>
     <div class="shopSectionTitle">KEYS \u00b7 SPECIAL MODES</div>
     <div id="invKeys"></div>
     <div class="shopSectionTitle">THEMES</div>
@@ -1760,7 +1760,7 @@ body.theme-v2 .screenSub, body.theme-v2 #titleScreen .press, body.theme-v2 #game
     <div class="ringdeco r3"></div>
     <div class="ringdeco r2"></div>
     <h1 class="logo">RINGSHIFT</h1>
-    <div class="sub">DEMO · v0.26</div>
+    <div class="sub">DEMO · v0.27</div>
     <div class="press">PRESS ANY BUTTON</div>
   </div>
 
@@ -2490,9 +2490,12 @@ function rocketFindFirstTouches(lvl, rotations){
 //        Lock, full climax
 // Every single one of these was exhaustively brute-force scanned with
 // this file's own tracer to confirm it is solvable and NOT already
-// solved at its starting rotation (see the design script). See
-// OrchestraAudio for how each movement maps to its own fog duration and
-// visual tint.
+// solved at its starting rotation (see the design script). Each Lock
+// (required + bonus) has its own pinned gray UFO on ring 1, linked by
+// `lock:<rim slot>`; every UFO set was re-verified with the engine's own
+// tracer: the winning rotations are unchanged, every UFO can be hit by
+// some rotation, and none is already hit at the starting rotation. (The
+// old per-ring Coins were removed; fogDurationMs is no longer used.)
 const ORCHESTRA_MOVEMENTS = [
  {
   "name": "MOVEMENT I — OPENING SPACE",
@@ -2503,10 +2506,10 @@ const ORCHESTRA_MOVEMENTS = [
      0
     ],
     "gimmicks": {
-     "5": "coin",
      "9": {
       "type": "ufo",
-      "fixed": true
+      "fixed": true,
+      "lock": 5
      }
     },
     "initialRotation": 2
@@ -2537,10 +2540,15 @@ const ORCHESTRA_MOVEMENTS = [
      5
     ],
     "gimmicks": {
-     "8": "coin",
+     "3": {
+      "type": "ufo",
+      "fixed": true,
+      "lock": 11
+     },
      "9": {
       "type": "ufo",
-      "fixed": true
+      "fixed": true,
+      "lock": 6
      }
     },
     "initialRotation": 1
@@ -2574,9 +2582,9 @@ const ORCHESTRA_MOVEMENTS = [
     "gimmicks": {
      "1": {
       "type": "ufo",
-      "fixed": true
-     },
-     "6": "coin"
+      "fixed": true,
+      "lock": 2
+     }
     },
     "initialRotation": 6
    },
@@ -2609,10 +2617,15 @@ const ORCHESTRA_MOVEMENTS = [
      8
     ],
     "gimmicks": {
-     "4": "coin",
+     "1": {
+      "type": "ufo",
+      "fixed": true,
+      "lock": 10
+     },
      "6": {
       "type": "ufo",
-      "fixed": true
+      "fixed": true,
+      "lock": 2
      }
     },
     "initialRotation": 6
@@ -2646,10 +2659,10 @@ const ORCHESTRA_MOVEMENTS = [
      0
     ],
     "gimmicks": {
-     "3": "coin",
      "7": {
       "type": "ufo",
-      "fixed": true
+      "fixed": true,
+      "lock": 5
      }
     },
     "initialRotation": 5
@@ -2690,10 +2703,15 @@ const ORCHESTRA_MOVEMENTS = [
      6
     ],
     "gimmicks": {
-     "9": "coin",
+     "5": {
+      "type": "ufo",
+      "fixed": true,
+      "lock": 9
+     },
      "11": {
       "type": "ufo",
-      "fixed": true
+      "fixed": true,
+      "lock": 6
      }
     },
     "initialRotation": 8
@@ -2707,7 +2725,6 @@ const ORCHESTRA_MOVEMENTS = [
      "6": "block",
      "7": "block",
      "8": "mirror_r",
-     "9": "coin",
      "10": "block",
      "11": "block"
     },
@@ -2733,9 +2750,14 @@ const ORCHESTRA_MOVEMENTS = [
     "gimmicks": {
      "2": {
       "type": "ufo",
-      "fixed": true
+      "fixed": true,
+      "lock": 2
      },
-     "8": "coin"
+     "8": {
+      "type": "ufo",
+      "fixed": true,
+      "lock": 10
+     }
     },
     "initialRotation": 4
    },
@@ -2779,10 +2801,15 @@ const ORCHESTRA_MOVEMENTS = [
      1
     ],
     "gimmicks": {
-     "3": "coin",
+     "1": {
+      "type": "ufo",
+      "fixed": true,
+      "lock": 11
+     },
      "7": {
       "type": "ufo",
-      "fixed": true
+      "fixed": true,
+      "lock": 5
      }
     },
     "initialRotation": 3
@@ -2792,7 +2819,6 @@ const ORCHESTRA_MOVEMENTS = [
      2
     ],
     "gimmicks": {
-     "6": "coin",
      "9": {
       "type": "echo_portal",
       "turn": 0,
@@ -2837,9 +2863,14 @@ const ORCHESTRA_MOVEMENTS = [
      },
      "4": {
       "type": "ufo",
-      "fixed": true
+      "fixed": true,
+      "lock": 0
      },
-     "9": "coin"
+     "9": {
+      "type": "ufo",
+      "fixed": true,
+      "lock": 6
+     }
     },
     "initialRotation": 2
    },
@@ -2854,7 +2885,6 @@ const ORCHESTRA_MOVEMENTS = [
      "4": "block",
      "7": "mirror_r",
      "8": "amp",
-     "10": "coin",
      "11": "block"
     },
     "initialRotation": 2
@@ -2879,15 +2909,35 @@ const ORCHESTRA_MOVEMENTS = [
     "gimmicks": {
      "0": {
       "type": "ufo",
-      "fixed": true
+      "fixed": true,
+      "lock": 4
+     },
+     "2": {
+      "type": "ufo",
+      "fixed": true,
+      "lock": 11
+     },
+     "4": {
+      "type": "ufo",
+      "fixed": true,
+      "lock": 0
      },
      "5": "mirror_l",
+     "6": {
+      "type": "ufo",
+      "fixed": true,
+      "lock": 5
+     },
      "7": {
       "type": "echo_portal",
       "turn": 90,
       "fixed": true
      },
-     "11": "coin"
+     "9": {
+      "type": "ufo",
+      "fixed": true,
+      "lock": 6
+     }
     },
     "initialRotation": 7
    },
@@ -2902,7 +2952,6 @@ const ORCHESTRA_MOVEMENTS = [
       "turn": 120,
       "fixed": true
      },
-     "7": "coin",
      "10": {
       "type": "prism"
      }
@@ -2921,7 +2970,6 @@ const ORCHESTRA_MOVEMENTS = [
       "id": "P0",
       "fixed": true
      },
-     "5": "coin",
      "9": "block",
      "10": "mirror_l",
      "11": "block"
@@ -3999,8 +4047,8 @@ const AudioSys = (function(){
 })();
 
 /* =========================================================================
-   SPACE ORCHESTRA -- fog, the White Bell, and the per-ring Coin, for the
-   10 separately selectable Movement levels (see ORCHESTRA_MOVEMENTS above
+   SPACE ORCHESTRA -- fog and the gray UFOs (one per Lock), for the 10
+   separately selectable Movement levels (see ORCHESTRA_MOVEMENTS above
    LEVELS + the guarded orchestra branch inside checkWin(), which
    delegates every Movement's win check to handleCheckWin() below). Fully
    self-contained and independent of AudioSys (own AudioContext/mix
@@ -4009,44 +4057,26 @@ const AudioSys = (function(){
    start()/stop() are only ever invoked from code gated on
    `mode === 'orchestra'`.
 
-   Space Orchestra intentionally has NO generated musical score of its
-   own (no chord progression, no per-movement instrumentation, no
-   note-motif tied to lighting Locks) -- every other Ringshift mode
-   either plays a generic ambient background loop (Easy/Normal/Hard/
-   Challenge, via AudioSys) or nothing musical at all (Special Mode,
-   Rocket Attack), and Space Orchestra now matches that: short, discrete
-   sound effects only (a bell chime, a fog-return swell, a movement
-   transition riser, a Coin being spent), never an ongoing piece of music.
+   Space Orchestra has NO generated musical score of its own -- short,
+   discrete sound effects only (a chime when a UFO is hit, a whoosh when
+   one flees, a movement transition riser).
 
-   FOG: every required Lock and Bonus Lock is permanently fogged (see
-   ORCHESTRA_MOVEMENTS -- the fogged slot set is derived automatically as
-   lockSlots+bonusLockSlots, there is nothing to author per level). The
-   fog is enforced physically in the tracer itself (traceBeamBranch's
-   fogInfo check) -- this module only owns WHEN it's active, not how it
-   blocks beams.
+   FOG: every required Lock and Bonus Lock starts fogged (the fogged slot
+   set is derived automatically as lockSlots+bonusLockSlots). The fog is
+   enforced physically in the tracer itself (traceBeamBranch's fogInfo
+   check), PER SLOT -- this module only owns WHICH Locks are fogged.
 
-   WHITE BELL: a transparent 'bell' gimmick, authored once per movement
-   in ORCHESTRA_MOVEMENTS. Ringing it (a beam newly crossing it) clears
-   the fog for that movement's `fogDurationMs`, then the fog silently
-   returns and the player must ring it again.
+   GRAY UFOs: one per Lock, authored in ORCHESTRA_MOVEMENTS as
+   {type:'ufo', fixed:true, lock:<rim slot>}. Hitting UFO #k with any beam
+   clears Lock #k's fog for the rest of the attempt. UFO #k flees at
+   UFO_LEAVE_SEC[k-1] seconds (0:30, 1:30, 2:30, 4:00, 5:30, ...); a Lock
+   whose UFO fled stays fogged. RESET restores every UFO and all fog.
 
-   COIN: every ring that fires at least one beam also carries a 'coin'
-   gimmick (also authored in ORCHESTRA_MOVEMENTS). It is completely
-   transparent to beams -- it never blocks, bends, or duplicates
-   anything crossing it, and plays no part in solving the movement. It
-   exists purely as a rotation budget: each ring gets MAX_MOVES_PER_RING
-   (9) rotations before its own Coin is destroyed (deleted from that
-   ring's gimmicks -- see destroyCoin). Losing a Coin does NOT stop the
-   ring from rotating -- rings always keep working, for as long as
-   needed, exactly like every other Ringshift mode. RESET (which always
-   returns to Movement I) restores every ring's Coin, its move counter,
-   the fog, and the Bell.
+   GIFT LOCKS: every Lock in Space Orchestra is a gift lock -- see
+   ORCH_GIFT (near the gift-box reward system) for how cleared Locks are
+   banked and turned into rewards every 4 Locks.
 
-   MIX CHAIN: master (limiter) <- highpass <- compressor <- reverb send
-   (parallel) + dry <- padGain/accentGain. See ensureCtx() for exact
-   values. Deliberately conservative headroom so existing gameplay/UI
-   sounds (AudioSys's rotate tick etc., on its own separate context/bus)
-   stay clearly audible on top.
+   (The old per-ring Coin rotation budget has been removed.)
    ========================================================================= */
 const OrchestraAudio = (function(){
   let ctx=null, master=null, limiter=null, highpass=null, compressor=null;
@@ -4055,98 +4085,81 @@ const OrchestraAudio = (function(){
   let running=false;
   let movementIdx=0;
   let lastLit=new Set();
-  let lastBellHit=false;
   let fxCanvas=null, fxCtx=null, fxParticles=[], fxRaf=null;
   let titleCardTimer=null;
 
   // =========================================================================
-  // FOG + WHITE BELL. All state here is private to this module and lives
-  // entirely inside Space Orchestra: nothing here is read by, or
-  // affects, Easy/Normal/Hard/Challenge/Special Mode.
+  // FOG + GRAY UFOs (one UFO per Lock). All state here is private to this
+  // module and lives entirely inside Space Orchestra: nothing here is read
+  // by, or affects, Easy/Normal/Hard/Special/Rocket.
+  //
+  // Every Lock (required and bonus) starts fogged. Each Lock has its OWN
+  // gray UFO, authored on the level as {type:'ufo', fixed:true, lock:<rim
+  // slot>}. UFO #k belongs to the k-th Lock in lockSlots+bonusLockSlots
+  // order. A beam crossing UFO #k removes the fog from that one Lock for
+  // the rest of the attempt (the UFO is shot down and leaves the board).
+  // Each UFO flees on its own schedule (UFO_LEAVE_SEC, counted from the
+  // start of the movement); a Lock whose UFO fled stays fogged, so the
+  // movement can no longer be won -- reset to try again.
   // =========================================================================
-  const UFO_STAY_MS = 30000, FOG_RETURN_MS = 5000;
-  let fogged = new Set(), fogPhase = 'full', clearUntil = 0, nextReturnAt = 0;
-  let waitMove = false, waitSig = '', levelStart = 0, ufoGone = false, ufoLatched = false, tickIv = null;
+  const UFO_LEAVE_SEC = [30, 90, 150, 240, 330, 420, 510, 600];
+  let fogged = new Set(), ufos = [], pendingHits = new Set(), levelStart = 0, tickIv = null;
   const clk = {paused:false, at:0, off:0};            // pause-aware clock: frozen while the pause menu is open
   const T = ()=> (clk.paused ? clk.at : performance.now()) - clk.off;
   function fogSlotList(lvl){ return [...(lvl.lockSlots||[]), ...(lvl.bonusLockSlots||[])]; }
   function getFogInfo(){ if(!gstate.level) return null; return { active: fogged.size>0, slots: fogged }; }
-  function isFogActive(){ const l = gstate.level; return !!l && fogged.size>0 && fogged.size>=fogSlotList(l).length; }
+  function isFogActive(){ return !!gstate.level && fogged.size>0; }
   function isSlotFogged(sl){ return fogged.has(sl); }
   function fogSig(){ return [...fogged].sort((a,b)=>a-b).join('.'); }
-  function latchUfo(){ ufoLatched = true; }
-
-  // =========================================================================
-  // RING COIN. See the module-level comment above for the full rule.
-  // =========================================================================
-  const MAX_MOVES_PER_RING = 9; // rotations a ring's Coin can survive
-  let battery = [];            // moves used so far this movement, per ring
-  let hadCoin = [];            // whether ring i started this movement with a Coin
-
-  function resetFogAndBattery(lvl){
-    fogged = new Set(fogSlotList(lvl)); fogPhase = 'full'; waitMove = false; ufoGone = false; ufoLatched = false;
-    clk.paused = false; clk.off = performance.now(); levelStart = T(); clearUntil = 0; nextReturnAt = 0;
-    battery = lvl.rings.map(()=>0);
-    hadCoin = lvl.rings.map(r => Object.values(r.gimmicks||{}).some(g => (typeof g==='string'?g:g.type)==='coin'));
-    updateOrchestraHud();
+  // 1-based UFO number that belongs to a Lock's rim slot (for the labels).
+  function ufoNumberForLock(sl){ const u = ufos.find(x=>x.lock===sl); return u ? u.num : 0; }
+  function leaveSecFor(i){ return UFO_LEAVE_SEC[Math.min(i, UFO_LEAVE_SEC.length-1)] + 90*Math.max(0, i-(UFO_LEAVE_SEC.length-1)); }
+  function buildUfos(lvl){
+    const order = fogSlotList(lvl), list = [];
+    lvl.rings.forEach((r,ri)=>Object.keys(r.gimmicks||{}).forEach(k=>{
+      const g = r.gimmicks[k];
+      if(typeof g==='object' && g.type==='ufo'){
+        let li = order.indexOf(g.lock);
+        if(li<0) li = list.length;            // unlinked UFO (old data): give it the next free Lock
+        list.push({ringIdx:ri, slot:+k, li});
+      }
+    }));
+    list.sort((a,b)=>a.li-b.li);
+    return list.map((u,i)=>({ ringIdx:u.ringIdx, slot:u.slot, lock:order[i], num:i+1, status:'here', leaveAt:leaveSecFor(i)*1000 }));
   }
-  function movesUsed(ringIdx){ return battery[ringIdx]||0; }
-  // Finds the authored gimmick key holding this ring's Coin, if it still
-  // has one (a ring with no beam was never given a Coin to begin with --
-  // see ORCHESTRA_MOVEMENTS).
-  function coinKeyForRing(ringIdx){
-    const lvl = gstate.level;
-    if(!lvl) return null;
-    const ring = lvl.rings[ringIdx];
-    if(!ring || !ring.gimmicks) return null;
-    const found = Object.keys(ring.gimmicks).find(k=>{
-      const raw = ring.gimmicks[k];
-      const type = typeof raw === 'string' ? raw : raw.type;
-      return type === 'coin';
+  function ufoFor(ringIdx, slot){ return ufos.find(u=>u.ringIdx===ringIdx && u.slot===slot); }
+  // Called by the shared recomputeFlow() with every UFO a beam crossed in
+  // that trace (even mid-drag). The hit is applied on the next win check /
+  // tick, never re-entrantly inside the trace itself.
+  function noteUfoHits(hits){
+    (hits||[]).forEach(h=>{ const u = ufoFor(h.ringIdx, h.slot); if(u && u.status==='here') pendingHits.add(u.num); });
+  }
+  function removeUfoGimmick(u){
+    const lvl = gstate.level; if(!lvl) return;
+    const ring = lvl.rings[u.ringIdx]; if(!ring || !ring.gimmicks) return;
+    const g = ring.gimmicks[u.slot];
+    if(g && typeof g==='object' && g.type==='ufo') delete ring.gimmicks[u.slot];
+    const a = slotToAngle(u.slot, lvl.slots), rr = ringRadius(u.ringIdx), x = Math.cos(a)*rr, y = Math.sin(a)*rr;
+    try{ Fx.burst(x,y,'#cfd6dd',16); Fx.ring(x,y,4,34,'#cfd6dd',.45); }catch(e){}
+  }
+  // Applies every pending UFO hit. Returns true if anything changed.
+  function processPendingHits(){
+    if(!pendingHits.size) return false;
+    let changed = false;
+    pendingHits.forEach(num=>{
+      const u = ufos.find(x=>x.num===num);
+      if(!u || u.status!=='here') return;
+      u.status = 'hit'; fogged.delete(u.lock); removeUfoGimmick(u); changed = true;
+      showNewGimmickToast(`UFO ${u.num} hit — Lock ${u.num} is clear.`);
     });
-    return found !== undefined ? found : null;
+    pendingHits.clear();
+    if(changed) playBellChime();
+    return changed;
   }
-  function coinAlive(ringIdx){ return coinKeyForRing(ringIdx) !== null; }
-  // Deletes this ring's Coin (if it still has one) the moment its move
-  // counter reaches MAX_MOVES_PER_RING. Purely a visual/scorekeeping
-  // loss -- the ring keeps rotating exactly as before. The caller
-  // (consumeMove, below) always re-renders shortly after this runs, so
-  // this doesn't need to force its own render.
-  function destroyCoin(ringIdx){
-    const lvl = gstate.level;
-    const key = coinKeyForRing(ringIdx);
-    if(!lvl || key === null) return;
-    { const _n=lvl.slots, _l=(parseInt(key,10)+(gstate.rotations[ringIdx]||0))%_n, _a=slotToAngle(_l,_n), _r=ringRadius(ringIdx); Fx.shatter(Math.cos(_a)*_r,Math.sin(_a)*_r,'rgba(255,210,63,.55)',10); }
-    delete lvl.rings[ringIdx].gimmicks[key];
-    playCoinLost();
-    showNewGimmickToast(`Ring ${ringIdx+1}\u2019s Coin is gone \u2014 9 rotations used it up.`);
-  }
-  // Called once per single slot-step, from both the D-pad (rotateRing)
-  // and drag (attachRingDrag) -- a multi-slot drag gesture calls this
-  // once per slot actually applied. This never blocks or refuses a
-  // rotation -- it only tracks the count and reacts once, right when it
-  // crosses the threshold.
-  function consumeMove(ringIdx){
-    battery[ringIdx] = movesUsed(ringIdx) + 1;
-    if(battery[ringIdx] === MAX_MOVES_PER_RING) destroyCoin(ringIdx);
+  function resetFog(lvl){
+    fogged = new Set(fogSlotList(lvl)); ufos = buildUfos(lvl); pendingHits = new Set();
+    clk.paused = false; clk.off = performance.now(); levelStart = T();
     updateOrchestraHud();
-    return true;
-  }
-
-  function playCoinLost(){
-    ensureCtx();
-    const t = ctx.currentTime;
-    // A short, descending, slightly metallic "spent" sound -- a plain
-    // sound effect, not a musical phrase -- reads as a small loss.
-    const osc = ctx.createOscillator(), g = ctx.createGain(), f = ctx.createBiquadFilter();
-    f.type='lowpass'; f.frequency.setValueAtTime(1400,t); f.frequency.exponentialRampToValueAtTime(220,t+0.5);
-    osc.type='triangle'; osc.frequency.setValueAtTime(520,t); osc.frequency.exponentialRampToValueAtTime(140,t+0.5);
-    g.gain.setValueAtTime(0.0001,t);
-    g.gain.linearRampToValueAtTime(0.14, t+0.03);
-    g.gain.exponentialRampToValueAtTime(0.0001, t+0.55);
-    osc.connect(f); f.connect(g); g.connect(accentGain);
-    osc.start(t); osc.stop(t+0.6);
-    spawnFx('coinlost');
   }
 
   function playBellChime(){
@@ -4169,23 +4182,6 @@ const OrchestraAudio = (function(){
     });
     spawnFx('bell');
   }
-  function playFogReturn(){
-    ensureCtx();
-    const t = ctx.currentTime;
-    // A soft, descending, breathy swell -- the fog rolling back in.
-    const osc = ctx.createOscillator(), g = ctx.createGain(), f = ctx.createBiquadFilter();
-    f.type='lowpass'; f.frequency.setValueAtTime(2200,t); f.frequency.exponentialRampToValueAtTime(500,t+1.4);
-    osc.type='sine'; osc.frequency.setValueAtTime(300,t); osc.frequency.exponentialRampToValueAtTime(160,t+1.4);
-    g.gain.setValueAtTime(0.0001,t);
-    g.gain.linearRampToValueAtTime(0.06, t+0.3);
-    g.gain.exponentialRampToValueAtTime(0.0001, t+1.5);
-    osc.connect(f); f.connect(g); g.connect(padGain);
-    osc.start(t); osc.stop(t+1.6);
-  }
-
-  // Called once from checkWin()'s orchestra branch (via handleCheckWin,
-  // below) the instant a beam newly rings the Bell. Clears the fog for
-  // this movement's authored duration, then restores it automatically.
   function refresh(){ recomputeFlow(); renderPuzzle(); updateTopBar(); updateOrchestraHud(); }
   function playUfoLeave(){
     ensureCtx(); const t = ctx.currentTime, o = ctx.createOscillator(), g = ctx.createGain();
@@ -4193,78 +4189,50 @@ const OrchestraAudio = (function(){
     g.gain.setValueAtTime(0.0001,t); g.gain.linearRampToValueAtTime(0.1,t+0.05); g.gain.exponentialRampToValueAtTime(0.0001,t+0.6);
     o.connect(g); g.connect(accentGain); o.start(t); o.stop(t+0.65);
   }
-  // A beam newly crossed the UFO: clear the fog for this movement's window, then it returns one Lock at a time.
-  function ringUfo(){
-    const lvl = gstate.level; if(!lvl) return;
-    fogged = new Set(); fogPhase = 'clear'; waitMove = false; ufoLatched = false;
-    clearUntil = T() + (lvl.fogDurationMs || 7000);
-    playBellChime();
-    refresh();
+  // UFO #k's time is up: it flees and its Lock stays fogged for this attempt.
+  function ufoLeave(u){
+    u.status = 'gone'; removeUfoGimmick(u); playUfoLeave();
+    showNewGimmickToast(`UFO ${u.num} fled — Lock ${u.num} stays fogged. Reset to try again.`);
   }
-  // 30s after the movement starts the UFO flees (removed from this attempt's private copy of the level).
-  function ufoLeave(){
-    const lvl = gstate.level; if(!lvl) return;
-    ufoGone = true;
-    lvl.rings.forEach((r,ri)=>Object.keys(r.gimmicks||{}).forEach(k=>{
-      const g = r.gimmicks[k];
-      if(typeof g==='object' && g.type==='ufo'){
-        const a = slotToAngle(+k, lvl.slots), rr = ringRadius(ri), x = Math.cos(a)*rr, y = Math.sin(a)*rr;
-        try{ Fx.burst(x,y,'#cfd6dd',16); Fx.ring(x,y,4,34,'#cfd6dd',.45); }catch(e){}
-        delete r.gimmicks[k];
-      }
-    }));
-    lastBellHit = false; playUfoLeave();
-    showNewGimmickToast('The gray UFO has fled.');
-    refresh();
-  }
+  function fmtClock(ms){ const s = Math.max(0, Math.ceil(ms/1000)); return Math.floor(s/60)+':'+String(s%60).padStart(2,'0'); }
   function statusText(){
-    const left = Math.max(0, Math.ceil((UFO_STAY_MS-(T()-levelStart))/1000));
-    return ufoGone ? '\ud83d\udef8 UFO ESCAPED \u2014 reset to try again' : '\ud83c\udf2b\ufe0f FOG ACTIVE \u2014 hit the UFO ('+left+'s)';
-  }
-  // Fog returns on ONE Lock at a time. If any cleared Lock is lit, it holds until the player moves a ring.
-  function returnOne(t){
-    const lvl = gstate.level, cleared = fogSlotList(lvl).filter(sl=>!fogged.has(sl));
-    if(!cleared.length){ fogPhase = 'full'; return; }
-    if(cleared.some(sl=>gstate.litLocks.has(sl))){ waitMove = true; waitSig = gstate.rotations.join(); return; }
-    fogged.add(cleared[0]); playFogReturn();
-    if(cleared.length===1) fogPhase = 'full'; else nextReturnAt = t + FOG_RETURN_MS;
-    refresh();
+    if(ufos.some(u=>u.status==='gone')) return '🛸 A UFO ESCAPED — reset to try again';
+    const next = ufos.filter(u=>u.status==='here').sort((a,b)=>a.leaveAt-b.leaveAt)[0];
+    if(!next) return '';
+    return '🌫️ '+fogged.size+' FOGGED — UFO '+next.num+' leaves in '+fmtClock(next.leaveAt-(T()-levelStart));
   }
   function tick(){
     if(!running || clk.paused || currentMode!=='orchestra' || !gstate.level || gstate.won) return;
-    const t = T();
-    if(ufoLatched){   // a beam swept over the UFO mid-drag and left again before the win check ran
-      ufoLatched = false;
-      if(!lastBellHit){ ringUfo(); lastBellHit = !!gstate.orchestraBellHit; checkWin(); return; }
-    }
-    if(!ufoGone && t-levelStart >= UFO_STAY_MS) ufoLeave();
-    if(fogPhase==='clear' && t>=clearUntil){ fogPhase = 'returning'; nextReturnAt = t; }
-    if(fogPhase==='returning'){
-      if(waitMove){ if(gstate.rotations.join()!==waitSig){ waitMove = false; nextReturnAt = t + FOG_RETURN_MS; } }
-      else if(t>=nextReturnAt) returnOne(t);
-    }
-    if(isFogActive()){ const e = document.getElementById('orchFogStatus'); if(e){ const x = statusText(); if(e.textContent!==x) e.textContent = x; } }
+    const t = T()-levelStart;
+    let changed = processPendingHits();
+    ufos.forEach(u=>{ if(u.status==='here' && t>=u.leaveAt){ ufoLeave(u); changed = true; } });
+    if(changed){ refresh(); checkWin(); return; }
+    // keep the countdowns ticking without a full board re-render
+    const e = document.getElementById('orchFogStatus'); if(e){ const x = statusText(); if(e.textContent!==x) e.textContent = x; }
+    updateUfoChips();
   }
-  // Pause/resume freezes the UFO countdown and every fog timer together.
+  // Pause/resume freezes every UFO countdown together.
   function pauseFog(){ if(!clk.paused){ clk.paused = true; clk.at = performance.now(); } }
   function resumeFog(){ if(clk.paused){ clk.off += performance.now()-clk.at; clk.paused = false; } }
 
-  function updateOrchestraHud(){
+  // One chip per UFO above the board: its countdown, a tick once it's been
+  // hit, or a cross if it fled.
+  function updateUfoChips(){
     const wrap = document.getElementById('orchestraBatteryRow');
     if(!wrap) return;
-    const lvl = gstate.level;
-    if(!lvl || currentMode !== 'orchestra'){ wrap.innerHTML=''; return; }
-    const bar = (n)=> '\u25b0'.repeat(n) + '\u25b1'.repeat(3-n);
-    wrap.innerHTML = lvl.rings.map((r,i)=>{
-      const started = hadCoin[i];
-      const lost = started && !coinAlive(i);
-      const barsLeft = Math.max(0, 3 - Math.floor(movesUsed(i)/3));
-      const cls = 'orchBatteryChip' + (lost ? ' dead' : '') + (i===gstate.selectedRing ? ' sel' : '');
-      const label = !started ? '' : (lost ? 'COIN LOST' : ('\ud83e\ude99 '+bar(barsLeft)));
-      return `<span class="${cls}" data-ring="${i}">R${i+1}${label ? ' '+label : ''}</span>`;
+    if(!gstate.level || currentMode !== 'orchestra'){ if(wrap.innerHTML) wrap.innerHTML=''; return; }
+    const t = T()-levelStart;
+    const html = ufos.map(u=>{
+      const cls = 'orchBatteryChip' + (u.status==='gone' ? ' dead' : u.status==='hit' ? ' ok' : '');
+      const label = u.status==='hit' ? '✓ CLEAR' : u.status==='gone' ? '✕ FLED' : fmtClock(u.leaveAt - t);
+      return `<span class="${cls}">🛸${u.num} ${label}</span>`;
     }).join('');
+    if(wrap.innerHTML!==html) wrap.innerHTML = html;
+  }
+  function updateOrchestraHud(){
+    updateUfoChips();
     const fogEl = document.getElementById('orchFogOverlay');
-    if(fogEl) fogEl.classList.toggle('active', isFogActive());
+    if(fogEl) fogEl.classList.toggle('active', currentMode==='orchestra' && isFogActive());
     const bellHint = document.getElementById('orchFogStatus');
     if(bellHint) bellHint.textContent = statusText();
   }
@@ -4424,7 +4392,7 @@ const OrchestraAudio = (function(){
     const cx=canvas.width/2, cy=canvas.height/2;
     const count = kind==='finale'?90 : kind==='bonus'?50 : kind==='lock'?18 : 12;
     const mv = MOVEMENTS[Math.min(movementIdx, MOVEMENTS.length-1)];
-    const hue = kind==='bonus' ? '255,210,63' : kind==='finale' ? '255,240,210' : kind==='coinlost' ? '255,120,90' : mv.tint;
+    const hue = kind==='bonus' ? '255,210,63' : kind==='finale' ? '255,240,210' : mv.tint;
     for(let i=0;i<count;i++){
       const ang=Math.random()*Math.PI*2, speed=0.6+Math.random()*(kind==='finale'?4.2:2.0);
       fxParticles.push({x:cx,y:cy,vx:Math.cos(ang)*speed,vy:Math.sin(ang)*speed,life:1,decay:0.01+Math.random()*0.02,r:1+Math.random()*2.2,hue});
@@ -4451,12 +4419,12 @@ const OrchestraAudio = (function(){
   // shared checkWin() function. This is the ONE place gameplay state
   // actually reaches this module. ------------------------------------------
   function handleCheckWin(lvl){
-    // WHITE BELL: detect a fresh (newly-crossed) bell hit this trace and
-    // ring it. gstate.orchestraBellHit is written by the shared, fog-
-    // aware recomputeFlow() (see the top-level function) whenever
-    // currentMode==='orchestra'.
-    if(gstate.orchestraBellHit && !lastBellHit) ringUfo();
-    lastBellHit = !!gstate.orchestraBellHit;
+    // GRAY UFOs: apply every UFO a beam crossed (recorded by the shared,
+    // fog-aware recomputeFlow() via noteUfoHits). Clearing a Lock's fog
+    // can change what the beams reach, so re-trace until nothing new is
+    // hit (bounded by the number of UFOs).
+    let guard = 0;
+    while(guard++ < 16 && processPendingHits()) refresh();
 
     (lvl.bonusLockSlots||[]).forEach(slot=>{
       if(gstate.litLocks.has(slot) && !lastLit.has(slot)) onBonusLockLit();
@@ -4482,8 +4450,8 @@ const OrchestraAudio = (function(){
     }
   }
   function onLevelStart(lvl, levelIdx){
-    lastLit=new Set(); lastBellHit=false;
-    resetFogAndBattery(lvl);
+    lastLit=new Set();
+    resetFog(lvl);
     // isInitial is true only when the audio isn't already running (i.e.
     // this is the very first Movement played this session) -- start()
     // (called right after by goGame()) handles that fresh kickoff. If
@@ -4495,7 +4463,7 @@ const OrchestraAudio = (function(){
     setMovement(levelIdx, !running);
     // loadLevel() (shared across every mode) already called
     // recomputeFlow()/renderPuzzle() once, BEFORE this reset ran -- so
-    // that first render could have used stale fog/Coin state left over
+    // that first render could have used stale fog/UFO state left over
     // from a previous attempt. Re-run it now that they're freshly reset,
     // so what's actually on screen always matches the true state.
     recomputeFlow(); renderPuzzle(); updateTopBar(); updateOrchestraHud();
@@ -4520,7 +4488,7 @@ const OrchestraAudio = (function(){
     // to re-enter Orchestra. Fog must be Space-Orchestra-only, so this
     // reset now runs unconditionally, not just on the running===true path.
     if(tickIv){ clearInterval(tickIv); tickIv = null; }
-    clk.paused = false; fogged = new Set(); fogPhase = 'full'; waitMove = false;
+    clk.paused = false; fogged = new Set(); ufos = []; pendingHits = new Set();
     const fogEl = document.getElementById('orchFogOverlay');
     if(fogEl) fogEl.classList.remove('active');
     if(!running){ document.body.classList.remove('orchestraTheme','orchestraFinale'); return; }
@@ -4540,7 +4508,7 @@ const OrchestraAudio = (function(){
   }
 
   return { start, stop, onLevelStart, handleCheckWin, setVolumes, setMuted,
-    getFogInfo, isFogActive, isSlotFogged, fogSig, latchUfo, consumeMove, pauseFog, resumeFog, updateOrchestraHud };
+    getFogInfo, isFogActive, isSlotFogged, fogSig, noteUfoHits, ufoNumberForLock, pauseFog, resumeFog, updateOrchestraHud };
 })();
 
 /* =========================================================================
@@ -5689,6 +5657,9 @@ function loadSave(){
       const cl = {}; const pcl = parsed.rewards.claimed || {};
       Object.keys(pcl).forEach(k=>{ if(typeof pcl[k]==='string') cl[k]=pcl[k]; });
       fresh.rewards = { claimed:cl, migrated:!!parsed.rewards.migrated, migrated2:!!parsed.rewards.migrated2 };
+      const pol = parsed.rewards.orchLocks, ol = {};
+      if(pol && typeof pol==='object') Object.keys(pol).forEach(k=>{ if(/^\d+:\d+$/.test(k) && pol[k]) ol[k] = true; });
+      fresh.rewards.orchLocks = ol;
     }
     return fresh;
   }catch(e){ return defaultSave(); }
@@ -5772,6 +5743,13 @@ const CONTROLLED_COSMETICS = [
   {id:'coral',   name:'Coral',   color:'#ff7a6a', free:false},
   {id:'sky',     name:'Sky',     color:'#8fd0ff', free:false},
   {id:'silver',  name:'Silver',  color:'#cfd8e0', free:false},
+  // Space Orchestra gift-lock colors (see ORCH_GIFT)
+  {id:'lavender', name:'Lavender', color:'#c9a6ff', free:false},
+  {id:'mint',     name:'Mint',     color:'#9effd2', free:false},
+  {id:'ember',    name:'Ember',    color:'#ff6a2a', free:false},
+  {id:'magenta',  name:'Magenta',  color:'#ff3fae', free:false},
+  {id:'indigo',   name:'Indigo',   color:'#7a86ff', free:false},
+  {id:'sand',     name:'Sand',     color:'#ffd88a', free:false},
 ];
 const BACKGROUND_COSMETICS = [
   {id:'default', name:'Default', color:'#2f8fff', free:true},
@@ -5786,6 +5764,13 @@ const BACKGROUND_COSMETICS = [
   {id:'coral',   name:'Coral',   color:'#e0685a', free:false},
   {id:'teal',    name:'Teal',    color:'#2fb89a', free:false},
   {id:'amber',   name:'Amber',   color:'#ffb347', free:false},
+  // Space Orchestra gift-lock colors (see ORCH_GIFT)
+  {id:'violet',    name:'Violet',    color:'#7a4cff', free:false},
+  {id:'moss',      name:'Moss',      color:'#6aa86a', free:false},
+  {id:'scarlet',   name:'Scarlet',   color:'#d8402a', free:false},
+  {id:'acid',      name:'Acid',      color:'#3aff7a', free:false},
+  {id:'moonlight', name:'Moonlight', color:'#c8d8ff', free:false},
+  {id:'turquoise', name:'Turquoise', color:'#2ad0c0', free:false},
 ];
 // Defensive normalizer -- run before every read/render so a hand-edited,
 // corrupted, or partially-migrated save can never leave save.cosmetics
@@ -5901,6 +5886,11 @@ function invSourceText(kind,id){
       if(r && r.kind===kind && r.id && r.id.split(':')[1]===id) return 'Gift box: '+m.charAt(0).toUpperCase()+m.slice(1)+' Level '+(idx+1);
     }
   }
+  const orchGifts = Math.floor(orchGiftLockTotal()/ORCH_LOCKS_PER_GIFT);
+  for(let k=0; k<orchGifts; k++){
+    const r = rewardForOrchGift(k);
+    if(r.kind===kind && r.id && r.id.split(':')[1]===id) return 'Space Orchestra: '+((k+1)*ORCH_LOCKS_PER_GIFT)+' gift locks';
+  }
   return 'No reward assigned';
 }
 function invList(wrapId, kind, items){
@@ -5930,7 +5920,8 @@ function renderShop(){
   if(kw){
     kw.innerHTML = `<div class="invKeyRow ok"><span>\ud83d\udd11 Keys earned</span><b>${n} / ${KEY_REQ.rocket}</b></div>` +
       [['orchestra','Space Orchestra'],['special','Meteor Attack'],['rocket','UFO / Rocket Attack']].map(([m,nm])=>
-        `<div class="invKeyRow ${n>=KEY_REQ[m]?'ok':''}"><span>${n>=KEY_REQ[m]?'\ud83d\udd13':'\ud83d\udd12'} ${nm}</span><span>${Math.min(n,KEY_REQ[m])} / ${KEY_REQ[m]}</span></div>`).join('');
+        `<div class="invKeyRow ${n>=KEY_REQ[m]?'ok':''}"><span>${n>=KEY_REQ[m]?'\ud83d\udd13':'\ud83d\udd12'} ${nm}</span><span>${Math.min(n,KEY_REQ[m])} / ${KEY_REQ[m]}</span></div>`).join('') +
+      `<div class="invKeyRow"><span>\ud83c\udf81 Space Orchestra gift locks</span><span>${orchGiftLockCount()} / ${orchGiftLockTotal()}</span></div>`;
   }
   invList('shopThemeList','theme', THEME_LIST.map(t=>({id:t.id, name:t.name, bg:THEME_SWATCH_GRADIENT[t.id]||'linear-gradient(135deg,#7fe7ff,#0a1020)', note:setDesc(t.id)})));
   invList('shopRimList','rim', RIM_IDS.map(id=>({id, name:rimName(id), bg:THEME_SWATCH_GRADIENT[id]||'linear-gradient(135deg,#2c5f80,#9fe8ff)'})));
@@ -6364,15 +6355,14 @@ function renderBonusSection(){
   const unlocked = isModeUnlocked('orchestra');
   const prog = save.progress.orchestra || [];
   const doneCount = prog.filter(p=>p.completed).length;
-  const coinCount = prog.filter(p=>p.coin).length; // only Movement X carries a Bonus Lock
   const totalLevels = LEVELS.orchestra.length;
 
   const card = document.createElement('div');
   card.className = 'bonusCard' + (unlocked ? '' : ' locked');
   if(unlocked){
     card.innerHTML = `<div class="bcTitle">\u2726 SPACE ORCHESTRA \u2726</div>
-      <div class="bcSub">Catch the gray UFO to clear the fog — before it flees.</div>
-      <div class="bcProgress">${doneCount}/${totalLevels} movements performed \u00b7 ${coinCount ? '\u2605' : '\u2606'} ${coinCount}</div>`;
+      <div class="bcSub">One gray UFO per Lock — hit each one to clear its fog before it flees.</div>
+      <div class="bcProgress">${doneCount}/${totalLevels} movements performed \u00b7 \ud83c\udf81 ${orchGiftLockCount()}/${orchGiftLockTotal()} gift locks</div>`;
   } else {
     card.innerHTML = `<div class="bcTitle">\u2726 SPACE ORCHESTRA \u2726</div>
       <div class="bcSub">A ten-movement puzzle set -- your reward for mastering Ringshift.</div>
@@ -6934,7 +6924,7 @@ function recomputeFlow(){
   const lvlLike = { slots: lvl.slots, rings: lvl.rings, lockSlots: allTargets };
   // Space Orchestra only: thread fog state into the tracer so a fogged
   // Lock physically blocks the beam while active (see traceBeamBranch),
-  // and record whether the White Bell was crossed this trace. Every
+  // and report which gray UFOs a beam crossed this trace. Every
   // other mode calls traceAllBeams with fogInfo===undefined, which is a
   // no-op in the tracer -- unchanged behavior everywhere else.
   const fogInfo = (currentMode === 'orchestra') ? OrchestraAudio.getFogInfo() : undefined;
@@ -6942,8 +6932,7 @@ function recomputeFlow(){
   gstate.litLocks = new Set([...trace.litLocks].map(x=>alias.has(x) ? alias.get(x) : x));
   gstate.beamResults = trace.beamResults;
   gstate.echoHits = trace.echoHits || [];
-  gstate.orchestraBellHit = fogInfo ? (trace.bellHits && trace.bellHits.length>0) : false;
-  if(gstate.orchestraBellHit) OrchestraAudio.latchUfo();
+  if(fogInfo) OrchestraAudio.noteUfoHits(trace.bellHits);
 }
 
 function updateTopBar(){
@@ -6956,6 +6945,12 @@ function updateTopBar(){
   coinEl.textContent = coinOff ? '\u2715 BOX OFF' : (bonusLit ? '\u25c6 GIFT BOX' : '\u25c7 GIFT BOX');
   coinEl.classList.toggle('lit', bonusLit && !coinOff);
   coinEl.classList.toggle('off', coinOff);
+  if(currentMode === 'orchestra'){
+    // Space Orchestra: every Lock is a gift lock -- show banked gift locks instead.
+    const allLit = [...lvl.lockSlots, ...(lvl.bonusLockSlots||[])].every(s=>gstate.litLocks.has(s));
+    coinEl.textContent = '\ud83c\udf81 ' + orchGiftLockCount() + '/' + orchGiftLockTotal();
+    coinEl.classList.toggle('lit', allLit);
+  }
   document.getElementById('movesLabel').textContent = gstate.moves + (gstate.moves===1?' move':' moves');
   if(currentMode === 'special') MeteorGame.updateHud();
 }
@@ -7000,10 +6995,6 @@ function rotateRing(delta){
   if(gstate.won || gstate.rocketFailed) return;
   const n = gstate.level.slots;
   const r = gstate.selectedRing;
-  // Space Orchestra only: rotating a ring counts against that ring's
-  // Coin -- after 9 rotations, the Coin is destroyed (see
-  // OrchestraAudio.consumeMove). The ring itself never stops rotating.
-  if(currentMode === 'orchestra') OrchestraAudio.consumeMove(r);
   gstate.rotations[r] = ((gstate.rotations[r]+delta)%n + n) % n;
   gstate.moves++;
   AudioSys.playTick();
@@ -7141,6 +7132,11 @@ function finishLevel(withCoin){
   const gm = currentMode, gi = currentLevelIdx;
   const isLastLevelOfMode = gi === LEVELS[gm].length - 1;
   const gift = claimLevelReward(gm, gi);   // persisted BEFORE it is shown -> cannot be claimed twice
+  // SPACE ORCHESTRA: every Lock is a gift lock -- bank the ones lit right now.
+  const orchGifts = gm==='orchestra'
+    ? bankOrchestraLocks(gi, [...gstate.level.lockSlots, ...(gstate.level.bonusLockSlots||[])].filter(sl=>gstate.litLocks.has(sl)))
+    : [];
+  const gifts = (gift ? [gift] : []).concat(orchGifts);
   const proceed = (fast)=>{
     if(currentMode !== gm || currentLevelIdx !== gi) return;   // player already left this level
     if(isLastLevelOfMode && !save.demoEndScreensShown.includes(gm)){
@@ -7156,9 +7152,14 @@ function finishLevel(withCoin){
       autoAdvanceTimer = setTimeout(()=>{ autoAdvanceTimer = null; if(currentMode===gm && currentLevelIdx===gi) goGame(gm, gi+1); }, fast?150:1500);
     }
   };
-  if(gift){
+  if(gifts.length){
     if(autoAdvanceTimer){ clearTimeout(autoAdvanceTimer); autoAdvanceTimer = null; }
-    setTimeout(()=> showGiftBox(gift, ()=>proceed(true)), 650);
+    const showNext = (i)=>{
+      if(i >= gifts.length){ proceed(true); return; }
+      if(currentMode !== gm || currentLevelIdx !== gi) return;   // player already left this level
+      showGiftBox(gifts[i], ()=> setTimeout(()=>showNext(i+1), i+1<gifts.length ? 250 : 0));
+    };
+    setTimeout(()=> showNext(0), 650);
   } else proceed(false);
 }
 
@@ -7278,7 +7279,7 @@ const PowerSys = (function(){
     lvl.rings.forEach((ring, r)=>{
       Object.keys(ring.gimmicks||{}).forEach(k=>{
         const raw = ring.gimmicks[k], type = typeof raw === 'string' ? raw : raw.type;
-        if(type === 'bell' || type === 'coin') return;
+        if(type === 'bell' || type === 'coin' || type === 'ufo') return;
         const fixed = (typeof raw === 'object' && raw.fixed === true) || type === 'echo_portal';
         const w = typeof raw === 'string' ? 1 : Math.max(1, raw.width||1);
         for(let q=0; q<w; q++){
@@ -8156,6 +8157,19 @@ function drawCoinGlyph(g, lit, R, fs, haloR, haloOp){
   if(lit){ const halo = el('circle',{r:haloR, fill:'url(#flareGradCoin)', opacity:haloOp, filter:'url(#glowWide)'}, g); halo.classList.add('node-halo'); }
   drawLockGift(g, R, lit);
 }
+// SPACE ORCHESTRA: a fogged Lock shows the number of the UFO that clears it.
+function drawFogLockTag(g, slot, fs){
+  const num = OrchestraAudio.ufoNumberForLock(slot);
+  if(!num){
+    const t = el('text',{x:0,y:1,'text-anchor':'middle','dominant-baseline':'middle','font-size':fs,fill:'rgba(230,238,245,0.55)','font-family':'monospace'}, g);
+    t.textContent = '\u2591'; return;
+  }
+  // dark pill so the tag reads on top of the pale fog band
+  el('rect',{x:-11, y:-7, width:22, height:14, rx:7, fill:'rgba(14,20,28,0.88)', stroke:'rgba(234,246,251,0.7)', 'stroke-width':1}, g);
+  drawUfoGlyph(el('g',{transform:'translate(-4.5,0.6) scale(0.42)'}, g), false, null);
+  const t = el('text',{x:6.2,y:0.8,'text-anchor':'middle','dominant-baseline':'middle','font-size':9,'font-weight':'bold',fill:'#eaf6fb','font-family':'monospace'}, g);
+  t.textContent = String(num);
+}
 function drawRimLocks(rimG){
   rimG.replaceChildren();
   try{
@@ -8205,8 +8219,7 @@ function drawRimLocks(rimG){
       // lit/unlit glyph -- the player genuinely cannot read the Lock's
       // state, matching the fact that the beam can't reach it either.
       el('circle',{r:14, fill:'rgba(210,220,230,0.14)', stroke:'rgba(230,238,245,0.4)', 'stroke-width':1.6, 'stroke-dasharray':'2 3'}, g);
-      const t = el('text',{x:0,y:1,'text-anchor':'middle','dominant-baseline':'middle','font-size':11,fill:'rgba(230,238,245,0.55)','font-family':'monospace'}, g);
-      t.textContent = '\u2591';
+      drawFogLockTag(g, slot, 11);
       return;
     }
     if(isSpecial){
@@ -8268,8 +8281,7 @@ function drawRimLocks(rimG){
     const g = el('g',{transform:`translate(${cx},${cy}) scale(${optScale('rimSize')})`}, rimG);
     if(fogOf(slot)){
       el('circle',{r:18, fill:'rgba(210,220,230,0.14)', stroke:'rgba(230,238,245,0.4)', 'stroke-width':1.8, 'stroke-dasharray':'2 3'}, g);
-      const t = el('text',{x:0,y:1,'text-anchor':'middle','dominant-baseline':'middle','font-size':13,fill:'rgba(230,238,245,0.55)','font-family':'monospace'}, g);
-      t.textContent = '\u2591';
+      drawFogLockTag(g, slot, 13);
       return;
     }
     const THEMEDB = ICE||ISLAND||RUIN||VOID||NOIR||LAVA||SAKURA||!!T3;
@@ -8791,14 +8803,21 @@ function drawIceGimmickGlyph(parent, type, raw, outwardAngle, active){
 // boundary for this theme (unlike Ice, which does reskin gimmicks) -- do
 // not add an isIslandTheme() branch to drawGimmickGlyph() below without
 // being asked.
-function drawUfoGlyph(p, active){
-  // Gray UFO (Space Orchestra): replaces the White Bell. Transparent to beams; a beam crossing it clears the fog.
+function drawUfoGlyph(p, active, raw){
+  // Gray UFO (Space Orchestra): one per Lock. Transparent to beams; a beam crossing it clears its own Lock's fog.
   const hull = active ? '#e3e8ee' : '#9aa3ad';
   if(active) el('circle',{r:19, fill:'url(#flareGradBonus)', opacity:0.45}, p);
   el('ellipse',{cx:0,cy:-3.2,rx:5.6,ry:5,fill:active?'rgba(190,230,255,.7)':'rgba(170,200,220,.38)',stroke:'#cfd6dd','stroke-width':0.9}, p);
   el('ellipse',{rx:12.5,ry:4.6,fill:hull,stroke:'#59616a','stroke-width':1.1}, p);
   el('ellipse',{cx:0,cy:1.4,rx:8.2,ry:2,fill:'#6a727b',opacity:0.8}, p);
   [-7,0,7].forEach(x=> el('circle',{cx:x,cy:1.2,r:1.15,fill:active?'#ffe27a':'#d7dde3'}, p));
+  // Number badge: UFO #k clears the fog on the Lock that carries the same number.
+  const num = (raw && typeof raw==='object' && raw.lock!==undefined && currentMode==='orchestra') ? OrchestraAudio.ufoNumberForLock(raw.lock) : 0;
+  if(num){
+    el('circle',{cx:10.5,cy:-8.5,r:5.4,fill:'#141a22',stroke:'#eaf6fb','stroke-width':1}, p);
+    const t = el('text',{x:10.5,y:-8.2,'text-anchor':'middle','dominant-baseline':'middle','font-size':7.5,'font-weight':'bold',fill:'#eaf6fb','font-family':'monospace'}, p);
+    t.textContent = String(num);
+  }
 }
 /* =========================================================================
    VISUAL MILESTONE 1 -- MECHANISM SHAPES (render-only; nothing here is read
@@ -8896,7 +8915,7 @@ function drawBlockSlab(parent, radius, s0, s1, n, fullRing, color, ice){
 }
 
 function drawGimmickGlyph(parent, type, raw, outwardAngle, active){
-  if(type==='ufo') return drawUfoGlyph(parent, active);
+  if(type==='ufo') return drawUfoGlyph(parent, active, raw);
   if(isIceTheme()) return drawIceGimmickGlyph(parent, type, raw, outwardAngle, active);
   const colors = {mirror_l:'#fff', mirror_r:'#fff', block:'#ff3b3b', half_block:'#ff9d4d', amp:'#ffd23f', prism:'#ff5ec4', portal:'#c77dff', echo_portal:'#5df0ff', coin:'#ffd23f'};
   const color = colors[type] || '#fff';
@@ -9001,7 +9020,6 @@ function _dragMove(ev){
   while(delta<-Math.PI) delta+=Math.PI*2;
   const slotDelta=Math.round(delta/(Math.PI*2/_drag.n));
   if(slotDelta!==_drag.accum){
-    if(currentMode==='orchestra') _drag.moves+=Math.abs(slotDelta-_drag.accum);
     _drag.accum=slotDelta;
     const n=_drag.n;
     gstate.rotations[_drag.ringIdx]=((_drag.startRot+_drag.accum)%n+n)%n;
@@ -9012,7 +9030,6 @@ function _dragMove(ev){
 function _dragUp(){
   if(!_drag.on) return;
   _drag.on=false;
-  if(currentMode==='orchestra' && _drag.moves>0){ for(let i=0;i<_drag.moves;i++) OrchestraAudio.consumeMove(_drag.ringIdx); }
   flowRenderScheduled=false;
   recomputeFlow(); checkWin(); renderPuzzle(); updateTopBar();
 }
@@ -10315,6 +10332,13 @@ const THEME_SETS = {
   glacier:{source:'sky',background:'teal',rim:'glacier'},
   leviathan:{source:'silver',background:'green',rim:'leviathan'},
   halo:{source:'lit:gold',background:'amber',rim:'halo'},
+  // Space Orchestra gift-lock sets (ORCH_GIFT) -- the 6 themes no other gift box hands out.
+  mistcosmos:{source:'lavender',background:'violet',rim:'mistcosmos'},
+  mistjungle:{source:'mint',background:'moss',rim:'mistjungle'},
+  volcano:{source:'ember',background:'scarlet',rim:'volcano'},
+  virus:{source:'magenta',background:'acid',rim:'virus'},
+  ufonight:{source:'indigo',background:'moonlight',rim:'ufonight'},
+  ufodesert:{source:'sand',background:'turquoise',rim:'ufodesert'},
 };
 function parseSetVal(slot,v){ if(!v) return null; const i=v.indexOf(':'); return i>0 ? {kind:v.slice(0,i), val:v.slice(i+1)} : {kind:slot, val:v}; }
 const RIM_IDS = ['default','deepfield','mesa','ice','island','ruin','void','noir','lava','sakura','carnival','archive','rail','spore','crimson','glacier','leviathan','halo','mistcosmos','mistjungle','volcano','virus','ufonight','ufodesert'];
@@ -10395,6 +10419,55 @@ function claimLevelReward(mode, idx){
   persistSave();
   r.dup = dup; return r;
 }
+/* =========================================================================
+   SPACE ORCHESTRA GIFT LOCKS -- every Lock in Space Orchestra is a gift lock.
+   When a movement is cleared, every Lock lit at that moment is banked in
+   save.rewards.orchLocks ('<movement index>:<rim slot>', once per Lock, so
+   replaying can't farm). Every ORCH_LOCKS_PER_GIFT banked Locks opens one
+   gift box, cycling: source color, background color, rim, theme -- each
+   cycle drawn from the next theme in ORCH_THEME_ORDER (the themes no other
+   gift box gives out) via its THEME_SETS entry.
+   ========================================================================= */
+const ORCH_LOCKS_PER_GIFT = 4;
+const ORCH_REWARD_CYCLE = ['source','background','rim','theme'];
+const ORCH_THEME_ORDER = ['mistcosmos','mistjungle','volcano','virus','ufonight','ufodesert'];
+function orchGiftLockTotal(){ return (LEVELS.orchestra||[]).reduce((n,l)=>n+(l.lockSlots||[]).length+(l.bonusLockSlots||[]).length, 0); }
+function orchBanked(){
+  ensureRewardShape();
+  const o = save.rewards.orchLocks;
+  if(!o || typeof o !== 'object' || Array.isArray(o)) save.rewards.orchLocks = {};
+  return save.rewards.orchLocks;
+}
+function orchGiftLockCount(){ return Object.keys(orchBanked()).length; }
+function rewardForOrchGift(k){
+  const type = ORCH_REWARD_CYCLE[k % ORCH_REWARD_CYCLE.length], themeId = ORCH_THEME_ORDER[Math.floor(k/ORCH_REWARD_CYCLE.length)] || null;
+  const st = themeId ? THEME_SETS[themeId] : null;
+  const r = {lvKey:'orchestra:gift'+k, type, kind:type, themeId, id:null, missing:null, orchGift:k};
+  if(!st){ r.missing = 'No Space Orchestra reward is defined for gift '+(k+1)+' yet.'; return r; }
+  if(type==='theme'){ r.id = 'theme:'+themeId; return r; }
+  const p = parseSetVal(type, st[type]);
+  if(!p){ r.missing = 'MISSING \u2014 no reward defined for '+themeName(themeId)+'.'; return r; }
+  r.kind = p.kind; r.id = p.kind+':'+p.val; return r;
+}
+// Banks the lit Locks of a cleared movement and grants every gift box that
+// newly crosses a 4-Lock threshold. Returns the new rewards (possibly empty).
+function bankOrchestraLocks(levelIdx, slots){
+  const bank = orchBanked();
+  slots.forEach(sl=>{ bank[levelIdx+':'+sl] = true; });
+  const total = Object.keys(bank).length, earned = Math.floor(total/ORCH_LOCKS_PER_GIFT), out = [];
+  const claimed = save.rewards.claimed;
+  for(let k=0; k<earned; k++){
+    const r = rewardForOrchGift(k);
+    if(claimed[r.lvKey]) continue;
+    let dup = false;
+    if(r.id) dup = grantReward(r);
+    claimed[r.lvKey] = r.id || ('missing:'+r.type+':'+r.themeId);
+    r.dup = dup; r.orchNote = 'Space Orchestra \u00b7 '+((k+1)*ORCH_LOCKS_PER_GIFT)+' gift locks';
+    out.push(r);
+  }
+  persistSave();
+  return out;
+}
 const MODE_NAME = {orchestra:'Space Orchestra', special:'Meteor Attack', rocket:'UFO / Rocket Attack'};
 function giftPreview(g){
   const v = g.id ? g.id.split(':')[1] : null, k = g.kind;
@@ -10433,6 +10506,7 @@ function showGiftBox(g, done){
     else {
       name = itemName(g.kind, v) + (g.kind==='lit' ? ' lit beam' : '');
       sub = g.themeId ? themeName(g.themeId)+' \u2014 '+setDesc(g.themeId) : '';
+      if(g.orchNote) sub = g.orchNote + (sub ? '<br>'+sub : '');
       tag = g.dup ? 'ALREADY IN INVENTORY' : 'ADDED TO INVENTORY'; tcls = g.dup ? 'dup' : '';
     }
     rev.innerHTML = giftPreview(g)+`<div class="giftName">${name}</div><div class="giftSub">${sub}</div><div class="giftTag ${tcls}">${tag}</div>`;
