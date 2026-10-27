@@ -1624,7 +1624,7 @@ body.theme-v2 .screenSub, body.theme-v2 #titleScreen .press, body.theme-v2 #game
     <div class="htpSection">
       <h3>// ✦ SPACE ORCHESTRA — FOG, GRAY UFOS &amp; GIFT LOCKS</h3>
       <div class="htpRow"><span class="htpIcon" style="color:#eaf6fb; border-color:#eaf6fb;">🌫️</span><div><b>Fog</b>Every Lock in Space Orchestra starts fogged. A fogged Lock is a physical wall — a beam that reaches it is blocked there, no matter how correctly the rings are set, and its true state stays hidden.</div></div>
-      <div class="htpRow"><span class="htpIcon" style="color:#eaf6fb; border-color:#eaf6fb;">🛸</span><div><b>One UFO per Lock</b>Each fogged Lock has its own numbered gray UFO. Route any beam onto UFO 1 and Lock 1's fog is gone for good; UFO 2 clears Lock 2, and so on. Hit only one and only that Lock becomes visible and solvable. The UFOs leave one by one — UFO 1 at 0:30, UFO 2 at 1:30, UFO 3 at 2:30, UFO 4 at 4:00 — and a Lock whose UFO escaped stays fogged, so reset and try again.</div></div>
+      <div class="htpRow"><span class="htpIcon" style="color:#eaf6fb; border-color:#eaf6fb;">🛸</span><div><b>One UFO per Lock</b>Each fogged Lock has its own numbered gray UFO. Route any beam onto UFO 1 and it's knocked out for 10 seconds — Lock 1's fog lifts while it's down, then the UFO rises again and the fog comes back. UFO 2 does the same for Lock 2, and so on, so knock out every UFO you need and light their Locks before they get back up. A beam left sitting on a UFO won't knock it out again; it has to newly reach it. The UFOs leave one by one — UFO 1 at 0:30, UFO 2 at 1:30, UFO 3 at 2:30, UFO 4 at 4:00 — and a Lock whose UFO escaped stays fogged, so reset and try again.</div></div>
       <div class="htpRow"><span class="htpIcon" style="color:#ffd23f; border-color:#ffd23f;">🎁</span><div><b>Gift Locks</b>Every Lock in Space Orchestra is a gift lock. Each Lock you light when you clear a movement is banked (once per Lock), and every 4 banked Locks opens a gift box: two beam colors, then a rim, then a theme, and the cycle repeats.</div></div>
     </div>
 
@@ -1760,7 +1760,7 @@ body.theme-v2 .screenSub, body.theme-v2 #titleScreen .press, body.theme-v2 #game
     <div class="ringdeco r3"></div>
     <div class="ringdeco r2"></div>
     <h1 class="logo">RINGSHIFT</h1>
-    <div class="sub">DEMO · v0.27</div>
+    <div class="sub">DEMO · v0.28</div>
     <div class="press">PRESS ANY BUTTON</div>
   </div>
 
@@ -4068,7 +4068,8 @@ const AudioSys = (function(){
 
    GRAY UFOs: one per Lock, authored in ORCHESTRA_MOVEMENTS as
    {type:'ufo', fixed:true, lock:<rim slot>}. Hitting UFO #k with any beam
-   clears Lock #k's fog for the rest of the attempt. UFO #k flees at
+   KNOCKS IT OUT for 10 seconds: Lock #k's fog lifts for that window, then
+   the UFO rises back up and Lock #k is fogged again. UFO #k flees at
    UFO_LEAVE_SEC[k-1] seconds (0:30, 1:30, 2:30, 4:00, 5:30, ...); a Lock
    whose UFO fled stays fogged. RESET restores every UFO and all fog.
 
@@ -4096,13 +4097,19 @@ const OrchestraAudio = (function(){
   // Every Lock (required and bonus) starts fogged. Each Lock has its OWN
   // gray UFO, authored on the level as {type:'ufo', fixed:true, lock:<rim
   // slot>}. UFO #k belongs to the k-th Lock in lockSlots+bonusLockSlots
-  // order. A beam crossing UFO #k removes the fog from that one Lock for
-  // the rest of the attempt (the UFO is shot down and leaves the board).
+  // order. A beam crossing UFO #k knocks it out for UFO_DOWN_MS (10s):
+  // that one Lock's fog lifts while it's down, then the UFO rises again
+  // and the fog comes back. A risen UFO can only be knocked out again by
+  // a beam that NEWLY reaches it (a beam left parked on it doesn't count),
+  // so the fog can't be held off forever by leaving a beam in place.
+  // A knocked-out UFO can't flee; if its leave time passed while it was
+  // down, it flees the moment it rises.
   // Each UFO flees on its own schedule (UFO_LEAVE_SEC, counted from the
   // start of the movement); a Lock whose UFO fled stays fogged, so the
   // movement can no longer be won -- reset to try again.
   // =========================================================================
   const UFO_LEAVE_SEC = [30, 90, 150, 240, 330, 420, 510, 600];
+  const UFO_DOWN_MS = 10000;
   let fogged = new Set(), ufos = [], pendingHits = new Set(), levelStart = 0, tickIv = null;
   const clk = {paused:false, at:0, off:0};            // pause-aware clock: frozen while the pause menu is open
   const T = ()=> (clk.paused ? clk.at : performance.now()) - clk.off;
@@ -4119,20 +4126,36 @@ const OrchestraAudio = (function(){
     lvl.rings.forEach((r,ri)=>Object.keys(r.gimmicks||{}).forEach(k=>{
       const g = r.gimmicks[k];
       if(typeof g==='object' && g.type==='ufo'){
+        g.down = false;
         let li = order.indexOf(g.lock);
         if(li<0) li = list.length;            // unlinked UFO (old data): give it the next free Lock
         list.push({ringIdx:ri, slot:+k, li});
       }
     }));
     list.sort((a,b)=>a.li-b.li);
-    return list.map((u,i)=>({ ringIdx:u.ringIdx, slot:u.slot, lock:order[i], num:i+1, status:'here', leaveAt:leaveSecFor(i)*1000 }));
+    return list.map((u,i)=>({ ringIdx:u.ringIdx, slot:u.slot, lock:order[i], num:i+1, status:'here', leaveAt:leaveSecFor(i)*1000, downUntil:0, armed:true }));
   }
   function ufoFor(ringIdx, slot){ return ufos.find(u=>u.ringIdx===ringIdx && u.slot===slot); }
   // Called by the shared recomputeFlow() with every UFO a beam crossed in
   // that trace (even mid-drag). The hit is applied on the next win check /
   // tick, never re-entrantly inside the trace itself.
   function noteUfoHits(hits){
-    (hits||[]).forEach(h=>{ const u = ufoFor(h.ringIdx, h.slot); if(u && u.status==='here') pendingHits.add(u.num); });
+    const touched = new Set();
+    (hits||[]).forEach(h=>{ const u = ufoFor(h.ringIdx, h.slot); if(u) touched.add(u.num); });
+    ufos.forEach(u=>{
+      if(!touched.has(u.num)) u.armed = true;                 // no beam on it -> the next beam to reach it counts
+      else if(u.status==='here' && u.armed) pendingHits.add(u.num);
+    });
+  }
+  function ufoGimmick(u){
+    const lvl = gstate.level, ring = lvl && lvl.rings[u.ringIdx];
+    const g = ring && ring.gimmicks && ring.gimmicks[u.slot];
+    return (g && typeof g==='object' && g.type==='ufo') ? g : null;
+  }
+  function ufoBurst(u, color){
+    const lvl = gstate.level; if(!lvl) return;
+    const a = slotToAngle(u.slot, lvl.slots), rr = ringRadius(u.ringIdx), x = Math.cos(a)*rr, y = Math.sin(a)*rr;
+    try{ Fx.burst(x,y,color,16); Fx.ring(x,y,4,34,color,.45); }catch(e){}
   }
   function removeUfoGimmick(u){
     const lvl = gstate.level; if(!lvl) return;
@@ -4149,8 +4172,11 @@ const OrchestraAudio = (function(){
     pendingHits.forEach(num=>{
       const u = ufos.find(x=>x.num===num);
       if(!u || u.status!=='here') return;
-      u.status = 'hit'; fogged.delete(u.lock); removeUfoGimmick(u); changed = true;
-      showNewGimmickToast(`UFO ${u.num} hit — Lock ${u.num} is clear.`);
+      u.status = 'down'; u.armed = false; u.downUntil = (T()-levelStart) + UFO_DOWN_MS;
+      fogged.delete(u.lock); changed = true;
+      const g = ufoGimmick(u); if(g) g.down = true;
+      ufoBurst(u, '#ffe27a');
+      showNewGimmickToast(`UFO ${u.num} knocked out — Lock ${u.num} clear for 10s.`);
     });
     pendingHits.clear();
     if(changed) playBellChime();
@@ -4189,22 +4215,39 @@ const OrchestraAudio = (function(){
     g.gain.setValueAtTime(0.0001,t); g.gain.linearRampToValueAtTime(0.1,t+0.05); g.gain.exponentialRampToValueAtTime(0.0001,t+0.6);
     o.connect(g); g.connect(accentGain); o.start(t); o.stop(t+0.65);
   }
+  function playUfoRise(){
+    ensureCtx(); const t = ctx.currentTime, o = ctx.createOscillator(), g = ctx.createGain();
+    o.type='triangle'; o.frequency.setValueAtTime(160,t); o.frequency.exponentialRampToValueAtTime(420,t+0.45);
+    g.gain.setValueAtTime(0.0001,t); g.gain.linearRampToValueAtTime(0.08,t+0.06); g.gain.exponentialRampToValueAtTime(0.0001,t+0.55);
+    o.connect(g); g.connect(accentGain); o.start(t); o.stop(t+0.6);
+  }
+  // UFO #k's knockout is over: it rises back up and its Lock is fogged again.
+  function ufoRise(u, t){
+    u.status = 'here'; u.downUntil = 0;
+    fogged.add(u.lock);
+    const g = ufoGimmick(u); if(g) g.down = false;
+    if(t >= u.leaveAt){ ufoLeave(u); return; }               // its time ran out while it was down
+    ufoBurst(u, '#cfd6dd'); playUfoRise();
+    showNewGimmickToast(`UFO ${u.num} is back up — Lock ${u.num} fogged again.`);
+  }
   // UFO #k's time is up: it flees and its Lock stays fogged for this attempt.
   function ufoLeave(u){
-    u.status = 'gone'; removeUfoGimmick(u); playUfoLeave();
+    u.status = 'gone'; fogged.add(u.lock); removeUfoGimmick(u); playUfoLeave();
     showNewGimmickToast(`UFO ${u.num} fled — Lock ${u.num} stays fogged. Reset to try again.`);
   }
   function fmtClock(ms){ const s = Math.max(0, Math.ceil(ms/1000)); return Math.floor(s/60)+':'+String(s%60).padStart(2,'0'); }
   function statusText(){
     if(ufos.some(u=>u.status==='gone')) return '🛸 A UFO ESCAPED — reset to try again';
-    const next = ufos.filter(u=>u.status==='here').sort((a,b)=>a.leaveAt-b.leaveAt)[0];
+    const next = ufos.filter(u=>u.status!=='gone').sort((a,b)=>a.leaveAt-b.leaveAt)[0];
     if(!next) return '';
+    if(!fogged.size) return '🛸 ALL UFOs DOWN — light every Lock now!';
     return '🌫️ '+fogged.size+' FOGGED — UFO '+next.num+' leaves in '+fmtClock(next.leaveAt-(T()-levelStart));
   }
   function tick(){
     if(!running || clk.paused || currentMode!=='orchestra' || !gstate.level || gstate.won) return;
     const t = T()-levelStart;
     let changed = processPendingHits();
+    ufos.forEach(u=>{ if(u.status==='down' && t>=u.downUntil){ ufoRise(u, t); changed = true; } });
     ufos.forEach(u=>{ if(u.status==='here' && t>=u.leaveAt){ ufoLeave(u); changed = true; } });
     if(changed){ refresh(); checkWin(); return; }
     // keep the countdowns ticking without a full board re-render
@@ -4215,16 +4258,16 @@ const OrchestraAudio = (function(){
   function pauseFog(){ if(!clk.paused){ clk.paused = true; clk.at = performance.now(); } }
   function resumeFog(){ if(clk.paused){ clk.off += performance.now()-clk.at; clk.paused = false; } }
 
-  // One chip per UFO above the board: its countdown, a tick once it's been
-  // hit, or a cross if it fled.
+  // One chip per UFO above the board: its flee countdown, its knockout
+  // countdown while it's down, or a cross if it fled.
   function updateUfoChips(){
     const wrap = document.getElementById('orchestraBatteryRow');
     if(!wrap) return;
     if(!gstate.level || currentMode !== 'orchestra'){ if(wrap.innerHTML) wrap.innerHTML=''; return; }
     const t = T()-levelStart;
     const html = ufos.map(u=>{
-      const cls = 'orchBatteryChip' + (u.status==='gone' ? ' dead' : u.status==='hit' ? ' ok' : '');
-      const label = u.status==='hit' ? '✓ CLEAR' : u.status==='gone' ? '✕ FLED' : fmtClock(u.leaveAt - t);
+      const cls = 'orchBatteryChip' + (u.status==='gone' ? ' dead' : u.status==='down' ? ' ok' : '');
+      const label = u.status==='down' ? '💫 DOWN '+Math.max(0, Math.ceil((u.downUntil - t)/1000))+'s' : u.status==='gone' ? '✕ FLED' : fmtClock(u.leaveAt - t);
       return `<span class="${cls}">🛸${u.num} ${label}</span>`;
     }).join('');
     if(wrap.innerHTML!==html) wrap.innerHTML = html;
@@ -6361,7 +6404,7 @@ function renderBonusSection(){
   card.className = 'bonusCard' + (unlocked ? '' : ' locked');
   if(unlocked){
     card.innerHTML = `<div class="bcTitle">\u2726 SPACE ORCHESTRA \u2726</div>
-      <div class="bcSub">One gray UFO per Lock — hit each one to clear its fog before it flees.</div>
+      <div class="bcSub">One gray UFO per Lock — knock it out to clear its fog for 10 seconds.</div>
       <div class="bcProgress">${doneCount}/${totalLevels} movements performed \u00b7 \ud83c\udf81 ${orchGiftLockCount()}/${orchGiftLockTotal()} gift locks</div>`;
   } else {
     card.innerHTML = `<div class="bcTitle">\u2726 SPACE ORCHESTRA \u2726</div>
@@ -8804,7 +8847,17 @@ function drawIceGimmickGlyph(parent, type, raw, outwardAngle, active){
 // not add an isIslandTheme() branch to drawGimmickGlyph() below without
 // being asked.
 function drawUfoGlyph(p, active, raw){
-  // Gray UFO (Space Orchestra): one per Lock. Transparent to beams; a beam crossing it clears its own Lock's fog.
+  // Gray UFO (Space Orchestra): one per Lock. Transparent to beams; a beam crossing it knocks it out for 10s, clearing its own Lock's fog.
+  // KNOCKED OUT: drawn dropped, tilted and dimmed, with dizzy stars, lights off.
+  if(raw && typeof raw==='object' && raw.down && currentMode==='orchestra'){
+    p = el('g',{transform:'translate(0,4) rotate(-28)', opacity:0.55}, p);
+    el('ellipse',{cx:0,cy:-3.2,rx:5.6,ry:5,fill:'rgba(170,200,220,.25)',stroke:'#8a929b','stroke-width':0.9}, p);
+    el('ellipse',{rx:12.5,ry:4.6,fill:'#6f7780',stroke:'#3f464e','stroke-width':1.1}, p);
+    el('ellipse',{cx:0,cy:1.4,rx:8.2,ry:2,fill:'#4a5159',opacity:0.8}, p);
+    [-7,0,7].forEach(x=> el('circle',{cx:x,cy:1.2,r:1.15,fill:'#3a4048'}, p));
+    [[-9,-12],[0,-15],[9,-12]].forEach(([x,y])=>{ const s = el('text',{x,y,'text-anchor':'middle','dominant-baseline':'middle','font-size':6.5,fill:'#ffe27a'}, p); s.textContent = '✦'; });
+    return;
+  }
   const hull = active ? '#e3e8ee' : '#9aa3ad';
   if(active) el('circle',{r:19, fill:'url(#flareGradBonus)', opacity:0.45}, p);
   el('ellipse',{cx:0,cy:-3.2,rx:5.6,ry:5,fill:active?'rgba(190,230,255,.7)':'rgba(170,200,220,.38)',stroke:'#cfd6dd','stroke-width':0.9}, p);
