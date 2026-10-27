@@ -3710,6 +3710,22 @@ const LEVELS = {
   special: METEOR_LEVELS,
   rocket: ROCKET_LEVELS,
 };
+/*AUTO_LEVEL_CANDIDATES_START -- added by ringshift-social-autopilot on an experiment branch; review before merging*/
+// Candidate levels appended to Hard. Existing levels, their order and their ids are untouched.
+LEVELS.hard.push(
+  // ---- CANDIDATE (level lab 2026-10-27) -- Portal + Mirror. Generated and verified by ringshift-social-autopilot level_lab.py.
+  // VERIFIED (build d2fa19f31776, real tracer, all 12^3 = 1,728 rotations): exactly 1 coin rotation [4, 3, 7]; 0 no-coin rotation(s).
+  // On the route (removing any one breaks the solution): R3:Portal, R3:Mirror, R3:Mirror, R3:Portal.
+  // Start [11, 6, 3] lights 0 required locks; shortest solution 12 moves; 64 wrong rotations light all but one of the locks.
+  {name:'CANDIDATE', slots:12, rings:[{spokeSlots:[6,11], gimmicks:{}, initialRotation:11},{spokeSlots:[11], gimmicks:{}, initialRotation:6},{spokeSlots:[6], gimmicks:{1:{type:'portal', id:'P0', fixed:true}, 7:{type:'mirror_l', fixed:true}, 9:{type:'mirror_r', fixed:true}, 10:{type:'portal', id:'P0', turn:180, fixed:true}}, initialRotation:3}], lockSlots:[7,8,9], bonusLockSlots:[1]},
+  // ---- CANDIDATE (level lab 2026-10-27) -- Amplifier + Mirror. Generated and verified by ringshift-social-autopilot level_lab.py.
+  // VERIFIED (build d2fa19f31776, real tracer, all 12^3 = 1,728 rotations): exactly 1 coin rotation [0, 9, 3]; 0 no-coin rotation(s).
+  // On the route (removing any one breaks the solution): R2:Amplifier, R2:Mirror, R3:Mirror.
+  // Start [7, 4, 1] lights 0 required locks; shortest solution 12 moves; 34 wrong rotations light all but one of the locks.
+  {name:'CANDIDATE', slots:12, rings:[{spokeSlots:[5,9], gimmicks:{}, initialRotation:7},{spokeSlots:[11,5], gimmicks:{0:'amp', 2:{type:'mirror_r', fixed:true}, 7:{type:'half_block', side:'in'}}, initialRotation:4},{spokeSlots:[5,0], gimmicks:{3:{type:'mirror_r', fixed:true}, 8:{type:'mirror_r', fixed:true}}, initialRotation:1}], lockSlots:[0,6,9,11], bonusLockSlots:[10]}
+);
+LEVELS.hard.forEach((l, i)=>{ if(l.name === 'CANDIDATE') l.name = 'LEVEL ' + (i + 1); });
+/*AUTO_LEVEL_CANDIDATES_END*/
 // v0.32: the three special modes unlock by LEVELS WON (first clears in Easy +
 // Normal + Hard only -- Space Orchestra / Meteor / Rocket levels never count).
 // Keys are still earned from gift boxes but unlock nothing until assigned.
