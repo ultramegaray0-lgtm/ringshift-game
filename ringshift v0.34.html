@@ -573,6 +573,41 @@ body.theme-sakura .gimmickChip, body.theme-sakura #powerStatus, body.theme-sakur
   .shopItemBtn:hover{border-color:var(--ring); color:var(--ring);}
   .shopItemBtn.buy{border-color:#5c4400; color:var(--target-bonus-on);}
   .shopItemBtn.buy:hover{border-color:var(--target-bonus-on); box-shadow:0 0 10px rgba(255,210,63,.3);}
+
+  /* ===== v0.34 INVENTORY LOADOUT CARDS =====
+     5 slots: 1 Theme, 2 Rim, 3 Source beam, 4 Background beam, 5 Lit beam. A card opens its
+     picker under the row; slots 2-5 have an AUTO choice that follows the equipped theme. */
+  #invLoadout{display:grid; grid-template-columns:repeat(5,minmax(0,1fr)); gap:6px; margin:10px 0 6px;}
+  .invCard{position:relative; display:flex; flex-direction:column; align-items:center; gap:5px; min-width:0; min-height:104px;
+    padding:6px 3px 7px; border:1px dashed var(--panel-line-bright); border-radius:8px; background:rgba(127,231,255,0.03);
+    color:var(--text0); font-family:inherit; text-align:center; cursor:pointer; transition:border-color .15s, background .15s, box-shadow .15s;}
+  .invCard:hover{border-color:var(--ring);}
+  .invCard:focus-visible{outline:2px solid var(--ring-selected); outline-offset:2px;}
+  .invCard.active{border-style:solid; border-color:var(--target-bonus-on); background:rgba(255,210,63,0.07); box-shadow:0 0 14px rgba(255,210,63,.22);}
+  .invCardTop{display:flex; align-items:baseline; justify-content:center; gap:3px; width:100%; font-family:var(--font-display); font-size:8px; letter-spacing:1px; color:var(--text2); white-space:nowrap;}
+  .invCardTop b{color:var(--target-bonus-on); font-weight:normal;}
+  .invCardSw{width:30px; height:30px; border-radius:50%; flex:none; border:1.5px solid rgba(255,255,255,0.5); box-shadow:0 0 10px rgba(0,0,0,.4) inset;}
+  .invCardSw.sq{border-radius:8px;}
+  .invCardSw.ringSw{background-clip:padding-box; -webkit-mask:radial-gradient(circle, transparent 7px, #000 8px); mask:radial-gradient(circle, transparent 7px, #000 8px);}
+  .invCardName{font-size:9.5px; line-height:1.2; color:var(--text0); width:100%; overflow:hidden; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; word-break:break-word;}
+  .invCardMode{margin-top:auto; font-family:var(--font-display); font-size:8px; letter-spacing:1px; padding:2px 6px; border-radius:9px; border:1px solid var(--panel-line); color:var(--text2);}
+  .invCardMode.auto{color:var(--ok); border-color:var(--ok);}
+  .invCardMode.set{color:var(--target-bonus-on); border-color:#5c4400;}
+  #invPicker{display:none;}
+  #invPicker.open{display:block;}
+  #shopPanelBox.picking #invMain{display:none;}
+  .invPickHead{display:flex; align-items:center; gap:8px; margin:12px 0 8px; padding-bottom:6px; border-bottom:1px solid var(--panel-line);}
+  .invPickHead .t{flex:1; min-width:0; font-family:var(--font-display); font-size:10.5px; letter-spacing:2px; color:var(--accent);}
+  .invPickBack{font-family:var(--font-display); font-size:9.5px; letter-spacing:1px; padding:5px 9px; border-radius:5px; cursor:pointer;
+    background:rgba(127,231,255,.06); border:1px solid var(--panel-line); color:var(--text0);}
+  .invPickBack:hover{border-color:var(--ring); color:var(--ring);}
+  .invPickNote{font-size:10.5px; color:var(--text2); margin:-2px 0 8px; letter-spacing:.3px;}
+  .shopItem.invAuto{background:rgba(110,255,170,0.03);}
+  .shopItem.invAuto .shopSwatch{position:relative;}
+  .invAutoTag{font-family:var(--font-display); font-size:8px; letter-spacing:1px; color:var(--ok); margin-left:4px;}
+  /* in a level the panel sits over the puzzle: keep the board visible so a theme swap shows live */
+  body.inGame #shopBackdrop{background:rgba(2,4,8,0.22); backdrop-filter:none;}
+  .gameActions .invGameBtn{flex:0 0 auto; min-width:0; padding-left:14px; padding-right:14px; font-size:16px; line-height:1;}
   .shopItemBtn.equipped{border-color:var(--ok); color:var(--ok); cursor:default;}
 
   /* ---------- ROCKET ATTACK in-game theme & HUD ----------
@@ -1719,6 +1754,7 @@ body.theme-v2 .screenSub, body.theme-v2 #titleScreen .press, body.theme-v2 #game
     <div class="pauseMenuBtns">
       <button class="modalBtn primary" id="resumeBtn">▶ RESUME</button>
       <button class="modalBtn" id="pauseRestartBtn">⟲ RESTART LEVEL</button>
+      <button class="modalBtn" id="pauseInvBtn">🎒 INVENTORY · THEMES</button>
       <button class="modalBtn" id="pauseOptionsBtn">⚙ OPTIONS</button>
       <button class="modalBtn" id="pauseHelpBtn">? HOW TO PLAY</button>
       <button class="modalBtn danger" id="pauseQuitBtn">✕ QUIT TO MENU</button>
@@ -1750,23 +1786,18 @@ body.theme-v2 .screenSub, body.theme-v2 #titleScreen .press, body.theme-v2 #game
   <div id="shopBackdrop"></div>
   <div id="shopPanelBox">
     <h2>INVENTORY</h2>
-    <div class="modalSub">Everything here is earned from gift boxes: the end of Easy, Normal and Hard levels, every 4 gift locks banked in Space Orchestra, Meteor Attack and Rocket Attack, and the gift lock of each Challenge level (two themes with their rims). Nothing is bought. Special modes unlock by levels won.</div>
-    <div class="shopSectionTitle">WINS · KEYS · SPECIAL MODES</div>
-    <div id="invKeys"></div>
-    <div class="shopSectionTitle">ROCKET ATTACK GIFT REWARDS</div>
-    <div id="invRocketRewards"></div>
-    <div class="shopSectionTitle">METEOR ATTACK GIFT REWARDS</div>
-    <div id="invMeteorRewards"></div>
-    <div class="shopSectionTitle">THEMES</div>
-    <div id="shopThemeList"></div>
-    <div class="shopSectionTitle">RIMS</div>
-    <div id="shopRimList"></div>
-    <div class="shopSectionTitle">SOURCE BEAM COLORS</div>
-    <div id="shopControlledList"></div>
-    <div class="shopSectionTitle">BACKGROUND BEAM COLORS</div>
-    <div id="shopBackgroundList"></div>
-    <div class="shopSectionTitle">LIT BEAM COLORS</div>
-    <div id="shopLitList"></div>
+    <!-- v0.34 LOADOUT: 5 cards -- 1 Theme, 2 Rim, 3 Source beam, 4 Background beam, 5 Lit beam.
+         Tapping a card opens its picker below; 2-5 can be AUTO (follow the theme). -->
+    <div id="invLoadout"></div>
+    <div id="invPicker"></div>
+    <div id="invMain">
+      <div class="shopSectionTitle">WINS · KEYS · SPECIAL MODES</div>
+      <div id="invKeys"></div>
+      <div class="shopSectionTitle">ROCKET ATTACK GIFT REWARDS</div>
+      <div id="invRocketRewards"></div>
+      <div class="shopSectionTitle">METEOR ATTACK GIFT REWARDS</div>
+      <div id="invMeteorRewards"></div>
+    </div>
     <div class="modalActions">
       <button class="modalBtn primary" id="shopDoneBtn">DONE</button>
     </div>
@@ -1780,7 +1811,7 @@ body.theme-v2 .screenSub, body.theme-v2 #titleScreen .press, body.theme-v2 #game
     <div class="ringdeco r3"></div>
     <div class="ringdeco r2"></div>
     <h1 class="logo">RINGSHIFT</h1>
-    <div class="sub">DEMO · v0.33</div>
+    <div class="sub">DEMO · v0.34</div>
     <div class="press">PRESS ANY BUTTON</div>
   </div>
 
@@ -1885,6 +1916,7 @@ body.theme-v2 .screenSub, body.theme-v2 #titleScreen .press, body.theme-v2 #game
       </div>
       <div class="gameActions">
         <button class="actBtn" id="resetBtn">⟲ RESET</button>
+        <button class="actBtn invGameBtn" id="invGameBtn" title="Inventory · change theme mid-level" aria-label="Inventory">🎒</button>
         <button class="actBtn next" id="nextBtn" disabled title="Light every required Lock to unlock">NEXT ▶</button>
       </div>
     </div>
@@ -5596,6 +5628,9 @@ function loadSave(){
         // undefined in saves made before this field existed -> migrated in ensureCosmeticsShape().
         rimByTheme: (pc.rimByTheme && typeof pc.rimByTheme==='object' && !Array.isArray(pc.rimByTheme))
           ? Object.fromEntries(Object.entries(pc.rimByTheme).filter(([k,v])=>typeof k==='string' && typeof v==='string')) : undefined,
+        // v0.34 LOADOUT: which of cards 2-5 (rim / source / background / lit) follow the theme (AUTO).
+        autoSlots: (pc.autoSlots && typeof pc.autoSlots==='object' && !Array.isArray(pc.autoSlots))
+          ? Object.fromEntries(Object.entries(pc.autoSlots).filter(([k,v])=>typeof v==='boolean')) : undefined,
       };
       if(!fresh.cosmetics.controlledUnlocked.includes('default')) fresh.cosmetics.controlledUnlocked.unshift('default');
       if(!fresh.cosmetics.backgroundUnlocked.includes('default')) fresh.cosmetics.backgroundUnlocked.unshift('default');
@@ -5767,6 +5802,44 @@ function ensureCosmeticsShape(){
     if(c.rimEquipped === 'default'){ const m = themeMatchingRim(t); if(m && (dbg || rimUsable(m))) c.rimEquipped = m; }
     c.rimByTheme[t] = c.rimEquipped;
   }
+  // v0.34 LOADOUT AUTO: cards 2-4 (rim, source, background) default to AUTO for every save
+  // (new and old); card 5 (lit) starts on the player's own pick. An AUTO slot's equipped id is
+  // re-derived from the equipped theme here, so every renderer keeps reading the same fields.
+  if(!c.autoSlots || typeof c.autoSlots !== 'object' || Array.isArray(c.autoSlots)) c.autoSlots = {};
+  const ad = loadoutAutoDefault();
+  Object.keys(ad).forEach(k=>{ if(typeof c.autoSlots[k] !== 'boolean') c.autoSlots[k] = ad[k]; });
+  Object.keys(c.autoSlots).forEach(k=>{ if(!(k in ad)) delete c.autoSlots[k]; });
+  try{ applyAutoLoadout(); }catch(e){ /* theme tables not defined yet during early boot */ }
+}
+function loadoutAutoDefault(){ return {rim:true, source:true, background:true, lit:false}; }
+const LOADOUT_EQ_KEY = {rim:'rimEquipped', source:'controlledEquipped', background:'backgroundEquipped', lit:'litEquipped'};
+// What the equipped theme WANTS in a slot (ignores ownership); null = the theme has nothing for it.
+function autoLoadoutWant(kind, tid){
+  if(kind==='rim') return themeMatchingRim(tid);
+  const st = THEME_SETS[tid]; if(!st) return null;
+  for(const sl of ['source','background']){ const p = parseSetVal(sl, st[sl]); if(p && p.kind===kind) return p.val; }
+  return null;
+}
+// What an AUTO slot actually uses: the theme's item if the player has it, else that slot's default.
+function autoLoadoutPick(kind, tid){
+  const c = save.cosmetics, dbg = !!(save.options && save.options.debugMode);
+  const w = autoLoadoutWant(kind, tid);
+  if(kind==='rim') return (w && RIM_IDS.includes(w) && (dbg || rimUsable(w))) ? w : 'default';
+  const owned = kind==='source' ? c.controlledUnlocked : kind==='background' ? c.backgroundUnlocked : c.litUnlocked;
+  const valid = (kind==='source' ? CONTROLLED_COSMETICS : kind==='background' ? BACKGROUND_COSMETICS : LIT_COLOR_OPTIONS).map(x=>x.id);
+  if(w && valid.includes(w) && (dbg || owned.includes(w))) return w;
+  return kind==='lit' ? 'green' : 'default';
+}
+function applyAutoLoadout(){
+  const c = save.cosmetics, a = c && c.autoSlots; if(!a) return;
+  const tid = (save.themeState && typeof save.themeState.equipped==='string') ? save.themeState.equipped : 'space';
+  let litChanged = false;
+  Object.keys(LOADOUT_EQ_KEY).forEach(k=>{
+    if(!a[k]) return;
+    const v = autoLoadoutPick(k, tid), key = LOADOUT_EQ_KEY[k];
+    if(c[key] !== v){ c[key] = v; if(k==='lit') litChanged = true; }
+  });
+  if(litChanged && typeof applyLitColors==='function') applyLitColors();
 }
 // ---- THEME-RIM PAIRING helpers (theme-redesign) ----
 function themeMatchingRim(tid){
@@ -5825,10 +5898,11 @@ function invOwned(kind,id){ return !!(save.options && save.options.debugMode) ||
 function invEquip(kind,id,quiet){
   if(!invOwned(kind,id)){ AudioSys.playError(); return false; }
   const c = save.cosmetics;
+  if(kind!=='theme' && c.autoSlots) c.autoSlots[kind] = false;   // v0.34: picking an item pins that card
   if(kind==='source') c.controlledEquipped = id; else if(kind==='background') c.backgroundEquipped = id;
   else if(kind==='rim'){ c.rimEquipped = id; ensureThemeShape(); (c.rimByTheme || (c.rimByTheme = {}))[save.themeState.equipped] = id; }
   else if(kind==='lit'){ c.litEquipped = id; applyLitColors(); }
-  else if(kind==='theme') save.themeState.equipped = id;
+  else if(kind==='theme'){ save.themeState.equipped = id; ensureCosmeticsShape(); }
   persistSave();
   if(!quiet){
     AudioSys.playMenuBlip();
@@ -5838,14 +5912,20 @@ function invEquip(kind,id,quiet){
   }
   return true;
 }
+// v0.34: equipping a theme only changes card 1. Cards left on AUTO follow it (its rim / colours
+// when owned, else that slot's default); pinned cards keep the player's pick.
 function equipSet(tid){
-  const st = THEME_SETS[tid] || {};
-  const items = [['theme',tid]];
-  ['source','background'].forEach(sl=>{ const p=parseSetVal(sl,st[sl]); if(p && p.kind!=='rim') items.push([p.kind,p.val]); });
-  items.forEach(([k,id])=>{ if(invOwned(k,id)) invEquip(k,id,true); });
-  // THEME-RIM PAIRING: the rim this player last chose for this theme, else the theme's own rim
-  if(save.themeState.equipped===tid){ const rim = rimForTheme(tid); if(rim && invOwned('rim',rim)) invEquip('rim', rim, true); }
+  if(!invEquip('theme', tid, true)) return;
+  ensureCosmeticsShape(); persistSave();
   AudioSys.playMenuBlip(); syncThemeToContext(); renderShop();
+  if(document.body.classList.contains('inGame') && gstate.level) renderPuzzle();
+}
+// v0.34: put a card (rim / source / background / lit) back on AUTO.
+function invSetAuto(kind){
+  ensureCosmeticsShape();
+  save.cosmetics.autoSlots[kind] = true;
+  ensureCosmeticsShape(); persistSave();
+  AudioSys.playMenuBlip(); renderShop();
   if(document.body.classList.contains('inGame') && gstate.level) renderPuzzle();
 }
 function invSourceText(kind,id){
@@ -5879,18 +5959,20 @@ function invSourceText(kind,id){
 function invList(wrapId, kind, items){
   const wrap = document.getElementById(wrapId); if(!wrap) return; wrap.innerHTML = '';
   const st = invState(kind);
+  const isAuto = kind!=='theme' && !!(save.cosmetics.autoSlots && save.cosmetics.autoSlots[kind]);
   items.forEach(it=>{
-    const owned = invOwned(kind,it.id), eq = st.eq === it.id;
+    const owned = invOwned(kind,it.id), viaAuto = isAuto && st.eq === it.id, eq = !isAuto && st.eq === it.id;
     const row = document.createElement('div'); row.className = 'shopItem'+(eq?' equipped':'')+(owned?'':' invLocked');
     const sw = document.createElement('div'); sw.className = 'shopSwatch'; sw.style.background = it.bg; row.appendChild(sw);
     const info = document.createElement('div'); info.className = 'shopItemInfo';
     const free = (kind==='theme' && THEME_LIST.find(t=>t.id===it.id)||{}).free || it.id==='default' || (kind==='rim' && (it.id==='mesa' || it.id==='deepfield'));
     const incl = kind==='rim' && owned && !(save.cosmetics.rimUnlocked||[]).includes(it.id);
-    info.innerHTML = `<div class="shopItemName">${it.name}</div><div class="shopItemPrice">${owned ? (eq?'Equipped':(incl?'Included with its theme':'Owned')) : '\ud83d\udd12 '+invSourceText(kind,it.id)}</div>${it.note?`<div class="invNote">${it.note}</div>`:''}`;
+    info.innerHTML = `<div class="shopItemName">${it.name}</div><div class="shopItemPrice">${owned ? (eq?'Equipped':viaAuto?'In use via AUTO':(incl?'Included with its theme':'Owned')) : '\ud83d\udd12 '+invSourceText(kind,it.id)}</div>${it.note?`<div class="invNote">${it.note}</div>`:''}`;
     row.appendChild(info);
     const btn = document.createElement('button');
     btn.className = 'shopItemBtn'+(eq?' equipped':'');
-    btn.textContent = eq ? 'EQUIPPED' : owned ? 'EQUIP' : 'LOCKED';
+    btn.textContent = eq ? 'EQUIPPED' : !owned ? 'LOCKED' : viaAuto ? 'PIN' : 'EQUIP';
+    if(viaAuto) btn.title = 'Keep this one even when the theme changes';
     if(eq || !owned) btn.disabled = true;
     btn.addEventListener('click', ()=> kind==='theme' ? equipSet(it.id) : invEquip(kind,it.id));
     row.appendChild(btn);
@@ -5930,24 +6012,132 @@ function renderShop(){
       return `<div class="invKeyRow ${got?'ok':''}"${reach?'':' style="opacity:.55"'}><span>${got?'\u2705':'\ud83c\udf81'} ${label}</span><span>${reach ? Math.min(have,need)+' / '+need : '\ud83d\udd12 '+need}</span></div>`;
     }).join('');
   }
-  invList('shopThemeList','theme', THEME_LIST.map(t=>({id:t.id, name:t.name, bg:THEME_SWATCH_GRADIENT[t.id]||'linear-gradient(135deg,#7fe7ff,#0a1020)', note:setDesc(t.id)})));
-  invList('shopRimList','rim', RIM_IDS.map(id=>({id, name:rimName(id), bg:THEME_SWATCH_GRADIENT[id]||'linear-gradient(135deg,#2c5f80,#9fe8ff)'})));
-  invList('shopControlledList','source', CONTROLLED_COSMETICS.map(x=>({id:x.id, name:x.name, bg:x.color})));
-  invList('shopBackgroundList','background', BACKGROUND_COSMETICS.map(x=>({id:x.id, name:x.name, bg:x.color})));
-  invList('shopLitList','lit', LIT_COLOR_OPTIONS.map(x=>({id:x.id, name:x.name, bg:x.main})));
+  renderLoadout();
 }
-function openShop(){
+/* ===== v0.34 LOADOUT CARDS -- 1 Theme, 2 Rim, 3 Source, 4 Background, 5 Lit ===== */
+const LOADOUT_SLOTS = [
+  {kind:'theme',      label:'THEME',   title:'THEMES'},
+  {kind:'rim',        label:'RIM',     title:'RIMS'},
+  {kind:'source',     label:'SOURCE',  title:'SOURCE BEAM COLORS'},
+  {kind:'background', label:'BG BEAM', title:'BACKGROUND BEAM COLORS'},
+  {kind:'lit',        label:'LIT',     title:'LIT BEAM COLORS'},
+];
+let invPickSlot = null;
+function loadoutItems(kind){
+  if(kind==='theme') return THEME_LIST.map(t=>({id:t.id, name:t.name, bg:THEME_SWATCH_GRADIENT[t.id]||'linear-gradient(135deg,#7fe7ff,#0a1020)', note:setDesc(t.id)}));
+  if(kind==='rim') return RIM_IDS.map(id=>({id, name:rimName(id), bg:THEME_SWATCH_GRADIENT[id]||'linear-gradient(135deg,#2c5f80,#9fe8ff)'}));
+  if(kind==='source') return CONTROLLED_COSMETICS.map(x=>({id:x.id, name:x.name, bg:x.color}));
+  if(kind==='background') return BACKGROUND_COSMETICS.map(x=>({id:x.id, name:x.name, bg:x.color}));
+  return LIT_COLOR_OPTIONS.map(x=>({id:x.id, name:x.name, bg:x.main}));
+}
+function loadoutSwatch(kind, id){
+  const it = loadoutItems(kind).find(x=>x.id===id);
+  if(kind==='source' && id==='default') return getControlledBeamColor();       // Ice shows its frost-gold here too
+  if(kind==='background' && id==='default') return getBackgroundBeamColor();
+  return it ? it.bg : '#333';
+}
+function loadoutShortName(kind, id){
+  if(kind==='rim') return id==='default' ? 'Classic Glass' : rimName(id).replace(/ Rim$/,'');
+  return itemName(kind, id);
+}
+function renderLoadout(){
+  const wrap = document.getElementById('invLoadout'); if(!wrap) return;
+  ensureCosmeticsShape(); ensureThemeShape();
+  const a = save.cosmetics.autoSlots;
+  wrap.innerHTML = '';
+  LOADOUT_SLOTS.forEach((sl, i)=>{
+    const cur = invState(sl.kind).eq, auto = sl.kind!=='theme' && !!a[sl.kind];
+    const card = document.createElement('button');
+    card.type = 'button';
+    card.className = 'invCard' + (invPickSlot===sl.kind ? ' active' : '');
+    card.setAttribute('aria-label', `Card ${i+1}: ${sl.title} — ${loadoutShortName(sl.kind,cur)}${auto?' (auto)':''}`);
+    const swCls = sl.kind==='theme' ? 'invCardSw sq' : sl.kind==='rim' ? 'invCardSw ringSw' : 'invCardSw';
+    card.innerHTML = `<div class="invCardTop"><b>${i+1}</b>${sl.label}</div>`
+      + `<div class="${swCls}" style="background:${loadoutSwatch(sl.kind,cur)}"></div>`
+      + `<div class="invCardName">${loadoutShortName(sl.kind,cur)}</div>`
+      + `<div class="invCardMode ${sl.kind==='theme' ? '' : auto ? 'auto' : 'set'}">${sl.kind==='theme' ? 'BASE' : auto ? 'AUTO' : 'SET'}</div>`;
+    card.addEventListener('click', ()=>{ AudioSys.playMenuBlip(); invPickSlot = invPickSlot===sl.kind ? null : sl.kind; renderLoadout(); });
+    wrap.appendChild(card);
+  });
+  renderInvPicker();
+}
+function renderInvPicker(){
+  const box = document.getElementById('invPicker'), panel = document.getElementById('shopPanelBox');
+  if(!box) return;
+  const kind = invPickSlot, slot = LOADOUT_SLOTS.find(x=>x.kind===kind);
+  if(panel) panel.classList.toggle('picking', !!slot);
+  box.classList.toggle('open', !!slot);
+  if(!slot){ box.innerHTML = ''; return; }
+  const tid = save.themeState.equipped;
+  const note = kind==='theme'
+    ? 'Cards 2\u20135 left on AUTO switch to this theme\u2019s rim and colours (when you have them). Changes show right away, even mid-level.'
+    : 'AUTO follows your theme. Pick an item to pin it \u2014 it stays through theme changes until you choose AUTO again.';
+  box.innerHTML = `<div class="invPickHead"><button type="button" class="invPickBack" id="invPickBackBtn">\u25c0 BACK</button><div class="t">${slot.title}</div></div>`
+    + `<div class="invPickNote">${note}</div><div id="invPickAuto"></div><div id="invPickList"></div>`;
+  document.getElementById('invPickBackBtn').addEventListener('click', ()=>{ AudioSys.playMenuBlip(); invPickSlot = null; renderLoadout(); });
+  if(kind!=='theme'){
+    const on = !!save.cosmetics.autoSlots[kind], pick = autoLoadoutPick(kind, tid), want = autoLoadoutWant(kind, tid);
+    let sub = 'Now: ' + itemName(kind, pick);
+    if(!want) sub += ' \u00b7 ' + themeName(tid) + ' has no ' + (kind==='rim' ? 'rim' : 'colour') + ' here, so the default is used';
+    else if(want !== pick) sub += ' \u00b7 \ud83d\udd12 ' + themeName(tid) + '\u2019s ' + itemName(kind, want) + ' not unlocked yet';
+    const row = document.createElement('div'); row.className = 'shopItem invAuto' + (on ? ' equipped' : '');
+    row.innerHTML = `<div class="shopSwatch" style="background:${loadoutSwatch(kind,pick)}"></div>`
+      + `<div class="shopItemInfo"><div class="shopItemName">AUTO <span class="invAutoTag">FOLLOWS THEME</span></div><div class="shopItemPrice">${sub}</div></div>`;
+    const btn = document.createElement('button'); btn.type = 'button';
+    btn.className = 'shopItemBtn' + (on ? ' equipped' : '');
+    btn.textContent = on ? 'ACTIVE' : 'AUTO'; btn.disabled = on;
+    btn.addEventListener('click', ()=> invSetAuto(kind));
+    row.appendChild(btn);
+    document.getElementById('invPickAuto').appendChild(row);
+  }
+  invList('invPickList', kind, loadoutItems(kind));
+}
+// v0.34: the inventory also opens inside a level (🎒 button / pause menu). While it is open there
+// the mode clocks (meteor timer, Orchestra fog window, Rocket countdowns, Power) are held, exactly
+// like the pause menu; opened from the pause menu, closing it goes back to the pause menu.
+let _invPausedGame = false, _invFromPause = false;
+function invPauseGameClocks(){
+  if(currentMode === 'special') MeteorGame.pause();
+  if(currentMode === 'orchestra') OrchestraAudio.pauseFog();
+  if(currentMode === 'rocket') RocketGame.pause();
+  PowerSys.pause();
+}
+function invResumeGameClocks(){
+  if(currentMode === 'special' && !gstate.won) MeteorGame.resume();
+  if(currentMode === 'orchestra' && !gstate.won) OrchestraAudio.resumeFog();
+  if(currentMode === 'rocket' && !gstate.won && !gstate.rocketFailed) RocketGame.resume();
+  PowerSys.resume();
+}
+function openShop(fromPause){
   AudioSys.playMenuBlip();
+  invPickSlot = null;
+  _invFromPause = fromPause === true;
+  if(!_invFromPause && !_invPausedGame && document.body.classList.contains('inGame') && gstate.level && !gstate.won){
+    invPauseGameClocks(); _invPausedGame = true;
+  }
   renderShop();
-  document.getElementById('shopOverlay').classList.add('show'); perfSyncModal();
+  document.getElementById('shopOverlay').classList.add('show');
+  { const box = document.getElementById('shopPanelBox'); if(box) box.scrollTop = 0; }   // cards first, every time (after show: a hidden box ignores scrollTop)
+  perfSyncModal();
 }
-function closeShop(){
+// nav=true: a screen change is closing it -- just hide it, don't resume clocks or reopen the pause menu
+function closeShop(nav){
   const overlay = document.getElementById('shopOverlay');
-  if(overlay) overlay.classList.remove('show'); perfSyncModal();
+  const wasOpen = !!(overlay && overlay.classList.contains('show'));
+  if(overlay) overlay.classList.remove('show');
+  invPickSlot = null;
+  const backToPause = wasOpen && _invFromPause && nav !== true && document.body.classList.contains('inGame');
+  const resume = wasOpen && _invPausedGame && nav !== true && document.body.classList.contains('inGame');
+  _invFromPause = false; _invPausedGame = false;
+  if(backToPause) openModal('pauseModal');
+  else if(resume) invResumeGameClocks();
+  perfSyncModal();
 }
 document.getElementById('shopBtnMode').addEventListener('click', openShop);
 document.getElementById('shopBtnLevel').addEventListener('click', openShop);
 document.getElementById('shopDoneBtn').addEventListener('click', ()=>{ AudioSys.playMenuBlip(); closeShop(); });
+document.getElementById('invGameBtn').addEventListener('click', ()=>{ if(document.body.classList.contains('inGame') && !anyModalOpen()) openShop(); });
+document.getElementById('pauseInvBtn').addEventListener('click', ()=>{ closeModal('pauseModal'); openShop(true); });
 document.getElementById('shopBackdrop').addEventListener('click', closeShop);
 
 /* =========================================================================
@@ -5964,7 +6154,7 @@ function showScreen(id){
   // The Cosmetic Shop button only ever lives on the difficulty/level
   // select screens -- make sure its panel never stays open across a
   // screen change (e.g. starting a level).
-  closeShop();
+  closeShop(true);
   if(id !== 'gameScreen') closePauseMenu(true);
   // WORLD THEME: re-derive whether the forced showcase level or the
   // player's equipped theme should be showing, now that inGame/currentMode
@@ -6062,7 +6252,7 @@ window.addEventListener('pointerdown', advanceFromTitle);
    MODAL SYSTEM (How-To-Play / Options / Pause / Confirm)
    ========================================================================= */
 function anyModalOpen(){
-  return document.querySelector('.modalOverlay.show') !== null;
+  return document.querySelector('.modalOverlay.show, #shopOverlay.show') !== null;
 }
 function openModal(id){ document.getElementById(id).classList.add('show'); perfSyncModal(); }
 function closeModal(id){ document.getElementById(id).classList.remove('show'); perfSyncModal(); }
