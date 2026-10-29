@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<title>Ringshift itch.io cover</title>
+<style>
+  html,body{margin:0;padding:0;background:#03060b}
+  svg{display:block}
+</style></head>
+<body>
+<svg id="cover" xmlns="http://www.w3.org/2000/svg" width="1920" height="1080" viewBox="0 0 1920 1080"></svg>
+<script>
+/* =====================================================================
+   RINGSHIFT — itch.io cover (1920x1080)
+   The board in the middle is a REAL Ringshift position: 12 slots, 3 rings,
+   traced by the game's own traceAllBeams() (ringshift v0.34.html) and
+   embedded below as BOARD. Every beam segment comes straight from the
+   engine, so every beam ends where the game ends it: on a Block, or at
+   RIM_R (232), the centre line of the rim glass. Nothing is drawn past it.
+   Board geometry (RIM_R / GAP / STEP, rim band half-width 18, panel gap 3.6)
+   matches the game's constants.
+   ===================================================================== */
+const BOARD = /*BOARD_JSON*/null;
+const OPT = /*OPT_JSON*/{};
+
+const NS='http://www.w3.org/2000/svg';
+const svg=document.getElementById('cover');
+function el(tag,attrs,parent){const e=document.createElementNS(NS,tag);for(const k in attrs)e.setAttribute(k,attrs[k]);(parent||svg).appendChild(e);return e;}
+const f=v=>(+v).toFixed(2);
+const W=1920,H=1080;
+
+/* ---- game geometry (copied from ringshift v0.34.html) ---- */
+const RIM_R=232, GAP=42, STEP=36, RIM_HALF=18, PANEL_GAP=3.6;
+const rIn=RIM_R-RIM_HALF, rOut=RIM_R+RIM_HALF;
+const ringRadius=i=>RIM_R-GAP-i*STEP;
+const slotToAngle=(s,n)=>s/n*Math.PI*2-Math.PI/2;
+function rimPanelPath(s,n,ri,ro,gapPx){
+  const step=Math.PI*2/n,c=slotToAngle(s,n),gi=gapPx/ri/2,go=gapPx/ro/2;
+  const P=(r,a)=>f(Math.cos(a)*r)+' '+f(Math.sin(a)*r);
+  return 'M '+P(ro,c-step/2+go)+' A '+ro+' '+ro+' 0 0 1 '+P(ro,c+step/2-go)+' L '+P(ri,c+step/2-gi)+' A '+ri+' '+ri+' 0 0 0 '+P(ri,c-step/2+gi)+' Z';
+}
+function arcPath(r,a0,a1){
+  const large=(a1-a0)>Math.PI?1:0;
+  return 'M '+f(Math.cos(a0)*r)+' '+f(Math.sin(a0)*r)+' A '+r+' '+r+' 0 '+large+' 1 '+f(Math.cos(a1)*r)+' '+f(Math.sin(a1)*r);
+}
+/* game palette */
+const C={
+  litMain:'#34ff6e', litLight:'#d4ffe2', litDark:'#10c850',
+  redMain:'#ff2a2a', redLight:'#ff9a8f', redDark:'#b01212',
+  ctrl:'#ffffff', bgBeam:'#2f8fff', cyan:'#bdeeff', track:'#9fe8ff', cream:'#f4ecc8',
+  prism:'#ff5ec4', block:'#ff3b3b'
+};
+
+/* ---- seeded random ---- */
+function mul(a){return()=>{a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};}
+
+/* ================= LAYOUT ================= */
+const BX=960, BY=OPT.boardY||428, BS=OPT.boardScale||1.5;   // board centre + scale (game units -> px)
+const TITLE_BASE=OPT.titleBase||1000, TITLE_SIZE=OPT.titleSize||212;
+
+/* ================= DEFS ================= */
+const defs=el('defs',{});
+defs.innerHTML=`
+ <radialGradient id="bg" cx="${BX}" cy="${BY}" r="1250" gradientUnits="userSpaceOnUse">
+   <stop offset="0" stop-color="#13294a"/><stop offset=".32" stop-color="#0b1830"/>
+   <stop offset=".7" stop-color="#060d1b"/><stop offset="1" stop-color="#03060c"/>
+ </radialGradient>
+ <radialGradient id="aura" cx="${BX}" cy="${BY}" r="${rOut*BS*1.55}" gradientUnits="userSpaceOnUse">
+   <stop offset=".55" stop-color="#3fa9ff" stop-opacity=".22"/><stop offset=".68" stop-color="#2a78d8" stop-opacity=".07"/><stop offset="1" stop-color="#1a3a6a" stop-opacity="0"/>
+ </radialGradient>
+ <linearGradient id="floor" x1="0" y1="0" x2="0" y2="1">
+   <stop offset="0" stop-color="#000" stop-opacity="0"/><stop offset="1" stop-color="#01030a" stop-opacity=".8"/>
+ </linearGradient>
+ <radialGradient id="vig" cx="960" cy="520" r="1150" gradientUnits="userSpaceOnUse">
+   <stop offset=".55" stop-color="#000" stop-opacity="0"/><stop offset="1" stop-color="#000" stop-opacity=".62"/>
+ </radialGradient>
+ <!-- board (game units, centred at 0,0) -->
+ <radialGradient id="disc" cx="0" cy="0" r="${rIn}" gradientUnits="userSpaceOnUse">
+   <stop offset="0" stop-color="#1b2c45"/><stop offset=".55" stop-color="#14223a"/><stop offset="1" stop-color="#0c1628"/>
+ </radialGradient>
+ <radialGradient id="glass" cx="0" cy="0" r="${rOut}" gradientUnits="userSpaceOnUse">
+   <stop offset="${rIn/rOut}" stop-color="#2e4560"/><stop offset="1" stop-color="#121e2e"/>
+ </radialGradient>
+ <radialGradient id="pRed" cx="0" cy="0" r="${rOut}" gradientUnits="userSpaceOnUse">
+   <stop offset="${rIn/rOut}" stop-color="${C.redMain}"/><stop offset="1" stop-color="${C.redDark}"/>
+ </radialGradient>
+ <radialGradient id="pGreen" cx="0" cy="0" r="${rOut}" gradientUnits="userSpaceOnUse">
+   <stop offset="${rIn/rOut}" stop-color="#c9ffd9"/><stop offset=".97" stop-color="${C.litMain}"/>
+ </radialGradient>
+ <radialGradient id="hub" cx="-3" cy="-4" r="16" gradientUnits="userSpaceOnUse">
+   <stop offset="0" stop-color="#c7d6e6"/><stop offset=".6" stop-color="#6f849b"/><stop offset="1" stop-color="#2c3b4e"/>
+ </radialGradient>
+ <radialGradient id="flareLit" cx="0" cy="0" r="1" gradientUnits="objectBoundingBox">
+   <stop offset="0" stop-color="${C.litLight}" stop-opacity=".95"/><stop offset=".35" stop-color="${C.litMain}" stop-opacity=".55"/><stop offset="1" stop-color="${C.litMain}" stop-opacity="0"/>
+ </radialGradient>
+ <radialGradient id="flareW" cx="0" cy="0" r="1" gradientUnits="objectBoundingBox">
+   <stop offset="0" stop-color="#ffffff" stop-opacity=".9"/><stop offset="1" stop-color="#9fd8ff" stop-opacity="0"/>
+ </radialGradient>
+ <filter id="glowT" filterUnits="userSpaceOnUse" x="-2000" y="-2000" width="6000" height="6000">
+   <feGaussianBlur stdDeviation="1.6" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+ </filter>
+ <filter id="glowW" filterUnits="userSpaceOnUse" x="-2000" y="-2000" width="6000" height="6000">
+   <feGaussianBlur stdDeviation="5"/>
+ </filter>
+ <filter id="neb" filterUnits="userSpaceOnUse" x="-1000" y="-1000" width="4000" height="3000"><feGaussianBlur stdDeviation="90"/></filter>
+ <filter id="soft" filterUnits="userSpaceOnUse" x="-2000" y="-2000" width="6000" height="6000">
+   <feGaussianBlur stdDeviation="14"/>
+ </filter>
+ <filter id="titleGlow" filterUnits="userSpaceOnUse" x="-200" y="600" width="2400" height="600">
+   <feGaussianBlur in="SourceAlpha" stdDeviation="14" result="b"/>
+   <feFlood flood-color="#5fd6ff" flood-opacity=".30"/><feComposite in2="b" operator="in" result="g"/>
+   <feGaussianBlur in="SourceAlpha" stdDeviation="2.2" result="b2"/>
+   <feFlood flood-color="#a9ecff" flood-opacity=".35"/><feComposite in2="b2" operator="in" result="g2"/>
+   <feMerge><feMergeNode in="g"/><feMergeNode in="g2"/><feMergeNode in="SourceGraphic"/></feMerge>
+ </filter>
+ <linearGradient id="ivory" x1="0" y1="${TITLE_BASE-TITLE_SIZE*.74}" x2="0" y2="${TITLE_BASE}" gradientUnits="userSpaceOnUse">
+   <stop offset="0" stop-color="#fffdf6"/><stop offset=".55" stop-color="#f6f1e2"/><stop offset="1" stop-color="#d9e3ea"/>
+ </linearGradient>
+ <clipPath id="boardClip"><circle cx="0" cy="0" r="${rIn-1}"/></clipPath>
+`;
+
+/* ================= BACKGROUND ================= */
+el('rect',{x:0,y:0,width:W,height:H,fill:'url(#bg)'});
+/* faint nebula washes */
+el('ellipse',{cx:250,cy:300,rx:520,ry:300,fill:'#1d5f8a',opacity:.16,filter:'url(#neb)'});
+el('ellipse',{cx:1700,cy:760,rx:500,ry:280,fill:'#173f7a',opacity:.18,filter:'url(#neb)'});
+el('ellipse',{cx:1560,cy:220,rx:300,ry:170,fill:'#0f6a5a',opacity:.08,filter:'url(#neb)'});
+/* stars: restrained, deterministic; kept off the board and thinned behind the title */
+{
+  const R=mul(20261029), g=el('g',{});
+  const boardR=rOut*BS+40;
+  for(let i=0;i<420;i++){
+    const x=R()*W, y=R()*H, d=Math.hypot(x-BX,y-BY);
+    if(d<boardR) continue;
+    const inTitle = y>TITLE_BASE-TITLE_SIZE*.95 && y<TITLE_BASE+40 && x>260 && x<1660;
+    if(inTitle && R()<.85) continue;
+    const big=R(); const r=big>.985?1.6:(big>.9?1.05:.6+R()*.35);
+    const warm=R()<.22;
+    el('circle',{cx:f(x),cy:f(y),r:f(r),fill:warm?'#ffe2b8':'#dbe9ff',opacity:f(.22+R()*.55)},g);
+    if(big>.985) el('circle',{cx:f(x),cy:f(y),r:7,fill:'url(#flareW)',opacity:.35},g);
+  }
+}
+/* faint orbit guides (title-screen style circles) — circles only, never straight lines */
+{
+  const g=el('g',{transform:`translate(${BX},${BY})`,opacity:.9});
+  const rA=rOut*BS+58, rB=rOut*BS+118;
+  el('circle',{r:rA,fill:'none',stroke:'#3b6a92','stroke-width':1,opacity:.28},g);
+  el('circle',{r:rB,fill:'none',stroke:'#2d5578','stroke-width':1,opacity:.16},g);
+  // fine ticks on the inner guide, faded toward the title below
+  for(let i=0;i<180;i++){
+    const a=i/180*Math.PI*2, long=i%15===0, len=long?10:4;
+    const y=Math.sin(a); if(y>.45) continue;
+    el('line',{x1:f(Math.cos(a)*rA),y1:f(Math.sin(a)*rA),x2:f(Math.cos(a)*(rA+len)),y2:f(Math.sin(a)*(rA+len)),stroke:'#6fa8d6','stroke-width':long?1.4:1,opacity:long?.38:.2},g);
+  }
+  // two segmented accent arcs on the outer guide (upper-left / upper-right)
+  [[-160,-122],[-58,-20]].forEach(([a0,a1])=>{
+    for(let k=0;k<4;k++){ const s=(a0+(a1-a0)*k/4+1.2)*Math.PI/180, e=(a0+(a1-a0)*(k+1)/4-1.2)*Math.PI/180;
+      el('path',{d:arcPath(rB,s,e),fill:'none',stroke:'#9fd8ff','stroke-width':2.2,opacity:.22+.06*k,'stroke-linecap':'round'},g); }
+  });
+}
+el('circle',{cx:BX,cy:BY,r:f(rOut*BS*1.55),fill:'url(#aura)'});
+
+/* ================= BOARD ================= */
+const B=BOARD, n=B.n;
+const board=el('g',{transform:`translate(${BX},${BY}) scale(${BS})`});
+/* soft drop shadow under the rim */
+el('circle',{r:rOut+6,fill:'#000',opacity:.55,filter:'url(#soft)'},board);
+/* playfield disc */
+el('circle',{r:rIn,fill:'url(#disc)'},board);
+{ // concentric micro-grooves + the game's soft light wedges, clipped to the disc
+  const tex=el('g',{'clip-path':'url(#boardClip)'},board);
+  for(let r=8;r<rIn;r+=4.5) el('circle',{r:f(r),fill:'none',stroke:'#7fb0e0','stroke-width':.45,opacity:r%9<4.5?.07:.035},tex);
+  [[-108,-78,.07],[-62,-52,.05],[24,52,.05],[150,168,.04]].forEach(([a0,a1,op])=>{
+    const A=a0*Math.PI/180,Bv=a1*Math.PI/180;
+    el('path',{d:`M0 0 L ${f(Math.cos(A)*rIn)} ${f(Math.sin(A)*rIn)} A ${rIn} ${rIn} 0 0 1 ${f(Math.cos(Bv)*rIn)} ${f(Math.sin(Bv)*rIn)} Z`,fill:'#bfe0ff',opacity:op},tex);
+  });
+  el('circle',{r:rIn,fill:'none',stroke:'#000','stroke-width':26,opacity:.22,filter:'url(#glowW)'},tex);
+}
+/* ring tracks: double thin cyan lines + slot ticks (as in game) */
+B.rings.forEach((ring,ri)=>{
+  const r=ringRadius(ri), sel=ri===B.selected;
+  el('circle',{r:r-4,fill:'none',stroke:C.track,'stroke-width':sel?1.15:.9,opacity:sel?.62:.36},board);
+  el('circle',{r:r+4,fill:'none',stroke:C.track,'stroke-width':sel?1.15:.9,opacity:sel?.62:.36},board);
+  for(let s=0;s<n;s++){ const a=slotToAngle(s,n)+Math.PI/n;
+    el('line',{x1:f(Math.cos(a)*(r-4)),y1:f(Math.sin(a)*(r-4)),x2:f(Math.cos(a)*(r+4)),y2:f(Math.sin(a)*(r+4)),stroke:C.track,'stroke-width':.9,opacity:.32},board); }
+});
+/* rim band: one glass panel per slot, Lock panels red (unlit) / green (lit) */
+const rim=el('g',{},board);
+el('circle',{r:rOut+3.2,fill:'none',stroke:C.cream,'stroke-width':2,opacity:.78},rim);
+el('circle',{r:rOut+7.5,fill:'none',stroke:'#9cc6e6','stroke-width':.8,opacity:.35},rim);
+for(let i=0;i<240;i++){ const a=i/240*Math.PI*2, L=i%20===0?6:2.6;
+  el('line',{x1:f(Math.cos(a)*(rOut+7.5)),y1:f(Math.sin(a)*(rOut+7.5)),x2:f(Math.cos(a)*(rOut+7.5+L)),y2:f(Math.sin(a)*(rOut+7.5+L)),stroke:'#b7d6ee','stroke-width':.6,opacity:.4},rim); }
+el('circle',{r:rIn-2.5,fill:'none',stroke:C.cyan,'stroke-width':2.2,opacity:.6,filter:'url(#glowT)'},rim);
+const lockSet=new Set(B.lockSlots), litSet=new Set(B.lit);
+for(let s=0;s<n;s++){
+  const d=rimPanelPath(s,n,rIn,rOut,PANEL_GAP);
+  let fill='url(#glass)',stroke='#a9d4ee',op=.92,sw=1.1;
+  if(lockSet.has(s)){ if(litSet.has(s)){fill='url(#pGreen)';stroke=C.litLight;op=1;} else {fill='url(#pRed)';stroke=C.redLight;op=.97;} }
+  if(lockSet.has(s)&&litSet.has(s)) el('path',{d,fill:C.litMain,opacity:.55,filter:'url(#glowW)'},rim);
+  if(lockSet.has(s)&&!litSet.has(s)) el('path',{d,fill:C.redMain,opacity:.35,filter:'url(#glowW)'},rim);
+  el('path',{d,fill,stroke,'stroke-width':sw,'stroke-opacity':lockSet.has(s)?.9:.38,'stroke-linejoin':'round',opacity:op},rim);
+  // inner-edge glass highlight
+  const c=slotToAngle(s,n),st=Math.PI*2/n*.34;
+  el('path',{d:arcPath(rIn+3,c-st,c+st),fill:'none',stroke:'#fff','stroke-width':1.1,'stroke-linecap':'round',opacity:lockSet.has(s)?.45:.22},rim);
+  el('path',{d:arcPath(rOut-3,c-st*1.1,c-st*.2),fill:'none',stroke:'#fff','stroke-width':.8,'stroke-linecap':'round',opacity:.16},rim);
+}
+/* soft glass specular across the upper-left of the rim (lighting only, not a beam) */
+el('path',{d:arcPath(rOut-5,-2.75,-1.75),fill:'none',stroke:'#ffffff','stroke-width':5,'stroke-linecap':'round',opacity:.10,filter:'url(#glowT)'},rim);
+el('path',{d:arcPath(rOut+3.2,-2.7,-1.5),fill:'none',stroke:'#fffbe8','stroke-width':2.2,'stroke-linecap':'round',opacity:.55},rim);
+/* lock reticles (port of drawLockReticle) at RIM_R */
+function lockReticle(g,R,lit){
+  const p=lit?{main:C.litMain,light:C.litLight,dark:C.litDark}:{main:C.redMain,light:C.redLight,dark:C.redDark};
+  const s=el('g',{transform:`scale(${f(R/14)})`},g);
+  el('circle',{r:16,fill:lit?'rgba(0,40,10,.25)':'rgba(0,0,0,.35)',stroke:p.main,'stroke-width':.6,opacity:.5},s);
+  el('circle',{r:13,fill:'none',stroke:lit?'#ffffff':p.light,'stroke-width':1.7,'stroke-dasharray':'16.4 4','stroke-linecap':'round',transform:'rotate(8.8)',opacity:lit?.95:.85},s);
+  [-13,13].forEach(y=>el('circle',{cx:0,cy:y,r:2.2,fill:lit?'#fff':p.dark,stroke:p.main,'stroke-width':1.2},s));
+  [0,90,180,270].forEach(a=>{
+    el('polygon',{points:'-2.9,-10.6 2.9,-10.6 0,-6.8',fill:lit?p.dark:p.main,stroke:p.light,'stroke-width':.5,transform:`rotate(${a})`},s);
+    el('polyline',{points:'6,-9 9.6,-5.4 9.6,-2',fill:'none',stroke:lit?'#ffffff':p.light,'stroke-width':2.1,'stroke-linecap':'round','stroke-linejoin':'round',transform:`rotate(${a})`},s);
+  });
+  el('polygon',{points:'0,-5.2 5.2,0 0,5.2 -5.2,0',fill:lit?p.dark:p.dark,stroke:lit?'#fff':p.light,'stroke-width':1},s);
+  el('polygon',{points:'0,-2.6 2.6,0 0,2.6 -2.6,0',fill:'#ffffff',opacity:lit?.95:.7},s);
+}
+B.lockSlots.forEach(s=>{ const a=slotToAngle(s,n);
+  const g=el('g',{transform:`translate(${f(Math.cos(a)*RIM_R)},${f(Math.sin(a)*RIM_R)})`},rim);
+  lockReticle(g,13,litSet.has(s)); });
+
+/* gimmicks (live positions; pinned ones ignore rotation, exactly like buildLiveContentMap) */
+const gl=el('g',{},board);
+const glTop=document.createElementNS(NS,'g'); // pass-through gimmicks sit above the beams, like in game
+B.rings.forEach((ring,ri)=>{
+  const r=ringRadius(ri), rot=B.rot[ri];
+  Object.keys(ring.gimmicks||{}).forEach(k=>{
+    const g=ring.gimmicks[k], fixed=g.fixed===true, live=fixed?+k:(+k+rot)%n, a=slotToAngle(live,n);
+    const x=Math.cos(a)*r, y=Math.sin(a)*r;
+    if(g.type==='block'){ // wall arc band over one slot (game: dark red band, bright red edge, red dot)
+      const a0=slotToAngle(live-.5,n)+.05, a1=slotToAngle(live+.5,n)-.05, w=5.5;
+      const P=(rr,aa)=>f(Math.cos(aa)*rr)+' '+f(Math.sin(aa)*rr);
+      const d=`M ${P(r+w,a0)} A ${r+w} ${r+w} 0 0 1 ${P(r+w,a1)} L ${P(r-w,a1)} A ${r-w} ${r-w} 0 0 0 ${P(r-w,a0)} Z`;
+      el('path',{d,fill:C.block,opacity:.35,filter:'url(#glowW)'},gl);
+      el('path',{d,fill:'#4a0707',stroke:C.block,'stroke-width':1.4,'stroke-linejoin':'miter',opacity:.97},gl);
+      el('circle',{cx:f(x),cy:f(y),r:1.5,fill:'#ff4a4a'},gl);
+    } else if(g.type==='prism'){
+      const pg=el('g',{transform:`translate(${f(x)},${f(y)}) scale(1.2)`},glTop);
+      el('circle',{r:10.5,fill:'#0b1220',stroke:'#2a3a52','stroke-width':1},pg);
+      el('polygon',{points:'0,-8.6 7.6,5 -7.6,5',fill:'#ff5ec4',opacity:.25,filter:'url(#glowW)'},pg);
+      el('polygon',{points:'0,-8.6 7.6,5 -7.6,5',fill:'rgba(255,94,196,.22)',stroke:C.prism,'stroke-width':1.9,'stroke-linejoin':'round'},pg);
+      el('polygon',{points:'0,-4.3 3.6,2.2 -3.6,2.2',fill:'#ffe3f5',opacity:.9},pg);
+    } else if(g.type==='mirror_l'||g.type==='mirror_r'){
+      const mg=el('g',{transform:`translate(${f(x)},${f(y)}) scale(1.15)`},glTop);
+      el('circle',{r:12.6,fill:'none',stroke:'#ffe9a6','stroke-width':1.1,'stroke-dasharray':'1.6 2.2',opacity:.85},mg); // pinned ring
+      el('circle',{r:9.8,fill:'#0a1018',stroke:'#ffffff','stroke-width':1.8},mg);
+      // turn glyph: 90° bend arrow (mirror_r = counter-clockwise bend)
+      const sx=g.type==='mirror_r'?-1:1;
+      el('path',{d:`M ${f(3.4*sx)} 4.6 L ${f(3.4*sx)} -1.2 Q ${f(3.4*sx)} -3.6 ${f(1*sx)} -3.6 L ${f(-3.4*sx)} -3.6`,fill:'none',stroke:'#fff','stroke-width':1.9,'stroke-linecap':'round','stroke-linejoin':'round'},mg);
+      el('path',{d:`M ${f(-1.4*sx)} -6 L ${f(-4.2*sx)} -3.6 L ${f(-1.4*sx)} -1.2`,fill:'none',stroke:'#fff','stroke-width':1.9,'stroke-linecap':'round','stroke-linejoin':'round'},mg);
+    } else if(g.type==='amp'){
+      const ag=el('g',{transform:`translate(${f(x)},${f(y)}) scale(1.2)`},glTop);
+      el('circle',{r:9,fill:'#2a2108',stroke:'#ffd23f','stroke-width':1.8},ag);
+      el('path',{d:'M1.2-5.6 L-3.2 .8 H.2 L-1.2 5.6 L3.2-.8 H-.2 Z',fill:'#ffd23f'},ag);
+    }
+  });
+});
+
+/* beams — engine segments, drawn as-is (halo + core). Lit path = lit colour,
+   unlit beam of the selected ring = white, other unlit beams = blue. */
+const beamG=el('g',{},board), endG=el('g',{},board);
+let maxBeamR=0;
+const sorted=B.beams.slice().sort((a,b)=>(a.ring===B.selected?1:0)-(b.ring===B.selected?1:0));
+sorted.forEach(bm=>{
+  const ctrl=bm.ring===B.selected;
+  bm.segs.forEach(s=>{
+    maxBeamR=Math.max(maxBeamR,Math.hypot(s.x1,s.y1),Math.hypot(s.x2,s.y2));
+    const col=s.lit?C.litMain:(ctrl?C.ctrl:C.bgBeam);
+    const d=`M ${f(s.x1)} ${f(s.y1)} L ${f(s.x2)} ${f(s.y2)}`;
+    el('path',{d,fill:'none',stroke:col,'stroke-width':ctrl?11:8,opacity:s.lit?.30:.22,'stroke-linecap':'round',filter:'url(#glowW)',class:'beam'},beamG);
+    el('path',{d,fill:'none',stroke:col,'stroke-width':ctrl?2.8:2.3,'stroke-linecap':'round',filter:'url(#glowT)',class:'beam'},beamG);
+    el('path',{d,fill:'none',stroke:s.lit?'#eafff0':'#ffffff','stroke-width':.8,'stroke-linecap':'round',opacity:.85,class:'beam'},beamG);
+  });
+  // impact dot where a branch dies on a ring (Block) — the game's beam-impact ping
+  bm.ends.forEach(e=>{ if(e.kind!=='ring') return; const last=bm.segs.find(s=>Math.hypot(s.x2-e.x,s.y2-e.y)<40 && !bm.segs.some(o=>Math.hypot(o.x1-s.x2,o.y1-s.y2)<.5));
+    if(last){ el('circle',{cx:f(last.x2),cy:f(last.y2),r:6,fill:'#ffffff',opacity:.25,filter:'url(#glowW)'},endG); el('circle',{cx:f(last.x2),cy:f(last.y2),r:3.2,fill:'#ffffff',class:'beam'},endG);} });
+});
+window.MAX_BEAM_R=maxBeamR;
+board.appendChild(glTop);
+
+/* sources (spokes) on top: lit sources get the green halo */
+B.rings.forEach((ring,ri)=>{
+  const r=ringRadius(ri);
+  ring.spokeSlots.forEach(s=>{
+    const live=(s+B.rot[ri])%n, a=slotToAngle(live,n), x=Math.cos(a)*r, y=Math.sin(a)*r;
+    const bm=B.beams.find(b=>b.ring===ri&&b.liveSlot===live), lit=bm&&bm.lit, ctrl=ri===B.selected;
+    const g=el('g',{transform:`translate(${f(x)},${f(y)}) scale(1.12)`},board);
+    if(lit) el('circle',{r:15,fill:'url(#flareLit)',opacity:.75},g);
+    el('circle',{r:8.4,fill:'#07111c',stroke:lit?'#7dffb0':(ctrl?'#ffffff':C.bgBeam),'stroke-width':1.8},g);
+    el('circle',{r:5.6,fill:lit?'#b8f6ff':(ctrl?'#ffffff':C.bgBeam)},g);
+    el('circle',{cx:-1.6,cy:-1.8,r:2,fill:'#ffffff',opacity:.8},g);
+  });
+});
+/* centre hub (soft lit bloom where the spokes cross the centre) */
+el('circle',{r:34,fill:'url(#flareLit)',opacity:.22},board);
+el('circle',{r:13,fill:'#000',opacity:.45,filter:'url(#glowW)'},board);
+el('circle',{r:10,fill:'url(#hub)',stroke:'#9fb6cc','stroke-width':.8},board);
+
+/* ================= WORDMARK ================= */
+/* R I N + [ring G] + S H I F T. The G is an 8-panel Ringshift rim: the lit
+   panels form the letter, the opening is two dark glass panels (the ring stays
+   complete), and the crossbar is a beam from a source just left of centre that
+   stops on the rim's centre line inside a lit (green) Lock panel at 3 o'clock —
+   the same rule the board above follows. */
+async function buildTitle(){
+await document.fonts.load("900 200px 'Inter Display'");
+await new Promise(r=>requestAnimationFrame(()=>r()));
+const T=el('g',{id:'title'});
+function makeText(str,x,anchor){
+  const t=el('text',{x:f(x),y:TITLE_BASE,'font-family':"'Inter Display','Inter',sans-serif",'font-weight':900,'font-size':TITLE_SIZE,'letter-spacing':f(OPT.track||TITLE_SIZE*.045),fill:'url(#ivory)','text-anchor':anchor||'start'},T);
+  t.textContent=str; return t;
+}
+// measure cap height and stem width with real glyph boxes
+const cv=document.createElement('canvas').getContext('2d');
+cv.font=`900 ${TITLE_SIZE}px 'Inter Display'`;
+const mI=cv.measureText('I'), mH=cv.measureText('H');
+const pb={width:mI.actualBoundingBoxLeft+mI.actualBoundingBoxRight}, hb={height:mH.actualBoundingBoxAscent};
+const capH=OPT.capH||hb.height;
+const stem=OPT.stem||pb.width;    // ink width of an 'I' = stem weight
+const track=+(OPT.track||TITLE_SIZE*.045);
+const left=makeText('RIN',0), right=makeText('SHIFT',0);
+const wl=left.getComputedTextLength(), wr=right.getComputedTextLength();
+const gR=capH/2*1.045;              // optical overshoot for a round glyph
+const gW=gR*2;
+const sideL=track*0.55, sideR=track*1.2;
+const total=wl+sideL+gW+sideR+wr-track; // last letter's trailing tracking removed
+const x0=W/2-total/2;
+left.setAttribute('x',f(x0));
+const gx=x0+wl+sideL+gR, gy=TITLE_BASE-capH/2;
+right.setAttribute('x',f(gx+gR+sideR));
+window.TITLE_BOX={x0, x1:x0+total, top:TITLE_BASE-capH, base:TITLE_BASE, gx, gy, gR, stem};
+
+{
+  const G=el('g',{transform:`translate(${f(gx)},${f(gy)})`},T);
+  const N=8, ro=gR, ri=gR-stem*1.0, gap=Math.max(2,stem*.05);
+  const opening=new Set([1]), lockSlot=2;      // 8-slot rim: slot 1 (upper right) is the G's opening, slot 2 (3 o'clock) the lit Lock
+  const rimMid=(ro+ri)/2;                       // the G's own RIM_R (band centre line)
+  const step=Math.PI*2/N;
+  // cream outer border, like the game's rim; barely there across the opening
+  const oa0=slotToAngle(1,N)-step/2, oa1=slotToAngle(1,N)+step/2, rb=ro+Math.max(2.2,stem*.07);
+  el('path',{d:arcPath(rb,oa1,oa0+Math.PI*2),fill:'none',stroke:C.cream,'stroke-width':f(Math.max(1.4,stem*.04)),opacity:.55},G);
+  
+  // per-glyph gradient for the lit Lock panel
+  const gd=el('radialGradient',{id:'gLock',cx:0,cy:0,r:f(ro),gradientUnits:'userSpaceOnUse'},defs);
+  el('stop',{offset:f(ri/ro),'stop-color':'#f0fff4'},gd); el('stop',{offset:.82,'stop-color':'#b4ffca'},gd); el('stop',{offset:1,'stop-color':'#5cff8c'},gd);
+  for(let s=0;s<N;s++){
+    const d=rimPanelPath(s,N,ri,ro,gap);
+    if(opening.has(s)){
+      el('path',{d,fill:'none',stroke:'#9fd0f0','stroke-width':1.1,opacity:.22,'stroke-dasharray':'3 4'},G); // empty glass slot: outline only
+    } else if(s===lockSlot){
+      el('path',{d,fill:C.litMain,opacity:.6,filter:'url(#glowW)'},G);
+      el('path',{d,fill:'url(#gLock)'},G);
+    } else {
+      el('path',{d,fill:'url(#ivory)'},G);
+    }
+  }
+  // crossbar = a beam: source just left of centre -> through the centre -> stops on rimMid,
+  // inside the lit Lock panel (never past it), exactly as the engine ends a beam at RIM_R.
+  const srcX=-gR*0.02, endX=rimMid, bw=stem*0.62;
+  el('line',{x1:f(srcX),y1:0,x2:f(endX),y2:0,stroke:C.litMain,'stroke-width':f(bw*1.9),opacity:.35,filter:'url(#glowW)','stroke-linecap':'butt'},G);
+  el('line',{x1:f(srcX),y1:0,x2:f(endX),y2:0,stroke:'#5cff8c','stroke-width':f(bw),'stroke-linecap':'butt'},G);
+  el('line',{x1:f(srcX),y1:0,x2:f(endX),y2:0,stroke:'#f4fff7','stroke-width':f(bw*.5),'stroke-linecap':'butt'},G);
+  window.G_BEAM={endX, rimMid, ro, ri};
+  // source node (lit)
+    el('circle',{cx:f(srcX),cy:0,r:f(bw*.56),fill:'#07111c',stroke:'#9dffc0','stroke-width':f(Math.max(1.6,bw*.13))},G);
+  el('circle',{cx:f(srcX),cy:0,r:f(bw*.3),fill:'#c9fbff'},G);
+  // tiny lock diamond where the beam lands
+  el('polygon',{points:`${f(endX)},${f(-bw*.5)} ${f(endX+bw*.5)},0 ${f(endX)},${f(bw*.5)} ${f(endX-bw*.5)},0`,fill:'#ffffff',stroke:C.litDark,'stroke-width':1.2},G);
+}
+T.setAttribute('filter','url(#titleGlow)');
+
+/* grounding fade + vignette */
+el('rect',{x:0,y:H-260,width:W,height:260,fill:'url(#floor)',opacity:.55});
+el('rect',{x:0,y:0,width:W,height:H,fill:'url(#vig)'});
+// keep the title above the vignette
+svg.appendChild(T);
+window.TITLE_DEBUG={wl,wr,stemW:pb.width,capBox:hb.height};
+}
+buildTitle().then(()=>{window.READY=true;}).catch(e=>{window.ERR=String(e);window.READY=true;});
+</script>
+</body></html>
