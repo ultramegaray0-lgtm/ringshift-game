@@ -23,7 +23,7 @@ concurrency:
 env:
   # The game source file in the repository. It is published as index.html;
   # the file in the repository is never renamed or deleted.
-  GAME_FILE: ringshift v0.35.html
+  GAME_FILE: ringshift v0.36.html
 
 jobs:
   build:
@@ -62,6 +62,9 @@ jobs:
 
       - name: Check for missing assets and broken relative paths
         run: python3 .github/scripts/check_site.py _site
+
+      - name: Run engine regression tests (mirror rules + every level's win set)
+        run: node tests/run.js
 
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v5

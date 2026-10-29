@@ -1645,7 +1645,7 @@ body.theme-v2 .screenSub, body.theme-v2 #titleScreen .press, body.theme-v2 #game
     <div class="htpSection">
       <h3>// FIELD LEGEND</h3>
       <div class="htpRow"><span class="htpIcon src">◉</span><div><b>Source</b>Fires a beam straight through the center of the ring it's on.</div></div>
-      <div class="htpRow"><span class="htpIcon mir">╲</span><div><b>Mirror</b>Turns another ring's beam exactly 90°, at any slot. ╲ turns it clockwise, ╱ turns it counter-clockwise.</div></div>
+      <div class="htpRow"><span class="htpIcon mir">╲</span><div><b>Mirror</b>Bounces another ring's beam off its bar, exactly 90°, the way the bar is drawn: a beam going up into ╱ leaves to the right, into ╲ to the left. An unpinned mirror's bar turns with its ring.</div></div>
       <div class="htpRow"><span class="htpIcon blk">⬤</span><div><b>Block</b>Destroys another ring's beam outright. Never its own.</div></div>
       <div class="htpRow"><span class="htpIcon amp">▲</span><div><b>Amplifier</b>Boosts another ring's beam to STRONG, letting it punch through other rings' sources.</div></div>
       <div class="htpRow"><span class="htpIcon prt">◎</span><div><b>Portal (Black Hole)</b>Holes come in a linked pair. Each hole is TWO nodes long: a beam touching it anywhere along its whole length, from ANY direction, is absorbed. It then comes out of the OTHER hole, always travelling in that hole&rsquo;s own fixed exit direction (where its black mouth points) &mdash; never the direction the beam came in on. Two holes in a level can point different ways.</div></div>
@@ -1810,7 +1810,7 @@ body.theme-v2 .screenSub, body.theme-v2 #titleScreen .press, body.theme-v2 #game
     <div class="ringdeco r3"></div>
     <div class="ringdeco r2"></div>
     <h1 class="logo">RINGSHIFT</h1>
-    <div class="sub">DEMO · v0.35</div>
+    <div class="sub">DEMO · v0.36</div>
     <div class="press">PRESS ANY BUTTON</div>
   </div>
 
@@ -1962,6 +1962,33 @@ function vecRotateByAngle(v, theta){
   return { x: v.x*c - v.y*s, y: v.x*s + v.y*c };
 }
 
+// ---- MIRROR (v0.36): ONE authoritative rule, shared by the tracer and the artwork -------------
+// The drawn bar IS the mirror. mirror_l is drawn "╲" (bar at 45deg), mirror_r "╱" (bar at 135deg),
+// in screen space with +y DOWN (mechTurnGlyph). An unpinned mirror is drawn inside its ring's
+// rotating group, so its bar turns with the ring: bar = base + rotation steps * 360/n. A pinned one
+// never turns. buildLiveContentMap stores this angle on the mirror's live content (`bar`).
+const MIRROR_BAR_DEG = { mirror_l: 45, mirror_r: 135 };
+function mirrorBarAngle(type, rotationSteps, n){
+  return (MIRROR_BAR_DEG[type] + rotationSteps*360/n) * Math.PI/180;
+}
+// A mirror still turns the beam EXACTLY 90 degrees (the rule every level is built on), but the
+// SIDE it turns to is the side the drawn bar actually deflects this beam: reflecting `dir` off a
+// bar with unit direction b turns it clockwise on screen iff (dir.b)*(dir x b) > 0. For a beam
+// travelling horizontally or vertically against a 45deg bar this is exactly the textbook
+// reflection. Only a beam at exactly 45deg to the bar (along it, or straight into it) gets no
+// side from the bar; that tie keeps the old fixed facing (╲ clockwise, ╱ counter-clockwise).
+// Before v0.36 the tracer ignored the bar and always turned ╲ clockwise / ╱ counter-clockwise,
+// which is the opposite of the drawing whenever the beam arrives mostly vertically.
+function mirrorTurnsClockwise(dir, bar, type){
+  const bx = Math.cos(bar), by = Math.sin(bar);
+  const s = (dir.x*bx + dir.y*by) * (dir.x*by - dir.y*bx);
+  if(Math.abs(s) > 1e-9) return s > 0;
+  return type === 'mirror_l';
+}
+function mirrorReflect(dir, bar, type){
+  return mirrorTurnsClockwise(dir, bar, type) ? {x:-dir.y, y:dir.x} : {x:dir.y, y:-dir.x};
+}
+
 // ---- BLACK HOLE (Portal) SIZE: exactly TWO NODES LONG ------------------------------
 // One "node" = the footprint of one gimmick node: NODE_LEN = 20 units (gimmick node
 // discs are r 9-10; the old single-node hole sprite measured 19.8 long). A hole is
@@ -2051,6 +2078,8 @@ function buildLiveContentMap(ring, rotation, n, disabled){
         else if(type==='bell') map.set(live, {kind:'bell'});
         else if(type==='ufo') ufoLate.push(live);
         else if(type==='coin'){ if(!map.has(live)) map.set(live, {kind:'coin'}); }  // transparent: never hides a spoke/gimmick sharing its slot
+        // MIRROR: remember the angle its bar is DRAWN at right now (see mirrorBarAngle).
+        else if(type==='mirror_l' || type==='mirror_r') map.set(live, {kind:type, bar: mirrorBarAngle(type, isFixed ? 0 : rotation, n)});
         else map.set(live, {kind:type});
       }
     });
@@ -2148,21 +2177,27 @@ function traceBeamBranch(rings, rimRadius, lockSlotsSet, portalRegistry, n, pos,
       if(hitBellSlots) hitBellSlots.push({ringIdx: nearest.ringIdx, slot});
       pos = { x: hitPoint.x+dir.x*1e-4, y: hitPoint.y+dir.y*1e-4 }; continue;
     } else if(content && (content.kind==='mirror_l'||content.kind==='mirror_r')){
-      // MIRROR: ALWAYS turns the beam EXACTLY 90 degrees, at every slot,
-      // regardless of what angle the beam arrives from. mirror_l = 90 deg
-      // clockwise, mirror_r = 90 deg counter-clockwise (same sign
-      // convention as Echo Portal's angle: positive = clockwise on screen,
-      // y-down). This replaces the old fixed-world-diagonal reflection
-      // ((x,y)->(y,x) / (-y,-x)), which only produced a true 90 degree
-      // turn when the beam happened to travel exactly horizontally or
-      // vertically (slots 0/3/6/9 on a 12-slot ring) and produced 0-180
-      // degree turns everywhere else. Because every beam arrives radially,
-      // a 90 degree turn always leaves it tangent to the ring it bounced
-      // off, so it can only next meet a LARGER-radius ring or the rim.
+      // MIRROR (v0.36): the beam turns EXACTLY 90 degrees, to the side the
+      // drawn bar deflects it (mirrorReflect) -- not a fixed clockwise /
+      // counter-clockwise any more.
+      // Which mirror is decided by the slot rule like every other gimmick:
+      // a crossing anywhere in this slot's cell is caught. But a beam that
+      // is not travelling radially (after a bounce, Prism, Satellite or
+      // Black Hole) can cross the cell well away from the mirror itself --
+      // up to half a slot, ~70 units on the outer ring. Before v0.36 it
+      // turned right there, in empty track beside the glyph. Now the bounce
+      // happens ON the mirror: the path runs from the crossing along the
+      // track into the mirror's centre, and the turned beam leaves from the
+      // centre. A radial beam already crosses at the centre, so nothing
+      // changes for it.
+      const mA = slotToAngle(slot, n), mx = Math.cos(mA)*ring.radius, my = Math.sin(mA)*ring.radius;
+      if(Math.hypot(mx-hitPoint.x, my-hitPoint.y) > 1e-6){
+        const _sg={x1:hitPoint.x,y1:hitPoint.y,x2:mx,y2:my,strong}; segments.push(_sg); pathSegs.push(_sg);
+      }
+      dir = mirrorReflect(dir, content.bar, content.kind);
       // The 1e-4 nudge (same as every pass-through gimmick) keeps the new
-      // tangent ray from re-hitting the mirror's own circle on float error.
-      dir = (content.kind==='mirror_l') ? {x:-dir.y,y:dir.x} : {x:dir.y,y:-dir.x};
-      pos = { x: hitPoint.x+dir.x*1e-4, y: hitPoint.y+dir.y*1e-4 }; continue;
+      // ray from re-hitting the mirror's own circle on float error.
+      pos = { x: mx+dir.x*1e-4, y: my+dir.y*1e-4 }; continue;
     } else if(content && content.kind==='amp'){
       strong = true;
       pos = { x: hitPoint.x+dir.x*1e-4, y: hitPoint.y+dir.y*1e-4 }; continue;
@@ -2572,6 +2607,7 @@ const ORCHESTRA_MOVEMENTS = [
   "bonusLockSlots": [],
   "fogDurationMs": 7000
  },
+ // v0.36 MIRROR FIX: relabelled R2 s0 ╲→╱, R2 s6 ╲→╱ so the drawn bar matches the turn this level was built on. Win set unchanged (re-verified: 4 winning rotation(s), same coin results).
  {
   "name": "MOVEMENT III — THE MIRROR’S BEND",
   "slots": 12,
@@ -2592,10 +2628,10 @@ const ORCHESTRA_MOVEMENTS = [
    {
     "spokeSlots": [],
     "gimmicks": {
-     "0": "mirror_l",
+     "0": "mirror_r",
      "2": "block",
      "5": "block",
-     "6": "mirror_l",
+     "6": "mirror_r",
      "7": "block",
      "10": "block"
     },
@@ -2608,6 +2644,7 @@ const ORCHESTRA_MOVEMENTS = [
   "bonusLockSlots": [],
   "fogDurationMs": 8000
  },
+ // v0.36 MIRROR FIX: relabelled R2 s0 ╱→╲, R2 s6 ╱→╲ so the drawn bar matches the turn this level was built on. Win set unchanged (re-verified: 3 winning rotation(s), same coin results).
  {
   "name": "MOVEMENT IV — DUET",
   "slots": 12,
@@ -2634,11 +2671,11 @@ const ORCHESTRA_MOVEMENTS = [
    {
     "spokeSlots": [],
     "gimmicks": {
-     "0": "mirror_r",
+     "0": "mirror_l",
      "1": "block",
      "3": "block",
      "5": "block",
-     "6": "mirror_r",
+     "6": "mirror_l",
      "8": "mirror_r"
     },
     "initialRotation": 8
@@ -2651,6 +2688,7 @@ const ORCHESTRA_MOVEMENTS = [
   "bonusLockSlots": [],
   "fogDurationMs": 8000
  },
+ // v0.36 MIRROR FIX: relabelled R2 s6 ╱→╲ so the drawn bar matches the turn this level was built on. Win set unchanged (re-verified: 5 winning rotation(s), same coin results).
  {
   "name": "MOVEMENT V — PORTAL RUN",
   "slots": 12,
@@ -2681,7 +2719,7 @@ const ORCHESTRA_MOVEMENTS = [
       "type": "portal",
       "id": "P0"
      },
-     "6": "mirror_r",
+     "6": "mirror_l",
      "9": "block",
      "11": "block"
     },
@@ -2739,6 +2777,7 @@ const ORCHESTRA_MOVEMENTS = [
   "bonusLockSlots": [],
   "fogDurationMs": 8500
  },
+ // v0.36 MIRROR FIX: relabelled R2 s0 ╲→╱ so the drawn bar matches the turn this level was built on. Win set unchanged (re-verified: 1 winning rotation(s), same coin results).
  {
   "name": "MOVEMENT VII — INTERLUDE",
   "slots": 12,
@@ -2765,7 +2804,7 @@ const ORCHESTRA_MOVEMENTS = [
    {
     "spokeSlots": [],
     "gimmicks": {
-     "0": "mirror_l",
+     "0": "mirror_r",
      "3": "block",
      "4": "mirror_r",
      "5": {
@@ -2792,6 +2831,7 @@ const ORCHESTRA_MOVEMENTS = [
   "bonusLockSlots": [],
   "fogDurationMs": 9000
  },
+ // v0.36 MIRROR FIX: relabelled R3 s5 ╲→╱, R3 s6 ╱→╲ so the drawn bar matches the turn this level was built on. Win set unchanged (re-verified: 24 winning rotation(s), same coin results).
  {
   "name": "MOVEMENT VIII — ECHO OF THE STARS",
   "slots": 12,
@@ -2832,8 +2872,8 @@ const ORCHESTRA_MOVEMENTS = [
     "spokeSlots": [],
     "gimmicks": {
      "3": "block",
-     "5": "mirror_l",
-     "6": "mirror_r",
+     "5": "mirror_r",
+     "6": "mirror_l",
      "7": "block",
      "8": "mirror_l",
      "10": "block"
@@ -2898,6 +2938,7 @@ const ORCHESTRA_MOVEMENTS = [
   "bonusLockSlots": [],
   "fogDurationMs": 9000
  },
+ // v0.36 MIRROR FIX: relabelled R1 s5 ╲→╱. [10,0,9] [10,8,10] no longer win (their beam turned in empty track beside a mirror); 2 of the 4 v0.35 solutions remain.
  {
   "name": "MOVEMENT X — FINALE",
   "slots": 12,
@@ -2923,7 +2964,7 @@ const ORCHESTRA_MOVEMENTS = [
       "fixed": true,
       "lock": 0
      },
-     "5": "mirror_l",
+     "5": "mirror_r",
      "6": {
       "type": "ufo",
       "fixed": true,
@@ -3045,9 +3086,10 @@ const METEOR_LEVELS = [
   // spoke matters only through the mirror. First "prioritization" level:
   // 2/6 already lit at start. Verified solutions: [0,0,1] and [1,10,5]
   // (2/1728). Mirror confirmed necessary at the intended solution.
+  // v0.36 MIRROR FIX: relabelled R2 s0 ╱→╲ so the drawn bar matches the turn this level was built on. Win set unchanged (re-verified: 12 winning rotation(s), same coin results).
   {name:'SPECIAL 03 — THE MIRROR\u2019S WARNING', slots:12, rings:[
       {spokeSlots:[6], gimmicks:{}, initialRotation:5},
-      {spokeSlots:[], gimmicks:{0:{type:'mirror_r', fixed:true}}, initialRotation:6},
+      {spokeSlots:[], gimmicks:{0:{type:'mirror_l', fixed:true}}, initialRotation:6},
       {spokeSlots:[1], gimmicks:{}, initialRotation:8}
     ], lockSlots:[2,8], bonusLockSlots:[], elecLocks:[0,5,10]},
   // ---- SPECIAL 04 -- "Crossfire". Mirror + Block, first real
@@ -3066,9 +3108,10 @@ const METEOR_LEVELS = [
   // own 3 spokes AND both portal mouths. Opens fully dark (0/6).
   // Verified unique solution [0,5,2] (1/1728).
   // BLACK HOLE (two-node footprint) rebuild: brute-forced 1 winning rotation(s); every portal/mirror/prism/amp on the winning path checked; no inert rings; start lights 0 required locks.
+  // v0.36 MIRROR FIX: relabelled R2 s7 ╱→╲ so the drawn bar matches the turn this level was built on. Win set unchanged (re-verified: 1 winning rotation(s), same coin results).
   {name:'SPECIAL 05 — TWIN SIGNALS', slots:12, rings:[
         {spokeSlots:[7,11], gimmicks:{}, initialRotation:6},
-        {spokeSlots:[2], gimmicks:{7:{type:'mirror_r', fixed:true}}, initialRotation:8},
+        {spokeSlots:[2], gimmicks:{7:{type:'mirror_l', fixed:true}}, initialRotation:8},
         {spokeSlots:[3], gimmicks:{0:{type:'portal', id:'P0', turn:-165, fixed:true}, 8:{type:'portal', id:'P0', turn:-60, fixed:true}}, initialRotation:1}
       ], lockSlots:[4,6,10], bonusLockSlots:[], elecLocks:[0,2,8]},
   // ---- SPECIAL 06 -- "One-Way Trip". Half-Block + Mirror. Half-Block
@@ -3077,9 +3120,10 @@ const METEOR_LEVELS = [
   // PREVENTIVE here (removing it lets an extra accidental solution slip
   // in at [2,4,7]). Mirror confirmed necessary. Verified unique solution
   // [1,3,0] (1/1728).
+  // v0.36 MIRROR FIX: relabelled R2 s0 ╲→╱ so the drawn bar matches the turn this level was built on. Win set unchanged (re-verified: 8 winning rotation(s), same coin results).
   {name:'SPECIAL 06 — ONE-WAY TRIP', slots:12, rings:[
       {spokeSlots:[4], gimmicks:{}, initialRotation:7},
-      {spokeSlots:[3], gimmicks:{0:{type:'mirror_l', fixed:true}}, initialRotation:9},
+      {spokeSlots:[3], gimmicks:{0:{type:'mirror_r', fixed:true}}, initialRotation:9},
       {spokeSlots:[3], gimmicks:{11:{type:'half_block', side:'in'}}, initialRotation:5}
     ], lockSlots:[9,10,11], bonusLockSlots:[], elecLocks:[1,4,6]},
   // ---- SPECIAL 07 -- "Overcharge". Amplifier + Portal, BOTH
@@ -3116,9 +3160,10 @@ const METEOR_LEVELS = [
   // Portal mouths and the Amp. Verified unique solution [0,0,4] (1/1728).
   // BLACK HOLE rule update: holes now take beams only through their mouths; hole moved.
   // Brute-forced: 1 solution [7,7,11]; start lights 0/5 required.
+  // v0.36 MIRROR FIX: relabelled R2 s5 ╲→╱ so the drawn bar matches the turn this level was built on. Win set unchanged (re-verified: 1 winning rotation(s), same coin results).
   {name:'SPECIAL 10 — THE GAUNTLET', slots:12, rings:[
       {spokeSlots:[11], gimmicks:{}, initialRotation:3},
-      {spokeSlots:[9], gimmicks:{5:{type:'mirror_l', fixed:true}, 11:{type:'prism'}}, initialRotation:8},
+      {spokeSlots:[9], gimmicks:{5:{type:'mirror_r', fixed:true}, 11:{type:'prism'}}, initialRotation:8},
       {spokeSlots:[0,4,7], gimmicks:{3:{type:'portal', id:'P0', fixed:true}, 6:'amp', 10:{type:'portal', id:'P0', fixed:true}}, initialRotation:10}
     ], lockSlots:[2,3,7,9,10], bonusLockSlots:[], elecLocks:[0,5,11]},
 ];
@@ -3181,11 +3226,12 @@ const ROCKET_LEVELS = [
       {spokeSlots:[10], gimmicks:{8:'block'}, initialRotation:4}
     ], lockSlots:[2,8,9], bonusLockSlots:[], lightLocks:[3,5,7,11], elecLocks:[1,4,0]},
   // VERIFIED (v0.29 rules): 2 winning rotation(s) [[6,4,8],[11,4,8]]; start [5,9,0] is unsolved and aims no rocket at a lock; 39/1728 rotations are safe parking (no beam ends on a lock); trap slot -> near-solution landings {"0":15,"2":8,"5":4,"6":5,"7":12,"8":9,"11":9}; needed: mirror_r:needed,prism:needed.
+  // v0.36 MIRROR FIX: the Prism branch now turns ON the Mirror (it used to turn in empty track beside it), so both answers light rim 8 instead of 4. Lock 4 and ring 1's Electricity Lock swapped places. Re-verified: same 2 winning rotations [[6,4,8],[11,4,8]], start unsolved and aims no rocket at a lock, 39/1728 safe parking (unchanged).
   {name:'ROCKET 08 — SPLIT SUPPLY', slots:12, rings:[
       {spokeSlots:[7,2], gimmicks:{9:'block'}, initialRotation:5},
       {spokeSlots:[0], gimmicks:{4:{type:'mirror_r', fixed:true}}, initialRotation:9},
       {spokeSlots:[6], gimmicks:{5:{type:'prism'}}, initialRotation:0}
-    ], lockSlots:[4,9,10], bonusLockSlots:[], lightLocks:[2,5,6,11], elecLocks:[8,0,7]},
+    ], lockSlots:[8, 9, 10], bonusLockSlots:[], lightLocks:[2,5,6,11], elecLocks:[4, 0, 7]},
   // VERIFIED (v0.29 rules): 2 winning rotation(s) [[1,1,5],[1,10,8]]; start [9,4,8] is unsolved and aims no rocket at a lock; 131/1728 rotations are safe parking (no beam ends on a lock); trap slot -> near-solution landings {"1":4,"2":4,"3":2,"4":4,"7":2,"10":2}; needed: portal:needed,echo_portal:needed,portal:needed.
   {name:'ROCKET 09 — ECHO SUPPLY', slots:12, rings:[
       {spokeSlots:[11,2], gimmicks:{8:{type:'half_block', side:'out'}}, initialRotation:9},
@@ -3238,32 +3284,35 @@ const CHALLENGE_LEVELS = [
   // Route (9 touches): R4:mirror_l > R2:mirror_r > R2:mirror_r > R4:mirror_r > R4:mirror_l > R1:mirror_l > R1:mirror_l > R4:mirror_r > R3:mirror_l. Board: 16 mirror_r, 5 block, 4 mirror_l.
   // 59 wrong rotations follow the true route for 3+ touches before failing. Every bend on the route lands
   // within 7 degrees of its gimmick. Start [4,8,2,6] is >=3 steps off on every ring and lights nothing.
+  // v0.36 MIRROR FIX: mirrors now turn the way their bar is drawn and bounce ON the mirror, which broke this route. Re-tuned, same answer: R1 s2 ╱→╲; R1 +Block at s8; R2 s5 ╱→╲; R2 ╱ mirror s8→s4 and now ╲; R3 +Block at s2; R3 +Block at s7; R3 +Block at s8; R4 s6 ╱→╲; R4 ╲ mirror s1→s11. Re-verified on all 20,736 rotations: exactly 1 winning rotation (the published answer), start lights nothing. Route/board notes above are from v0.33.
   {name:'CHALLENGE 1 — HALL OF MIRRORS', slots:12, emitters:[0], rings:[
-        {spokeSlots:[], gimmicks:{0:'mirror_r', 2:'mirror_r', 3:'block', 7:'mirror_l', 9:'mirror_l', 10:'block'}, initialRotation:4},
-        {spokeSlots:[], gimmicks:{1:'mirror_r', 3:'mirror_r', 5:'mirror_r', 6:'block', 8:'mirror_r', 10:'mirror_r', 11:'mirror_r'}, initialRotation:8},
-        {spokeSlots:[], gimmicks:{1:'mirror_r', 3:'mirror_r', 5:'block', 10:'mirror_l', 11:'mirror_r'}, initialRotation:2},
-        {spokeSlots:[], gimmicks:{1:'mirror_l', 2:'mirror_r', 4:'mirror_r', 5:'mirror_r', 6:'mirror_r', 7:'mirror_r', 9:'block'}, initialRotation:6}
+        {spokeSlots:[], gimmicks:{0:'mirror_r', 2:'mirror_l', 3:'block', 7:'mirror_l', 8:'block', 9:'mirror_l', 10:'block'}, initialRotation:4},
+        {spokeSlots:[], gimmicks:{1:'mirror_r', 3:'mirror_r', 4:'mirror_l', 5:'mirror_l', 6:'block', 10:'mirror_r', 11:'mirror_r'}, initialRotation:8},
+        {spokeSlots:[], gimmicks:{1:'mirror_r', 2:'block', 3:'mirror_r', 5:'block', 7:'block', 8:'block', 10:'mirror_l', 11:'mirror_r'}, initialRotation:2},
+        {spokeSlots:[], gimmicks:{2:'mirror_r', 4:'mirror_r', 5:'mirror_r', 6:'mirror_l', 7:'mirror_r', 9:'block', 11:'mirror_l'}, initialRotation:6}
       ], lockSlots:[8], bonusLockSlots:[]},
   // ---- CHALLENGE 2 -- One-Way Street. Twenty Half-Blocks (lock in / lock out); the beam must thread four of them the right way.
   // VERIFIED (v0.33, real tracer, all 12^4 = 20,736 rotations): exactly 1 winning rotation [1,2,2,5].
   // Route (8 touches): R1:half_block > R2:half_block > R3:half_block > R4:mirror_l > R1:mirror_r > R1:mirror_r > R2:half_block > R2:mirror_l. Board: 20 half_block, 2 mirror_r, 3 mirror_l.
   // 251 wrong rotations follow the true route for 3+ touches before failing. Every bend on the route lands
   // within 7 degrees of its gimmick. Start [8,11,11,10] is >=3 steps off on every ring and lights nothing.
+  // v0.36 MIRROR FIX: mirrors now turn the way their bar is drawn and bounce ON the mirror, which broke this route. Re-tuned, same answer: R1 ╱ mirror s9→s5 and now ╲; R2 s11 ╲→╱; R2 +Half-Block (out) at s0; R2 +Half-Block (in) at s1; R2 +Half-Block (in) at s9; R3 s1 Half-Block (out) now in; R3 +Half-Block (in) at s2; R3 +Half-Block (out) at s6; R3 +Half-Block (in) at s8; R3 +Half-Block (out) at s9; R3 +Half-Block (out) at s11; R4 +Half-Block (in) at s1; R4 +Half-Block (in) at s3; R4 +Half-Block (in) at s4; R4 ╲ mirror s7→s5 and now ╱; R4 +Half-Block (in) at s6; R4 +Half-Block (out) at s8. Re-verified on all 20,736 rotations: exactly 1 winning rotation (the published answer), start lights nothing. Route/board notes above are from v0.33.
   {name:'CHALLENGE 2 — ONE-WAY STREET', slots:12, emitters:[0], rings:[
-        {spokeSlots:[], gimmicks:{1:{type:'half_block', side:'in'}, 3:{type:'half_block', side:'in'}, 7:'mirror_r', 9:'mirror_r', 11:{type:'half_block', side:'out'}}, initialRotation:8},
-        {spokeSlots:[], gimmicks:{2:'mirror_l', 3:{type:'half_block', side:'in'}, 5:{type:'half_block', side:'out'}, 6:{type:'half_block', side:'out'}, 7:{type:'half_block', side:'in'}, 10:{type:'half_block', side:'out'}, 11:'mirror_l'}, initialRotation:11},
-        {spokeSlots:[], gimmicks:{0:{type:'half_block', side:'out'}, 1:{type:'half_block', side:'out'}, 3:{type:'half_block', side:'out'}, 4:{type:'half_block', side:'in'}, 5:{type:'half_block', side:'out'}, 7:{type:'half_block', side:'in'}, 10:{type:'half_block', side:'out'}}, initialRotation:11},
-        {spokeSlots:[], gimmicks:{0:{type:'half_block', side:'in'}, 2:{type:'half_block', side:'out'}, 7:'mirror_l', 9:{type:'half_block', side:'in'}, 10:{type:'half_block', side:'in'}, 11:{type:'half_block', side:'in'}}, initialRotation:10}
+        {spokeSlots:[], gimmicks:{1:{type:'half_block', side:'in'}, 3:{type:'half_block', side:'in'}, 5:'mirror_l', 7:'mirror_r', 11:{type:'half_block', side:'out'}}, initialRotation:8},
+        {spokeSlots:[], gimmicks:{0:{type:'half_block', side:'out'}, 1:{type:'half_block', side:'in'}, 2:'mirror_l', 3:{type:'half_block', side:'in'}, 5:{type:'half_block', side:'out'}, 6:{type:'half_block', side:'out'}, 7:{type:'half_block', side:'in'}, 9:{type:'half_block', side:'in'}, 10:{type:'half_block', side:'out'}, 11:'mirror_r'}, initialRotation:11},
+        {spokeSlots:[], gimmicks:{0:{type:'half_block', side:'out'}, 1:{type:'half_block', side:'in'}, 2:{type:'half_block', side:'in'}, 3:{type:'half_block', side:'out'}, 4:{type:'half_block', side:'in'}, 5:{type:'half_block', side:'out'}, 6:{type:'half_block', side:'out'}, 7:{type:'half_block', side:'in'}, 8:{type:'half_block', side:'in'}, 9:{type:'half_block', side:'out'}, 10:{type:'half_block', side:'out'}, 11:{type:'half_block', side:'out'}}, initialRotation:11},
+        {spokeSlots:[], gimmicks:{0:{type:'half_block', side:'in'}, 1:{type:'half_block', side:'in'}, 2:{type:'half_block', side:'out'}, 3:{type:'half_block', side:'in'}, 4:{type:'half_block', side:'in'}, 5:'mirror_r', 6:{type:'half_block', side:'in'}, 8:{type:'half_block', side:'out'}, 9:{type:'half_block', side:'in'}, 10:{type:'half_block', side:'in'}, 11:{type:'half_block', side:'in'}}, initialRotation:10}
       ], lockSlots:[5], bonusLockSlots:[]},
   // ---- CHALLENGE 3 -- Event Horizon. Eight unpinned Black Holes in four pairs that turn with their rings; three jumps on the route.
   // VERIFIED (v0.33, real tracer, all 12^4 = 20,736 rotations): exactly 1 winning rotation [9,1,9,5].
   // Route (9 touches): hole > R4:mirror_r > R2:mirror_r > hole > R4:mirror_l > R2:mirror_l > hole > R4:mirror_l > R1:mirror_r. Board: 10 mirror_r, 14 block, 4 mirror_l, 8 portal.
   // 2 wrong rotations follow the true route for 3+ touches before failing. Every bend on the route lands
   // within 7 degrees of its gimmick. Start [6,4,2,2] is >=3 steps off on every ring and lights nothing.
+  // v0.36 MIRROR FIX: mirrors now turn the way their bar is drawn and bounce ON the mirror, which broke this route. Re-tuned, same answer: R1 s0 ╱→╲; R2 s0 ╱→╲; R2 s5 ╱→╲; R2 Black Hole P2 s8→s11; R3 +Block at s3; R3 Black Hole P0 s3→s2; R3 +Block at s4; R3 +Block at s5; R3 +Block at s9; R3 +Block at s10. Re-verified on all 20,736 rotations: exactly 1 winning rotation (the published answer), start lights nothing. Route/board notes above are from v0.33.
   {name:'CHALLENGE 3 — EVENT HORIZON', slots:12, emitters:[0], rings:[
-        {spokeSlots:[], gimmicks:{0:'mirror_r', 1:'block', 2:'mirror_r', 4:'mirror_r', 5:'block', 7:'block', 9:'mirror_r', 10:'mirror_r', 11:'block'}, initialRotation:6},
-        {spokeSlots:[], gimmicks:{0:'mirror_r', 1:'mirror_l', 2:{type:'portal', id:'P3'}, 3:{type:'portal', id:'P1', turn:180}, 4:'block', 5:'mirror_r', 6:'mirror_l', 7:'block', 8:{type:'portal', id:'P2'}, 9:'block'}, initialRotation:4},
-        {spokeSlots:[], gimmicks:{0:'block', 1:'block', 3:{type:'portal', id:'P0', turn:-90}, 6:'block', 7:'block', 8:'block', 11:'block'}, initialRotation:2},
+        {spokeSlots:[], gimmicks:{0:'mirror_l', 1:'block', 2:'mirror_r', 4:'mirror_r', 5:'block', 7:'block', 9:'mirror_r', 10:'mirror_r', 11:'block'}, initialRotation:6},
+        {spokeSlots:[], gimmicks:{0:'mirror_l', 1:'mirror_l', 2:{type:'portal', id:'P3'}, 3:{type:'portal', id:'P1', turn:180}, 4:'block', 5:'mirror_l', 6:'mirror_l', 7:'block', 9:'block', 11:{type:'portal', id:'P2'}}, initialRotation:4},
+        {spokeSlots:[], gimmicks:{0:'block', 1:'block', 2:{type:'portal', id:'P0', turn:-90}, 3:'block', 4:'block', 5:'block', 6:'block', 7:'block', 8:'block', 9:'block', 10:'block', 11:'block'}, initialRotation:2},
         {spokeSlots:[], gimmicks:{0:'mirror_l', 2:'mirror_r', 3:'mirror_r', 4:'mirror_l', 5:'mirror_r', 6:{type:'portal', id:'P1', turn:180}, 7:'block', 8:{type:'portal', id:'P3', turn:180}, 9:{type:'portal', id:'P0', turn:180}, 10:{type:'portal', id:'P2', turn:180}}, initialRotation:2}
       ], lockSlots:[11], bonusLockSlots:[]},
   // ---- CHALLENGE 4 -- Spectrum. Twelve Prisms; the winning branch is split five times, every other branch is a decoy.
@@ -3271,22 +3320,24 @@ const CHALLENGE_LEVELS = [
   // Route (7 touches): R4:prism > R1:mirror_l > R1:prism > R1:prism > R1:mirror_l > R4:prism > R2:prism. Board: 5 mirror_l, 12 prism, 16 block.
   // 8 wrong rotations follow the true route for 3+ touches before failing. Every bend on the route lands
   // within 7 degrees of its gimmick. Start [11,2,8,7] is >=3 steps off on every ring and lights nothing.
+  // v0.36 MIRROR FIX: mirrors now turn the way their bar is drawn and bounce ON the mirror, which broke this route. Re-tuned, same answer: R1 s6 ╲→╱; R1 +Block at s1; R3 +Block at s4; R4 +Block at s1; R4 ╲ mirror s1→s5 and now ╱; R4 ╲ mirror s4→s8. Re-verified on all 20,736 rotations: exactly 1 winning rotation (the published answer), start lights nothing. Route/board notes above are from v0.33.
   {name:'CHALLENGE 4 — SPECTRUM', slots:12, emitters:[0], rings:[
-        {spokeSlots:[], gimmicks:{2:'mirror_l', 3:{type:'prism'}, 4:{type:'prism'}, 5:{type:'prism'}, 6:'mirror_l', 8:{type:'prism'}, 9:'block', 11:{type:'prism'}}, initialRotation:11},
+        {spokeSlots:[], gimmicks:{1:'block', 2:'mirror_l', 3:{type:'prism'}, 4:{type:'prism'}, 5:{type:'prism'}, 6:'mirror_r', 8:{type:'prism'}, 9:'block', 11:{type:'prism'}}, initialRotation:11},
         {spokeSlots:[], gimmicks:{0:'block', 1:'block', 3:'block', 4:{type:'prism'}, 5:'block', 7:'block', 8:'block', 9:{type:'prism'}, 11:'block'}, initialRotation:2},
-        {spokeSlots:[], gimmicks:{1:'block', 3:'block', 5:'block', 6:'block', 7:'block', 9:'block', 10:'block', 11:'block'}, initialRotation:8},
-        {spokeSlots:[], gimmicks:{0:{type:'prism'}, 1:'mirror_l', 4:'mirror_l', 6:{type:'prism'}, 7:{type:'prism'}, 9:'mirror_l', 10:{type:'prism'}, 11:{type:'prism'}}, initialRotation:7}
+        {spokeSlots:[], gimmicks:{1:'block', 3:'block', 4:'block', 5:'block', 6:'block', 7:'block', 9:'block', 10:'block', 11:'block'}, initialRotation:8},
+        {spokeSlots:[], gimmicks:{0:{type:'prism'}, 1:'block', 5:'mirror_r', 6:{type:'prism'}, 7:{type:'prism'}, 8:'mirror_l', 9:'mirror_l', 10:{type:'prism'}, 11:{type:'prism'}}, initialRotation:7}
       ], lockSlots:[3], bonusLockSlots:[]},
   // ---- CHALLENGE 5 -- Deep Space Relay. Sixteen pinned Satellites; one steerable Mirror per ring decides where the relay goes.
   // VERIFIED (v0.33, real tracer, all 12^4 = 20,736 rotations): exactly 1 winning rotation [4,1,3,11].
   // Route (9 touches): R1:satellite > R3:satellite > R4:mirror_r > R2:mirror_r > R2:satellite > R2:satellite > R1:mirror_r > R1:satellite > R2:satellite. Board: 16 echo_portal, 3 mirror_r, 1 mirror_l, 4 block.
   // 846 wrong rotations follow the true route for 3+ touches before failing. Every bend on the route lands
   // within 7 degrees of its gimmick. Start [11,9,11,3] is >=3 steps off on every ring and lights nothing.
+  // v0.36 MIRROR FIX: mirrors now turn the way their bar is drawn and bounce ON the mirror, which broke this route. Re-tuned, same answer: R1 s6 ╱→╲; R2 Satellite s5→s11; R4 s7 ╱→╲; R4 Satellite s11→s8. Re-verified on all 20,736 rotations: exactly 1 winning rotation (the published answer), start lights nothing. Route/board notes above are from v0.33.
   {name:'CHALLENGE 5 — DEEP SPACE RELAY', slots:12, emitters:[0], rings:[
-        {spokeSlots:[], gimmicks:{0:{type:'echo_portal', turn:180, fixed:true}, 1:{type:'echo_portal', turn:90, fixed:true}, 2:{type:'echo_portal', turn:0, fixed:true}, 6:'mirror_r', 8:{type:'echo_portal', turn:90, fixed:true}, 9:{type:'echo_portal', turn:0, fixed:true}}, initialRotation:11},
-        {spokeSlots:[], gimmicks:{2:{type:'echo_portal', turn:270, fixed:true}, 3:'mirror_r', 5:{type:'echo_portal', turn:0, fixed:true}, 6:{type:'echo_portal', turn:180, fixed:true}, 8:{type:'echo_portal', turn:180, fixed:true}, 10:{type:'echo_portal', turn:270, fixed:true}}, initialRotation:9},
+        {spokeSlots:[], gimmicks:{0:{type:'echo_portal', turn:180, fixed:true}, 1:{type:'echo_portal', turn:90, fixed:true}, 2:{type:'echo_portal', turn:0, fixed:true}, 6:'mirror_l', 8:{type:'echo_portal', turn:90, fixed:true}, 9:{type:'echo_portal', turn:0, fixed:true}}, initialRotation:11},
+        {spokeSlots:[], gimmicks:{2:{type:'echo_portal', turn:270, fixed:true}, 3:'mirror_r', 6:{type:'echo_portal', turn:180, fixed:true}, 8:{type:'echo_portal', turn:180, fixed:true}, 10:{type:'echo_portal', turn:270, fixed:true}, 11:{type:'echo_portal', turn:0, fixed:true}}, initialRotation:9},
         {spokeSlots:[], gimmicks:{0:{type:'echo_portal', turn:180, fixed:true}, 2:'mirror_l', 3:'block', 5:'block', 8:'block', 10:'block'}, initialRotation:11},
-        {spokeSlots:[], gimmicks:{2:{type:'echo_portal', turn:90, fixed:true}, 3:{type:'echo_portal', turn:270, fixed:true}, 4:{type:'echo_portal', turn:0, fixed:true}, 7:'mirror_r', 9:{type:'echo_portal', turn:180, fixed:true}, 11:{type:'echo_portal', turn:90, fixed:true}}, initialRotation:3}
+        {spokeSlots:[], gimmicks:{2:{type:'echo_portal', turn:90, fixed:true}, 3:{type:'echo_portal', turn:270, fixed:true}, 4:{type:'echo_portal', turn:0, fixed:true}, 7:'mirror_l', 8:{type:'echo_portal', turn:90, fixed:true}, 9:{type:'echo_portal', turn:180, fixed:true}}, initialRotation:3}
       ], lockSlots:[7], bonusLockSlots:[]},
 ];
 /*CHALLENGE_LEVELS_END*/
@@ -3304,9 +3355,10 @@ const LEVELS = {
       ], lockSlots:[0,1], bonusLockSlots:[6]},
     // REBUILT for the exact-90-degree Mirror rule. Moved: ring 2 gimmicks {5:mirror_r}->{0:mirror_r}.
     // Brute-forced: 1 coin solution [0,7], 3 no-coin; mirror/mirror all necessary; start lights 0/2 required.
+    // v0.36 MIRROR FIX: relabelled R2 s0 ╱→╲ so the drawn bar matches the turn this level was built on. Win set unchanged (re-verified: 4 winning rotation(s), same coin results).
     {name:'LEVEL 3', slots:8, rings:[
         {spokeSlots:[4,1], gimmicks:{7:{type:'mirror_l', fixed:true}}, initialRotation:2},
-        {spokeSlots:[4], gimmicks:{0:{type:'mirror_r', fixed:true}}, initialRotation:3}
+        {spokeSlots:[4], gimmicks:{0:{type:'mirror_l', fixed:true}}, initialRotation:3}
       ], lockSlots:[0,7], bonusLockSlots:[5]},
     // REBUILT for the exact-90-degree Mirror rule. Moved: ring 3 gimmicks {4:mirror_l}->{5:mirror_l}.
     // Brute-forced: 1 coin solution [5,5,6], 2 no-coin; mirror/mirror/mirror all necessary; start lights 0/3 required.
@@ -3368,8 +3420,9 @@ const LEVELS = {
         {spokeSlots:[2], gimmicks:{0:{type:'echo_portal', turn:270, fixed:true}}, initialRotation:0}
       ], lockSlots:[4,9], bonusLockSlots:[1]},
     // BLACK HOLE (two-node footprint) rebuild: brute-forced 2 winning rotation(s) -- 1 coin solution, 1 no-coin; every portal/mirror/prism/amp on the winning path checked; no inert rings; start lights 0 required locks.
+    // v0.36 MIRROR FIX: relabelled R1 s1 ╲→╱ so the drawn bar matches the turn this level was built on. Win set unchanged (re-verified: 2 winning rotation(s), same coin results).
     {name:'LEVEL 13', slots:12, rings:[
-        {spokeSlots:[3], gimmicks:{1:{type:'mirror_l', fixed:true}}, initialRotation:6},
+        {spokeSlots:[3], gimmicks:{1:{type:'mirror_r', fixed:true}}, initialRotation:6},
         {spokeSlots:[2], gimmicks:{1:'block'}, initialRotation:5},
         {spokeSlots:[5], gimmicks:{2:{type:'portal', id:'P0', turn:180, fixed:true}}, initialRotation:8},
         {spokeSlots:[7,8], gimmicks:{10:{type:'portal', id:'P0', fixed:true}}, initialRotation:1}
@@ -3420,9 +3473,10 @@ const LEVELS = {
         {spokeSlots:[7,2], gimmicks:{1:{type:'portal', id:'P0', turn:60, fixed:true}, 9:{type:'portal', id:'P0', turn:150, fixed:true}}, initialRotation:3}
       ], lockSlots:[3,2,6], bonusLockSlots:[1]},
     // SATELLITE FIX (vertical, dish DOWN, pinned): brute-forced 4 winning rotation(s) -- 1 coin solution, 3 no-coin; 0 solutions exist with the Satellite removed, so it is REQUIRED to win; no inert rings; start lights 0/3 required.
+    // v0.36 MIRROR FIX: relabelled R2 s6 ╱→╲ so the drawn bar matches the turn this level was built on. Win set unchanged (re-verified: 4 winning rotation(s), same coin results).
     {name:'LEVEL 23', slots:12, rings:[
         {spokeSlots:[9], gimmicks:{7:{type:'echo_portal', turn:180, fixed:true}}, initialRotation:3},
-        {spokeSlots:[11], gimmicks:{6:{type:'mirror_r', fixed:true}}, initialRotation:5},
+        {spokeSlots:[11], gimmicks:{6:{type:'mirror_l', fixed:true}}, initialRotation:5},
         {spokeSlots:[7,4], gimmicks:{}, initialRotation:5}
       ], lockSlots:[1,2,7], bonusLockSlots:[4]},
     // REBUILT for the exact-90-degree Mirror rule. Rings/gimmicks unchanged; only Locks (and start rotation if needed) re-derived.
@@ -3447,10 +3501,11 @@ const LEVELS = {
         {spokeSlots:[3,0], gimmicks:{5:{type:'portal', id:'P0', turn:180, fixed:true}, 10:{type:'portal', id:'P0', turn:180, fixed:true}, 11:'amp'}, initialRotation:3}
       ], lockSlots:[4,11], bonusLockSlots:[7]},
     // SATELLITE FIX (vertical, dish DOWN, pinned): brute-forced 2 winning rotation(s) -- 1 coin solution, 1 no-coin; 0 solutions exist with the Satellite removed, so it is REQUIRED to win; no inert rings; start lights 0/3 required.
+    // v0.36 MIRROR FIX: relabelled R3 s1 ╱→╲ so the drawn bar matches the turn this level was built on. Win set unchanged (re-verified: 2 winning rotation(s), same coin results).
     {name:'LEVEL 3', slots:12, rings:[
         {spokeSlots:[8,4], gimmicks:{}, initialRotation:11},
         {spokeSlots:[0], gimmicks:{1:{type:'echo_portal', turn:180, fixed:true}}, initialRotation:6},
-        {spokeSlots:[2], gimmicks:{1:{type:'mirror_r', fixed:true}}, initialRotation:2}
+        {spokeSlots:[2], gimmicks:{1:{type:'mirror_l', fixed:true}}, initialRotation:2}
       ], lockSlots:[2,4,8], bonusLockSlots:[3]},
     // SATELLITE FIX (vertical, dish UP, pinned): brute-forced 4 winning rotation(s) -- 1 coin solution, 3 no-coin; 0 solutions exist with the Satellite removed, so it is REQUIRED to win; no inert rings; start lights 0/3 required.
     {name:'LEVEL 4', slots:12, rings:[
@@ -3458,9 +3513,10 @@ const LEVELS = {
         {spokeSlots:[0], gimmicks:{11:'block'}, initialRotation:5},
         {spokeSlots:[10], gimmicks:{}, initialRotation:11}
       ], lockSlots:[2,8,9], bonusLockSlots:[11]},
+    // v0.36 MIRROR FIX: relabelled R2 s0 ╲→╱ so the drawn bar matches the turn this level was built on. Win set unchanged (re-verified: 3 winning rotation(s), same coin results).
     {name:'LEVEL 5', slots:12, rings:[
         {spokeSlots:[6], gimmicks:{11:'block'}, initialRotation:6},
-        {spokeSlots:[4,9], gimmicks:{0:{type:'mirror_l', fixed:true}, 1:{type:'prism'}}, initialRotation:10},
+        {spokeSlots:[4,9], gimmicks:{0:{type:'mirror_r', fixed:true}, 1:{type:'prism'}}, initialRotation:10},
         {spokeSlots:[0], gimmicks:{}, initialRotation:4}
       ], lockSlots:[0,1,2], bonusLockSlots:[8]},
     // BLACK HOLE (two-node footprint) rebuild: brute-forced 2 winning rotation(s) -- 1 coin solution, 1 no-coin; every portal/mirror/prism/amp on the winning path checked; no inert rings; start lights 0 required locks.
@@ -3475,8 +3531,9 @@ const LEVELS = {
         {spokeSlots:[10], gimmicks:{8:{type:'echo_portal', turn:0, fixed:true}}, initialRotation:9}
       ], lockSlots:[0,6,11], bonusLockSlots:[10]},
     // BLACK HOLE (two-node footprint) rebuild: brute-forced 4 winning rotation(s) -- 1 coin solution, 3 no-coin; every portal/mirror/prism/amp on the winning path checked; no inert rings; start lights 0 required locks.
+    // v0.36 MIRROR FIX: relabelled R1 s0 ╲→╱ so the drawn bar matches the turn this level was built on. Win set unchanged (re-verified: 4 winning rotation(s), same coin results).
     {name:'LEVEL 8', slots:12, rings:[
-        {spokeSlots:[1], gimmicks:{0:{type:'mirror_l', fixed:true}}, initialRotation:4},
+        {spokeSlots:[1], gimmicks:{0:{type:'mirror_r', fixed:true}}, initialRotation:4},
         {spokeSlots:[4,2], gimmicks:{3:{type:'half_block', side:'in'}, 7:'block'}, initialRotation:9},
         {spokeSlots:[9], gimmicks:{3:{type:'portal', id:'P0', turn:180, fixed:true}, 10:{type:'portal', id:'P0', turn:180, fixed:true}}, initialRotation:4}
       ], lockSlots:[2,7,11], bonusLockSlots:[9]},
@@ -3510,8 +3567,9 @@ const LEVELS = {
         {spokeSlots:[8], gimmicks:{}, initialRotation:7}
       ], lockSlots:[2,4,10], bonusLockSlots:[7]},
     // BLACK HOLE (two-node footprint) rebuild: brute-forced 5 winning rotation(s) -- 1 coin solution, 4 no-coin; every portal/mirror/prism/amp on the winning path checked; no inert rings; start lights 0 required locks.
+    // v0.36 MIRROR FIX: relabelled R1 s1 ╲→╱ so the drawn bar matches the turn this level was built on. Win set unchanged (re-verified: 5 winning rotation(s), same coin results).
     {name:'LEVEL 15', slots:12, rings:[
-        {spokeSlots:[8], gimmicks:{1:{type:'mirror_l', fixed:true}}, initialRotation:1},
+        {spokeSlots:[8], gimmicks:{1:{type:'mirror_r', fixed:true}}, initialRotation:1},
         {spokeSlots:[5,10], gimmicks:{0:{type:'prism'}, 2:'amp'}, initialRotation:1},
         {spokeSlots:[7], gimmicks:{4:{type:'portal', id:'P0', turn:180, fixed:true}, 8:{type:'portal', id:'P0', turn:180, fixed:true}}, initialRotation:5}
       ], lockSlots:[0,1,2], bonusLockSlots:[10]},
@@ -3528,8 +3586,9 @@ const LEVELS = {
         {spokeSlots:[6], gimmicks:{0:{type:'mirror_r', fixed:true}, 10:{type:'echo_portal', turn:90, fixed:true}}, initialRotation:2}
       ], lockSlots:[3,4,9], bonusLockSlots:[2]},
     // SATELLITE FIX (vertical, dish UP, pinned): brute-forced 2 winning rotation(s) -- 1 coin solution, 1 no-coin; 0 solutions exist with the Satellite removed, so it is REQUIRED to win; no inert rings; start lights 0/4 required.
+    // v0.36 MIRROR FIX: relabelled R1 s7 ╱→╲ so the drawn bar matches the turn this level was built on. Win set unchanged (re-verified: 2 winning rotation(s), same coin results).
     {name:'LEVEL 18', slots:12, rings:[
-        {spokeSlots:[2,10], gimmicks:{7:{type:'mirror_r', fixed:true}}, initialRotation:2},
+        {spokeSlots:[2,10], gimmicks:{7:{type:'mirror_l', fixed:true}}, initialRotation:2},
         {spokeSlots:[1], gimmicks:{8:{type:'echo_portal', turn:0, fixed:true}}, initialRotation:2},
         {spokeSlots:[4], gimmicks:{0:{type:'prism'}}, initialRotation:0}
       ], lockSlots:[0,5,6,11], bonusLockSlots:[1]},
@@ -3543,9 +3602,10 @@ const LEVELS = {
         {spokeSlots:[0,7], gimmicks:{1:{type:'portal', id:'P0', fixed:true}, 5:'block', 6:{type:'half_block', side:'in'}}, initialRotation:2},
         {spokeSlots:[4], gimmicks:{2:{type:'prism'}, 7:{type:'portal', id:'P0', fixed:true}}, initialRotation:0}
       ], lockSlots:[0,2,6], bonusLockSlots:[7]},
+    // v0.36 MIRROR FIX: relabelled R2 s0 ╲→╱ so the drawn bar matches the turn this level was built on. Win set unchanged (re-verified: 5 winning rotation(s), same coin results).
     {name:'LEVEL 21', slots:12, rings:[
         {spokeSlots:[2,11], gimmicks:{3:'block'}, initialRotation:11},
-        {spokeSlots:[4], gimmicks:{0:{type:'mirror_l', fixed:true}, 1:{type:'half_block', side:'in'}}, initialRotation:5}
+        {spokeSlots:[4], gimmicks:{0:{type:'mirror_r', fixed:true}, 1:{type:'half_block', side:'in'}}, initialRotation:5}
       ], lockSlots:[5,10], bonusLockSlots:[8]},
     {name:'LEVEL 22', slots:12, rings:[
         {spokeSlots:[1], gimmicks:{}, initialRotation:10},
@@ -3560,9 +3620,10 @@ const LEVELS = {
       ], lockSlots:[2,8,11], bonusLockSlots:[1]},
     // REBUILT for the exact-90-degree Mirror rule. Rings/gimmicks unchanged; only Locks (and start rotation if needed) re-derived.
     // Brute-forced: 1 coin solution [9,5,5], 1 no-coin; mirror all necessary; start lights 1/4 required.
+    // v0.36 MIRROR FIX: relabelled R2 s7 ╲→╱ so the drawn bar matches the turn this level was built on. Win set unchanged (re-verified: 2 winning rotation(s), same coin results).
     {name:'LEVEL 24', slots:12, rings:[
         {spokeSlots:[10], gimmicks:{}, initialRotation:3},
-        {spokeSlots:[0,11], gimmicks:{1:{type:'half_block', side:'in'}, 3:'block', 7:{type:'mirror_l', fixed:true}}, initialRotation:11},
+        {spokeSlots:[0,11], gimmicks:{1:{type:'half_block', side:'in'}, 3:'block', 7:{type:'mirror_r', fixed:true}}, initialRotation:11},
         {spokeSlots:[2,3], gimmicks:{}, initialRotation:11}
       ], lockSlots:[1,2,5,11], bonusLockSlots:[10]},
     // BLACK HOLE (two-node footprint) rebuild: brute-forced 3 winning rotation(s) -- 1 coin solution, 2 no-coin; every portal/mirror/prism/amp on the winning path checked; no inert rings; start lights 0 required locks.
@@ -3586,10 +3647,11 @@ const LEVELS = {
       ], lockSlots:[0,5,8,9], bonusLockSlots:[10]},
     // SATELLITE FIX (vertical, dish UP, pinned): brute-forced 2 winning rotation(s) -- 1 coin solution, 1 no-coin; 0 solutions exist with the Satellite removed, so it is REQUIRED to win; no inert rings; start lights 0/4 required.
     // ECHO BOTTOM-ENTRY FIX: locks re-derived (rings/gimmicks unchanged) so the level is winnable again. Brute-forced: 1 coin solution [3,10,6], 1 no-coin; portal/echo/mirror all necessary; start lights 0/4 required.
+    // v0.36 MIRROR FIX: relabelled R3 s6 ╱→╲ so the drawn bar matches the turn this level was built on. Win set unchanged (re-verified: 2 winning rotation(s), same coin results).
     {name:'LEVEL 3', slots:12, rings:[
         {spokeSlots:[3,7], gimmicks:{}, initialRotation:4},
         {spokeSlots:[4,5], gimmicks:{3:{type:'portal', id:'P0', fixed:true}, 8:{type:'echo_portal', turn:0, fixed:true}}, initialRotation:5},
-        {spokeSlots:[0], gimmicks:{6:{type:'mirror_r', fixed:true}, 7:{type:'portal', id:'P0', fixed:true}}, initialRotation:5}
+        {spokeSlots:[0], gimmicks:{6:{type:'mirror_l', fixed:true}, 7:{type:'portal', id:'P0', fixed:true}}, initialRotation:5}
       ], lockSlots:[0,4,9,11], bonusLockSlots:[3]},
     // SATELLITE FIX (horizontal, dish LEFT, pinned): brute-forced 4 winning rotation(s) -- 1 coin solution, 3 no-coin; 0 solutions exist with the Satellite removed, so it is REQUIRED to win; no inert rings; start lights 0/3 required.
     {name:'LEVEL 4', slots:12, rings:[
@@ -3607,10 +3669,11 @@ const LEVELS = {
         {spokeSlots:[8], gimmicks:{6:{type:'portal', id:'P0', turn:-150, fixed:true}, 7:{type:'prism'}, 10:{type:'portal', id:'P0', fixed:true}}, initialRotation:6}
       ], lockSlots:[7,11], bonusLockSlots:[2]},
     // SATELLITE FIX (vertical, dish DOWN, pinned): brute-forced 2 winning rotation(s) -- 1 coin solution, 1 no-coin; 0 solutions exist with the Satellite removed, so it is REQUIRED to win; no inert rings; start lights 0/3 required.
+    // v0.36 MIRROR FIX: relabelled R3 s1 ╱→╲ so the drawn bar matches the turn this level was built on. Win set unchanged (re-verified: 2 winning rotation(s), same coin results).
     {name:'LEVEL 7', slots:12, rings:[
         {spokeSlots:[3,6], gimmicks:{}, initialRotation:7},
         {spokeSlots:[7,3], gimmicks:{}, initialRotation:6},
-        {spokeSlots:[6], gimmicks:{1:{type:'mirror_r', fixed:true}, 2:'amp', 11:{type:'echo_portal', turn:180, fixed:true}}, initialRotation:5}
+        {spokeSlots:[6], gimmicks:{1:{type:'mirror_l', fixed:true}, 2:'amp', 11:{type:'echo_portal', turn:180, fixed:true}}, initialRotation:5}
       ], lockSlots:[0,6,11], bonusLockSlots:[3]},
     {name:'LEVEL 8', slots:12, rings:[
         {spokeSlots:[5], gimmicks:{7:{type:'prism'}}, initialRotation:4},
@@ -3619,9 +3682,10 @@ const LEVELS = {
       ], lockSlots:[6,7,8], bonusLockSlots:[11]},
     // REBUILT for the exact-90-degree Mirror rule. Rings/gimmicks unchanged; only Locks (and start rotation if needed) re-derived.
     // Brute-forced: 1 coin solution [0,10,11], 3 no-coin; prism/mirror all necessary; start lights 1/3 required.
+    // v0.36 MIRROR FIX: relabelled R2 s0 ╱→╲ so the drawn bar matches the turn this level was built on. Win set unchanged (re-verified: 4 winning rotation(s), same coin results).
     {name:'LEVEL 9', slots:12, rings:[
         {spokeSlots:[8], gimmicks:{11:{type:'prism'}}, initialRotation:7},
-        {spokeSlots:[3,8], gimmicks:{0:{type:'mirror_r', fixed:true}}, initialRotation:5},
+        {spokeSlots:[3,8], gimmicks:{0:{type:'mirror_l', fixed:true}}, initialRotation:5},
         {spokeSlots:[10], gimmicks:{}, initialRotation:10}
       ], lockSlots:[3,9,11], bonusLockSlots:[7]},
     {name:'LEVEL 10', slots:12, rings:[
@@ -3636,16 +3700,18 @@ const LEVELS = {
         {spokeSlots:[7], gimmicks:{2:{type:'portal', id:'P0', fixed:true}, 6:'block', 9:{type:'portal', id:'P0', fixed:true}}, initialRotation:5}
       ], lockSlots:[4,6,9,10], bonusLockSlots:[7]},
     // SATELLITE FIX (vertical, dish UP + horizontal, dish RIGHT, pinned): brute-forced 2 winning rotation(s) -- 1 coin solution, 1 no-coin; 0 solutions exist with the Satellite removed, so it is REQUIRED to win; no inert rings; start lights 0/4 required.
+    // v0.36 MIRROR FIX: relabelled R3 s0 ╲→╱ so the drawn bar matches the turn this level was built on. Win set unchanged (re-verified: 2 winning rotation(s), same coin results).
     {name:'LEVEL 12', slots:12, rings:[
         {spokeSlots:[4,1], gimmicks:{10:{type:'echo_portal', turn:0, fixed:true}}, initialRotation:3},
         {spokeSlots:[0,8], gimmicks:{4:{type:'echo_portal', turn:90, fixed:true}}, initialRotation:2},
-        {spokeSlots:[11], gimmicks:{0:{type:'mirror_l', fixed:true}}, initialRotation:2}
+        {spokeSlots:[11], gimmicks:{0:{type:'mirror_r', fixed:true}}, initialRotation:2}
       ], lockSlots:[4,6,10,11], bonusLockSlots:[7]},
     // REBUILT for the exact-90-degree Mirror rule. Moved: ring 3 gimmicks {9:amp}->{10:amp}.
     // Brute-forced: 1 coin solution [7,3,7], 3 no-coin; mirror/amp all necessary; start lights 0/3 required.
+    // v0.36 MIRROR FIX: relabelled R2 s6 ╲→╱ so the drawn bar matches the turn this level was built on. Win set unchanged (re-verified: 4 winning rotation(s), same coin results).
     {name:'LEVEL 13', slots:12, rings:[
         {spokeSlots:[10], gimmicks:{8:'block'}, initialRotation:5},
-        {spokeSlots:[4,8], gimmicks:{6:{type:'mirror_l', fixed:true}}, initialRotation:8},
+        {spokeSlots:[4,8], gimmicks:{6:{type:'mirror_r', fixed:true}}, initialRotation:8},
         {spokeSlots:[5], gimmicks:{10:'amp'}, initialRotation:1}
       ], lockSlots:[5,8,11], bonusLockSlots:[1]},
     // SATELLITE FIX (vertical, dish UP + horizontal, dish RIGHT, pinned): brute-forced 3 winning rotation(s) -- 1 coin solution, 2 no-coin; 0 solutions exist with the Satellite removed, so it is REQUIRED to win; no inert rings; start lights 0/4 required.
@@ -3656,8 +3722,9 @@ const LEVELS = {
         {spokeSlots:[10], gimmicks:{1:{type:'portal', id:'P0', fixed:true}}, initialRotation:7}
       ], lockSlots:[1,7,10,11], bonusLockSlots:[9]},
     // BLACK HOLE (two-node footprint) rebuild: brute-forced 4 winning rotation(s) -- 1 coin solution, 3 no-coin; every portal/mirror/prism/amp on the winning path checked; no inert rings; start lights 0 required locks.
+    // v0.36 MIRROR FIX: relabelled R1 s11 ╲→╱ so the drawn bar matches the turn this level was built on. Win set unchanged (re-verified: 4 winning rotation(s), same coin results).
     {name:'LEVEL 15', slots:12, rings:[
-        {spokeSlots:[3], gimmicks:{11:{type:'mirror_l', fixed:true}}, initialRotation:0},
+        {spokeSlots:[3], gimmicks:{11:{type:'mirror_r', fixed:true}}, initialRotation:0},
         {spokeSlots:[2,6], gimmicks:{0:'block', 4:'amp', 7:{type:'portal', id:'P0', turn:90, fixed:true}}, initialRotation:0},
         {spokeSlots:[9], gimmicks:{0:{type:'portal', id:'P0', turn:-105, fixed:true}, 1:{type:'prism'}}, initialRotation:3}
       ], lockSlots:[0,7,9], bonusLockSlots:[5]},
@@ -3686,14 +3753,16 @@ const LEVELS = {
       ], lockSlots:[1,2,7], bonusLockSlots:[11]},
     // REBUILT for the exact-90-degree Mirror rule. Moved: ring 2 gimmicks {5:mirror_r}->{8:mirror_r}.
     // Brute-forced: 1 coin solution [6,7,6], 3 no-coin; mirror/mirror all necessary; start lights 0/3 required.
+    // v0.36 MIRROR FIX: relabelled R1 s5 ╲→╱ so the drawn bar matches the turn this level was built on. Win set unchanged (re-verified: 4 winning rotation(s), same coin results).
     {name:'LEVEL 20', slots:12, rings:[
-        {spokeSlots:[2], gimmicks:{5:{type:'mirror_l', fixed:true}}, initialRotation:9},
+        {spokeSlots:[2], gimmicks:{5:{type:'mirror_r', fixed:true}}, initialRotation:9},
         {spokeSlots:[4,3], gimmicks:{8:{type:'mirror_r', fixed:true}}, initialRotation:11},
         {spokeSlots:[1], gimmicks:{}, initialRotation:1}
       ], lockSlots:[1,4,10], bonusLockSlots:[6]},
     // BLACK HOLE (two-node footprint) rebuild: brute-forced 4 winning rotation(s) -- 1 coin solution, 3 no-coin; every portal/mirror/prism/amp on the winning path checked; no inert rings; start lights 0 required locks.
+    // v0.36 MIRROR FIX: relabelled R1 s0 ╲→╱ so the drawn bar matches the turn this level was built on. Win set unchanged (re-verified: 4 winning rotation(s), same coin results).
     {name:'LEVEL 21', slots:12, rings:[
-        {spokeSlots:[3], gimmicks:{0:{type:'mirror_l', fixed:true}}, initialRotation:9},
+        {spokeSlots:[3], gimmicks:{0:{type:'mirror_r', fixed:true}}, initialRotation:9},
         {spokeSlots:[11,3], gimmicks:{2:'block', 6:{type:'half_block', side:'in'}, 8:{type:'portal', id:'P0', turn:-150, fixed:true}}, initialRotation:11},
         {spokeSlots:[4], gimmicks:{1:{type:'portal', id:'P0', turn:30, fixed:true}}, initialRotation:0}
       ], lockSlots:[1,9,11], bonusLockSlots:[2]},
@@ -3719,9 +3788,10 @@ const LEVELS = {
       ], lockSlots:[1,5,11], bonusLockSlots:[7]},
     // SATELLITE FIX (horizontal, dish LEFT, pinned): brute-forced 2 winning rotation(s) -- 1 coin solution, 1 no-coin; 0 solutions exist with the Satellite removed, so it is REQUIRED to win; no inert rings; start lights 0/3 required.
     // BLACK HOLE (two-node footprint) rebuild: brute-forced 2 winning rotation(s) -- 1 coin solution, 1 no-coin; every portal/mirror/prism/amp on the winning path checked; no inert rings; start lights 0 required locks.
+    // v0.36 MIRROR FIX: relabelled R2 s1 ╱→╲ so the drawn bar matches the turn this level was built on. Win set unchanged (re-verified: 2 winning rotation(s), same coin results).
     {name:'LEVEL 25', slots:12, rings:[
         {spokeSlots:[4,6], gimmicks:{}, initialRotation:6},
-        {spokeSlots:[4,0], gimmicks:{1:{type:'mirror_r', fixed:true}, 3:{type:'portal', id:'P0', turn:90, fixed:true}, 8:'amp', 10:{type:'portal', id:'P0', turn:165, fixed:true}}, initialRotation:5},
+        {spokeSlots:[4,0], gimmicks:{1:{type:'mirror_l', fixed:true}, 3:{type:'portal', id:'P0', turn:90, fixed:true}, 8:'amp', 10:{type:'portal', id:'P0', turn:165, fixed:true}}, initialRotation:5},
         {spokeSlots:[9], gimmicks:{11:{type:'echo_portal', turn:270, fixed:true}}, initialRotation:8}
       ], lockSlots:[7,10,11], bonusLockSlots:[3]},
   ],
@@ -9191,8 +9261,9 @@ function drawUfoGlyph(p, active, raw){
    VISUAL MILESTONE 1 -- MECHANISM SHAPES (render-only; nothing here is read
    by the tracer). Shared by the default glyphs and the Ice reskin so a
    mechanism keeps the same silhouette in every world; only colours change.
-   Mirror/Amplifier/Prism glyphs are never rotated: their rules do not
-   depend on which side a beam arrives from. Only the Block glyph is turned
+   Mirror/Amplifier/Prism glyphs are never rotated (an unpinned Mirror's bar
+   still turns with its ring's group; the tracer reflects off that drawn
+   bar, see mirrorReflect). Only the Block glyph is turned
    to lie along its ring (mechInwardFrame: local +y points to the centre).
    ========================================================================= */
 // Mechanism glyphs are drawn at MECH_SCALE x their design size: at 11 units they were only
@@ -9203,16 +9274,20 @@ function mechInwardFrame(parent, outwardAngle){
   return el('g',{transform:`rotate(${((outwardAngle||0)*180/Math.PI+90).toFixed(2)}) scale(${MECH_SCALE})`}, parent);
 }
 // MIRROR = the classic slash disc (v0.26 look, restored in v0.35): a dark
-// disc with a diagonal bar. mirror_l = "\" (turns clockwise), mirror_r = "/"
-// (turns counter-clockwise). Screen-fixed, never rotated. v0.35: the bar is
-// longer than the old one and runs past the disc edge so the lean reads at
-// a glance on a phone. Render-only -- the tracer still reads `type` alone.
+// disc with a diagonal bar. mirror_l = "\", mirror_r = "/". The glyph itself
+// is never rotated here; an unpinned mirror sits in its ring's rotating group,
+// so its bar turns with the ring. v0.35: the bar is longer than the old one
+// and runs past the disc edge so the lean reads at a glance on a phone.
+// v0.36: the bar's angle comes from MIRROR_BAR_DEG, the same constant the
+// tracer reflects off (mirrorBarAngle / mirrorReflect), so the bar you see is
+// the bar the beam bounces off. Same pixels as v0.35.
 const MIRROR_BAR = 10.5;   // half-extent of the bar on each axis (old: 7.5)
 function mechTurnGlyph(parent, cw, outwardAngle, C){
   const g = el('g',{transform:`scale(${MECH_SCALE})`}, parent);
   if(C.disc) el('circle',{r:9, fill:C.disc, stroke:C.rim, 'stroke-width':1.9}, g);
-  const k = MIRROR_BAR;
-  const pts = cw ? {x1:-k,y1:-k,x2:k,y2:k} : {x1:-k,y1:k,x2:k,y2:-k};
+  const k = MIRROR_BAR*Math.SQRT2, ba = MIRROR_BAR_DEG[cw ? 'mirror_l' : 'mirror_r']*Math.PI/180;
+  const ex = +(Math.cos(ba)*k).toFixed(4), ey = +(Math.sin(ba)*k).toFixed(4);
+  const pts = {x1:-ex, y1:-ey, x2:ex, y2:ey};
   el('line',Object.assign({stroke:'rgba(0,0,0,.6)','stroke-width':5.6,'stroke-linecap':'round'},pts), g);   // dark edge so the bar reads past the disc
   el('line',Object.assign({stroke:C.arrow,'stroke-width':3.4,'stroke-linecap':'round'},pts), g);
 }

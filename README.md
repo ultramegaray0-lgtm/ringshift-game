@@ -1,7 +1,7 @@
 # Ringshift
 
 A ring-rotation light puzzle game in a single self-contained HTML file
-(`ringshift v0.35.html`). There is nothing to install or build: open the file
+(`ringshift v0.36.html`). There is nothing to install or build: open the file
 in a browser to play.
 
 ## Live demo
@@ -21,7 +21,7 @@ Publishing is automatic and handled by
 1. A commit reaches `main` (a direct push or a merged pull request), or someone
    starts the workflow by hand from **Actions → Publish Ringshift to GitHub
    Pages → Run workflow** with the branch set to `main`.
-2. The **build** job copies `ringshift v0.35.html` to `index.html` in a
+2. The **build** job copies `ringshift v0.36.html` to `index.html` in a
    temporary `_site/` folder. The source file in the repository is not renamed
    or changed. It then runs `.github/scripts/check_site.py`, which fails the
    run if the page references a local file that is missing or uses an absolute
@@ -65,9 +65,30 @@ commit on `main`; the revert triggers a new deployment of the previous build.
 
 ## Run locally
 
-Open `ringshift v0.35.html` directly in a browser, or serve the folder:
+Open `ringshift v0.36.html` directly in a browser, or serve the folder:
 
 ```sh
 python3 -m http.server 8000
-# then open http://localhost:8000/ringshift%20v0.35.html
+# then open http://localhost:8000/ringshift%20v0.36.html
 ```
+
+## Tests
+
+The tests load the engine and level data straight out of the game file named
+by `GAME_FILE` in the workflow, so they check exactly what players run. They
+need only Node.js; the publish workflow runs them before every deployment.
+
+```sh
+node tests/run.js               # mirror rules + every level's win set
+node tests/render.test.js       # optional: drawn mirrors/beams vs engine, needs Playwright + Chromium
+```
+
+- `tests/mirror.test.js`: the Mirror reflection table (both bars, beams from
+  all four sides), exact 90° turns toward the side the drawn bar faces, bar
+  angle for pinned/unpinned mirrors, and bounces happening on the mirror.
+- `tests/levels.test.js`: every level's winning rotations (and coin outcomes)
+  must match `tests/golden/level-wins.json`; no level starts solved; every
+  Challenge level has exactly one answer; every mirror bounce in every
+  rotation of every level happens at the mirror and turns the drawn way.
+  After a deliberate level or engine change, regenerate the golden file with
+  `node tests/levels.test.js --update` and review the diff.
