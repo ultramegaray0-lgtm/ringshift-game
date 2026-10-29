@@ -1,7 +1,7 @@
 # Ringshift
 
 A ring-rotation light puzzle game in a single self-contained HTML file
-(`ringshift v0.34.html`). There is nothing to install or build: open the file
+(`ringshift v0.35.html`). There is nothing to install or build: open the file
 in a browser to play.
 
 ## Live demo
@@ -21,7 +21,7 @@ Publishing is automatic and handled by
 1. A commit reaches `main` (a direct push or a merged pull request), or someone
    starts the workflow by hand from **Actions → Publish Ringshift to GitHub
    Pages → Run workflow** with the branch set to `main`.
-2. The **build** job copies `ringshift v0.34.html` to `index.html` in a
+2. The **build** job copies `ringshift v0.35.html` to `index.html` in a
    temporary `_site/` folder. The source file in the repository is not renamed
    or changed. It then runs `.github/scripts/check_site.py`, which fails the
    run if the page references a local file that is missing or uses an absolute
@@ -65,9 +65,9 @@ commit on `main`; the revert triggers a new deployment of the previous build.
 
 ## Run locally
 
-Open `ringshift v0.34.html` directly in a browser, or serve the folder:
+Open `ringshift v0.35.html` directly in a browser, or serve the folder:
 
 ```sh
 python3 -m http.server 8000
-# then open http://localhost:8000/ringshift%20v0.34.html
+# then open http://localhost:8000/ringshift%20v0.35.html
 ```

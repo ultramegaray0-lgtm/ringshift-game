@@ -1571,8 +1571,7 @@ body.theme-v2 .screenSub, body.theme-v2 #titleScreen .press, body.theme-v2 #game
 /* per-theme tokens are generated from THEME_V2[id].ui (see v2UiCss) */
 
 /* ===== VISUAL MILESTONE 1 -- mechanism idle motion =====
-   The Mirror glyph is now a direction arrow; tilting it +/-6deg made the direction wobble. Pulse instead. */
-.gm-idle.gm-mirror_l,.gm-idle.gm-mirror_r{animation-name:gmBeat}
+   v0.35: the Mirror is a slash disc again, so it keeps its original gentle tilt (gmTilt, set above). */
 
 /* ===== VISUAL MILESTONE 1 -- HUD LAYOUT (cosmetic only) =====
    The fixed utility buttons (#utilityBtns: x 14..144px, y 14..52px) used to sit on top of
@@ -1811,7 +1810,7 @@ body.theme-v2 .screenSub, body.theme-v2 #titleScreen .press, body.theme-v2 #game
     <div class="ringdeco r3"></div>
     <div class="ringdeco r2"></div>
     <h1 class="logo">RINGSHIFT</h1>
-    <div class="sub">DEMO · v0.34</div>
+    <div class="sub">DEMO · v0.35</div>
     <div class="press">PRESS ANY BUTTON</div>
   </div>
 
@@ -9075,8 +9074,9 @@ function drawIceGimmickGlyph(parent, type, raw, outwardAngle, active){
     // Mirror: same white/cyan gem-in-collar every node uses, with the
     // reflective diagonal drawn on the gem face -- keeps the orientation
     // cue (which way the surface leans) identical to the space version.
-    // VISUAL MILESTONE 1: same quarter-turn sign as every other world (see mechTurnGlyph).
+    // v0.35: back to the slash (see mechTurnGlyph), same bar as every other world.
     iceNode(parent, 11*MECH_SCALE, { inner: P.cyanInner });
+    el('circle',{r:5.6*MECH_SCALE, fill:'#ffffff', opacity:0.55}, parent);
     mechTurnGlyph(parent, type==='mirror_l', outwardAngle, {disc:null, arrow:P.cyanDeep});
   }
   else if(type==='block'){
@@ -9202,29 +9202,19 @@ const MECH_SCALE = 1.3;
 function mechInwardFrame(parent, outwardAngle){
   return el('g',{transform:`rotate(${((outwardAngle||0)*180/Math.PI+90).toFixed(2)}) scale(${MECH_SCALE})`}, parent);
 }
-// MIRROR = "quarter-turn" sign. The tracer ALWAYS turns the beam exactly
-// 90deg -- mirror_l clockwise on screen, mirror_r counter-clockwise --
-// whatever direction the beam arrives from (traceBeamBranch, mirror branch).
-// The old glyph was a screen-fixed diagonal line, i.e. a physical mirror,
-// which predicted the OPPOSITE turn at the top and bottom of every ring.
-// The new glyph states the rule itself: a right-angle mark with a curved
-// arrow giving the turn's sense. Because the rule doesn't depend on the
-// arrival direction, neither does the glyph (it is never rotated), so
-// every clockwise Mirror on the board looks identical.
+// MIRROR = the classic slash disc (v0.26 look, restored in v0.35): a dark
+// disc with a diagonal bar. mirror_l = "\" (turns clockwise), mirror_r = "/"
+// (turns counter-clockwise). Screen-fixed, never rotated. v0.35: the bar is
+// longer than the old one and runs past the disc edge so the lean reads at
+// a glance on a phone. Render-only -- the tracer still reads `type` alone.
+const MIRROR_BAR = 10.5;   // half-extent of the bar on each axis (old: 7.5)
 function mechTurnGlyph(parent, cw, outwardAngle, C){
   const g = el('g',{transform:`scale(${MECH_SCALE})`}, parent);
-  if(C.disc){
-    el('circle',{r:11, fill:C.disc, stroke:C.rim, 'stroke-width':1.8}, g);
-    el('circle',{r:8.4, fill:'none', stroke:C.rim, 'stroke-width':0.7, opacity:0.35}, g);
-  }
-  const m = el('g',{transform: cw ? '' : 'scale(-1,1)'}, g);   // mirror_r = mirror image of mirror_l
-  const k = el('g',{transform:'translate(1.8,2.3)'}, m);            // centres the mark below in the disc
-  // the "90deg": right-angle mark at O(-1,3), the centre of the arc
-  el('path',{d:'M -4.6 3 L -1 3 L -1 -0.6', fill:'none', stroke:C.arrow, 'stroke-width':1.2, 'stroke-linecap':'round', 'stroke-linejoin':'round', opacity:0.75}, k);
-  el('rect',{x:-2.7, y:1.3, width:1.7, height:1.7, fill:'none', stroke:C.arrow, 'stroke-width':0.8, opacity:0.75}, k);
-  // the turn's sense: clockwise quarter arc, 9 o'clock -> 12 o'clock around O, arrowhead heading on clockwise
-  el('path',{d:'M -8 3 A 7 7 0 0 1 -1 -4 L 0.4 -4', fill:'none', stroke:C.arrow, 'stroke-width':2.6, 'stroke-linecap':'round', 'stroke-linejoin':'round'}, k);
-  el('polygon',{points:'4.6,-4 0,-7.7 0,-0.3', fill:C.arrow, stroke:C.arrow, 'stroke-width':0.8, 'stroke-linejoin':'round'}, k);
+  if(C.disc) el('circle',{r:9, fill:C.disc, stroke:C.rim, 'stroke-width':1.9}, g);
+  const k = MIRROR_BAR;
+  const pts = cw ? {x1:-k,y1:-k,x2:k,y2:k} : {x1:-k,y1:k,x2:k,y2:-k};
+  el('line',Object.assign({stroke:'rgba(0,0,0,.6)','stroke-width':5.6,'stroke-linecap':'round'},pts), g);   // dark edge so the bar reads past the disc
+  el('line',Object.assign({stroke:C.arrow,'stroke-width':3.4,'stroke-linecap':'round'},pts), g);
 }
 // AMPLIFIER = round power cell with a lightning bolt.
 function mechAmpGlyph(parent, C){
@@ -9290,7 +9280,7 @@ function drawGimmickGlyph(parent, type, raw, outwardAngle, active){
   if(type==='half_block'){
     el('circle',{r:7.5, fill:'rgba(0,0,0,.55)', stroke:color, 'stroke-width':1.7}, parent);
   }
-  if(type==='mirror_l' || type==='mirror_r') mechTurnGlyph(parent, type==='mirror_l', outwardAngle, {disc:'rgba(8,14,22,.9)', rim:'#e8f6ff', arrow:'#ffffff'});
+  if(type==='mirror_l' || type==='mirror_r') mechTurnGlyph(parent, type==='mirror_l', outwardAngle, {disc:'rgba(0,0,0,.55)', rim:'#ffffff', arrow:'#ffffff'});
   else if(type==='block') mechBlockGlyph(parent, outwardAngle, color, '#3a0a0e');
   else if(type==='amp') mechAmpGlyph(parent, {disc:'rgba(30,22,0,.9)', rim:color, bolt:color, boltEdge:'#fff3b0'});
   else if(type==='portal'){
