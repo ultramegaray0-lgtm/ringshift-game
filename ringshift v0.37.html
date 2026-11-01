@@ -1652,19 +1652,19 @@ body.theme-v2 .screenSub, body.theme-v2 #titleScreen .press, body.theme-v2 #game
       <div class="htpRow"><span class="htpIcon hbk">◐</span><div><b>Half-Block</b>One-way valve — stops another ring's beam from ONE direction (in or out) only.</div></div>
       <div class="htpRow"><span class="htpIcon prs">△</span><div><b>Prism</b>Splits another ring's beam into two, bent ±45° off its original heading.</div></div>
       <div class="htpRow"><span class="htpIcon">⛯</span><div><b>Rim Emitter (Challenge)</b>A source bolted to the rim. It never turns and fires straight at the center. In Challenge, it is the only beam, there is one Lock (the gift lock), and exactly one way to turn the four rings so the beam reaches it.</div></div>
-      <div class="htpRow"><span class="htpIcon eco">◍</span><div><b>Echo (Satellite)</b>Always pinned in place. Its DISH shows which way it fires, and it is built pointing UP, DOWN, LEFT or RIGHT depending on the level. A beam that arrives from the DISH side (within 45° of the dish axis) dies there. A beam that arrives from either SIDE or from the ENGINE end (below) is absorbed and relaunched straight out of the DISH.</div></div>
+      <div class="htpRow"><span class="htpIcon eco">◍</span><div><b>Echo (Satellite)</b>Pinned in place — except in Challenge, where a Satellite rides its ring when you turn it (its dish keeps pointing the same way). Its DISH shows which way it fires, and it is built pointing UP, DOWN, LEFT or RIGHT depending on the level. A beam that arrives from the DISH side (within 45° of the dish axis) dies there. A beam that arrives from either SIDE or from the ENGINE end (below) is absorbed and relaunched straight out of the DISH.</div></div>
       <div class="htpRow"><span class="htpIcon lck">◎</span><div><b>Lock</b>Needs a beam landing on it. ALL Locks must be lit at once to breach the level.</div></div>
       <div class="htpRow"><span class="htpIcon bon">☆</span><div><b>Bonus Lock</b>Optional — light it too, at the same time as every Lock, for a bonus coin. Never required.</div></div>
     </div>
 
     <div class="htpSection">
       <h3>// ☄ SPECIAL MODE — METEOR ATTACK</h3>
-      <div class="htpRow"><span class="htpIcon met">☄</span><div><b>Meteor Lock Destruction</b>Every Special Mode level has 6 coin Locks. Every 10 seconds a meteor picks one at complete random and destroys it — gone for good, whether it was lit or dark. Being lit does NOT protect a Lock. Nothing about rings, beams, or gimmicks changes; the clock only takes away targets. The run always ends in a win — the instant every surviving Lock is lit at once, it's over. The goal is having as many lit as possible when that happens.</div></div>
+      <div class="htpRow"><span class="htpIcon met">☄</span><div><b>Meteor Lock Destruction</b>Every Meteor Attack level has 2 to 6 gift Locks, plus one Electricity Lock per ring. Every 7 seconds a meteor picks one of them at complete random and destroys it — gone for good, whether it was lit or dark. Being lit does NOT protect a Lock. A destroyed Electricity Lock means its ring can't turn for the rest of the attempt. Nothing about beams or gimmicks changes. The run always ends in a win: the instant every surviving Lock is lit at once — or, if a frozen ring makes that impossible, the instant you light as many as are still possible. The goal is having as many lit as possible when it ends.</div></div>
     </div>
 
     <div class="htpSection">
       <h3>// 🚀 ROCKET ATTACK — LAST TOUCH &amp; GIFT, LIGHT, ELECTRICITY LOCKS</h3>
-      <div class="htpRow"><span class="htpIcon" style="color:#7dff9d; border-color:#7dff9d;">🚀</span><div><b>Rockets hit where a beam ENDS</b>Every 5 seconds the boss UFO fires a rocket at the last thing each beam touches: the Lock it lands on, or the Block / Half-Block / Satellite that stops it. 10 seconds later that target is destroyed. Things a beam only passes through (Mirror, Amplifier, Prism, Black Holes) are never targeted, and a beam that ends on empty rim glass is safe.</div></div>
+      <div class="htpRow"><span class="htpIcon" style="color:#7dff9d; border-color:#7dff9d;">🚀</span><div><b>Rockets hit where a beam ENDS</b>Every 5 seconds the boss UFO fires a rocket at the last thing each beam touches: the Lock it lands on, or the Block / Half-Block / Satellite that stops it. 10 seconds later that target is destroyed. Mirrors and Amplifiers are never targeted, and neither is anything a beam passes straight through. A Prism or Black Hole is only targeted in the rare case a beam ends inside it. A beam that ends on empty rim glass is safe.</div></div>
       <div class="htpRow"><span class="htpIcon" style="color:#ffd23f; border-color:#ffd23f;">🎁</span><div><b>Gift Locks</b>Every Lock is a gift lock. Light every surviving one at the same moment to clear the level. Each Lock lit at the clear is banked once, and every 4 banked Locks opens a gift box. A Lock a rocket destroys is gone for that attempt.</div></div>
       <div class="htpRow"><span class="htpIcon" style="color:#ffe27a; border-color:#ffe27a;">💡</span><div><b>Light Locks</b>Each one lights an equal share of the board (2 Light Locks = half each, 4 = a quarter each). If a rocket destroys one, its share goes dark and only your beams still light what they touch there.</div></div>
       <div class="htpRow"><span class="htpIcon" style="color:#5ad8ff; border-color:#5ad8ff;">⚡</span><div><b>Electricity Locks</b>One per ring; the small number shows which ring it powers. If a rocket destroys it, that ring loses power and can't be turned again this attempt.</div></div>
@@ -2056,7 +2056,9 @@ function buildLiveContentMap(ring, rotation, n, disabled){
       // authored (bare string or object) and regardless of any `fixed`
       // flag. This is a hard rule for this gimmick type specifically, not
       // just a per-level authoring convention like Mirror/Portal/Echo.
-      const isFixed = (typeof raw === 'object' && raw.fixed === true) || type === 'bell' || type === 'ufo' || type === 'echo_portal';
+      // A Satellite is pinned unless it is authored {moving:true} (Challenge only, v0.37): then it rides its ring,
+      // but its dish keeps pointing the same screen direction (see traceBeamBranch's echo_portal branch).
+      const isFixed = (typeof raw === 'object' && raw.fixed === true) || type === 'bell' || type === 'ufo' || (type === 'echo_portal' && !(typeof raw === 'object' && raw.moving === true));
       for(let w=0; w<width; w++){
         const authoredSlot = (s+w)%n;
         const live = isFixed ? authoredSlot : (authoredSlot+rotation)%n;
@@ -2227,7 +2229,7 @@ function traceBeamBranch(rings, rimRadius, lockSlotsSet, portalRegistry, n, pos,
       // LEFT. The rule above is written for dish-UP; for any other turn the
       // incoming beam is first rotated into the satellite's own frame (so its
       // dish faces "up" there), classified exactly the same way, and the
-      // relaunch is rotated back out along the dish. Still pinned, always.
+      // relaunch is rotated back out along the dish. Pinned everywhere except a Challenge Satellite authored {moving:true}, which rides its ring (direction unchanged).
       const tRad = ((content.turn||0)*Math.PI)/180;
       const ld = tRad ? vecRotateByAngle(dir, -tRad) : dir;
       const ay = Math.abs(ld.y), ax = Math.abs(ld.x);
@@ -2532,6 +2534,9 @@ const EMITTER_BOUNCES = 40;
 // tracer: the winning rotations are unchanged, every UFO can be hit by
 // some rotation, and none is already hit at the starting rotation. (The
 // old per-ring Coins were removed; fogDurationMs is no longer used.)
+// v0.37: III, IV, V, VI, VII, VIII and X were rebuilt -- later engine changes had left their
+// featured gimmick unneeded (VII had no Prism at all). Each now has one answer that needs it, every
+// UFO is hit 1-3 moves from that answer and never by the answer itself; tests/design.test.js checks it.
 const ORCHESTRA_MOVEMENTS = [
  {
   "name": "MOVEMENT I — OPENING SPACE",
@@ -2607,283 +2612,269 @@ const ORCHESTRA_MOVEMENTS = [
   "bonusLockSlots": [],
   "fogDurationMs": 7000
  },
- // v0.36 MIRROR FIX: relabelled R2 s0 ╲→╱, R2 s6 ╲→╱ so the drawn bar matches the turn this level was built on. Win set unchanged (re-verified: 4 winning rotation(s), same coin results).
+ // v0.37 REBUILT so its gimmick decides the puzzle. VERIFIED: 1 winning rotation(s) [[2,0]]; start [0,8] is 6 moves away; needed (no answer without it): Mirror. Every UFO is hit 1-3 moves from an answer and never by the answer itself.
  {
   "name": "MOVEMENT III — THE MIRROR’S BEND",
   "slots": 12,
   "rings": [
    {
     "spokeSlots": [
-     0
+     3
     ],
     "gimmicks": {
-     "1": {
+     "5": {
       "type": "ufo",
       "fixed": true,
-      "lock": 2
-     }
+      "lock": 3
+     },
+     "9": "block"
     },
-    "initialRotation": 6
+    "initialRotation": 0
    },
    {
     "spokeSlots": [],
     "gimmicks": {
-     "0": "mirror_r",
-     "2": "block",
-     "5": "block",
-     "6": "mirror_r",
-     "7": "block",
-     "10": "block"
+     "1": "block",
+     "5": "mirror_r",
+     "9": "block",
+     "11": "block"
     },
-    "initialRotation": 7
+    "initialRotation": 8
    }
   ],
   "lockSlots": [
-   2
+   3
   ],
   "bonusLockSlots": [],
   "fogDurationMs": 8000
  },
- // v0.36 MIRROR FIX: relabelled R2 s0 ╱→╲, R2 s6 ╱→╲ so the drawn bar matches the turn this level was built on. Win set unchanged (re-verified: 3 winning rotation(s), same coin results).
+ // v0.37 REBUILT so its gimmick decides the puzzle. VERIFIED: 1 winning rotation(s) [[8,0]]; start [7,6] is 7 moves away; needed (no answer without it): Mirror. Every UFO is hit 1-3 moves from an answer and never by the answer itself.
  {
   "name": "MOVEMENT IV — DUET",
   "slots": 12,
   "rings": [
    {
     "spokeSlots": [
-     0,
-     8
+     2,
+     4
     ],
     "gimmicks": {
-     "1": {
-      "type": "ufo",
-      "fixed": true,
-      "lock": 10
-     },
      "6": {
       "type": "ufo",
       "fixed": true,
-      "lock": 2
-     }
-    },
-    "initialRotation": 6
-   },
-   {
-    "spokeSlots": [],
-    "gimmicks": {
-     "0": "mirror_l",
-     "1": "block",
-     "3": "block",
-     "5": "block",
-     "6": "mirror_l",
-     "8": "mirror_r"
-    },
-    "initialRotation": 8
-   }
-  ],
-  "lockSlots": [
-   2,
-   10
-  ],
-  "bonusLockSlots": [],
-  "fogDurationMs": 8000
- },
- // v0.36 MIRROR FIX: relabelled R2 s6 ╱→╲ so the drawn bar matches the turn this level was built on. Win set unchanged (re-verified: 5 winning rotation(s), same coin results).
- {
-  "name": "MOVEMENT V — PORTAL RUN",
-  "slots": 12,
-  "rings": [
-   {
-    "spokeSlots": [
-     0
-    ],
-    "gimmicks": {
-     "7": {
-      "type": "ufo",
-      "fixed": true,
-      "lock": 5
-     }
-    },
-    "initialRotation": 5
-   },
-   {
-    "spokeSlots": [],
-    "gimmicks": {
-     "0": {
-      "type": "portal",
-      "id": "P0"
-     },
-     "1": "block",
-     "4": "block",
-     "5": {
-      "type": "portal",
-      "id": "P0"
-     },
-     "6": "mirror_l",
-     "9": "block",
-     "11": "block"
-    },
-    "initialRotation": 10
-   }
-  ],
-  "lockSlots": [
-   5
-  ],
-  "bonusLockSlots": [],
-  "fogDurationMs": 8000
- },
- {
-  "name": "MOVEMENT VI — AMPLIFIED",
-  "slots": 12,
-  "rings": [
-   {
-    "spokeSlots": [
-     0,
-     6
-    ],
-    "gimmicks": {
-     "5": {
-      "type": "ufo",
-      "fixed": true,
-      "lock": 9
-     },
-     "11": {
-      "type": "ufo",
-      "fixed": true,
       "lock": 6
-     }
-    },
-    "initialRotation": 8
-   },
-   {
-    "spokeSlots": [
-     3
-    ],
-    "gimmicks": {
-     "0": "amp",
-     "6": "block",
-     "7": "block",
-     "8": "mirror_r",
-     "10": "block",
-     "11": "block"
-    },
-    "initialRotation": 5
-   }
-  ],
-  "lockSlots": [
-   6,
-   9
-  ],
-  "bonusLockSlots": [],
-  "fogDurationMs": 8500
- },
- // v0.36 MIRROR FIX: relabelled R2 s0 ╲→╱ so the drawn bar matches the turn this level was built on. Win set unchanged (re-verified: 1 winning rotation(s), same coin results).
- {
-  "name": "MOVEMENT VII — INTERLUDE",
-  "slots": 12,
-  "rings": [
-   {
-    "spokeSlots": [
-     0,
-     5
-    ],
-    "gimmicks": {
-     "2": {
-      "type": "ufo",
-      "fixed": true,
-      "lock": 2
-     },
-     "8": {
-      "type": "ufo",
-      "fixed": true,
-      "lock": 10
-     }
-    },
-    "initialRotation": 4
-   },
-   {
-    "spokeSlots": [],
-    "gimmicks": {
-     "0": "mirror_r",
-     "3": "block",
-     "4": "mirror_r",
-     "5": {
-      "type": "portal",
-      "id": "P0"
-     },
-     "6": "mirror_r",
-     "7": "block",
-     "8": "block",
-     "9": {
-      "type": "portal",
-      "id": "P0",
-      "turn": 45
-     },
-     "11": "block"
-    },
-    "initialRotation": 2
-   }
-  ],
-  "lockSlots": [
-   2,
-   10
-  ],
-  "bonusLockSlots": [],
-  "fogDurationMs": 9000
- },
- // v0.36 MIRROR FIX: relabelled R3 s5 ╲→╱, R3 s6 ╱→╲ so the drawn bar matches the turn this level was built on. Win set unchanged (re-verified: 24 winning rotation(s), same coin results).
- {
-  "name": "MOVEMENT VIII — ECHO OF THE STARS",
-  "slots": 12,
-  "rings": [
-   {
-    "spokeSlots": [
-     0,
-     1
-    ],
-    "gimmicks": {
-     "1": {
-      "type": "ufo",
-      "fixed": true,
-      "lock": 11
      },
      "7": {
       "type": "ufo",
       "fixed": true,
-      "lock": 5
-     }
-    },
-    "initialRotation": 3
-   },
-   {
-    "spokeSlots": [
-     2
-    ],
-    "gimmicks": {
-     "9": {
-      "type": "echo_portal",
-      "turn": 0,
-      "fixed": true
-     }
+      "lock": 2
+     },
+     "11": "block"
     },
     "initialRotation": 7
    },
    {
     "spokeSlots": [],
     "gimmicks": {
-     "3": "block",
-     "5": "mirror_r",
-     "6": "mirror_l",
-     "7": "block",
-     "8": "mirror_l",
-     "10": "block"
+     "0": "mirror_l",
+     "2": "block",
+     "4": "mirror_l",
+     "6": "block"
     },
-    "initialRotation": 8
+    "initialRotation": 6
    }
   ],
   "lockSlots": [
-   5,
-   11
+   2,
+   6
+  ],
+  "bonusLockSlots": [],
+  "fogDurationMs": 8000
+ },
+ // v0.37 REBUILT so its gimmick decides the puzzle. VERIFIED: 1 winning rotation(s) [[4,0]]; start [10,10] is 8 moves away; needed (no answer without it): Black Hole. Every UFO is hit 1-3 moves from an answer and never by the answer itself.
+ {
+  "name": "MOVEMENT V — PORTAL RUN",
+  "slots": 12,
+  "rings": [
+   {
+    "spokeSlots": [
+     6
+    ],
+    "gimmicks": {
+     "0": "block",
+     "7": {
+      "type": "ufo",
+      "fixed": true,
+      "lock": 6
+     }
+    },
+    "initialRotation": 10
+   },
+   {
+    "spokeSlots": [],
+    "gimmicks": {
+     "4": "block",
+     "6": {
+      "type": "portal",
+      "id": "P0",
+      "turn": 0
+     },
+     "8": "block",
+     "10": {
+      "type": "portal",
+      "id": "P0",
+      "turn": 180
+     },
+     "11": "block"
+    },
+    "initialRotation": 10
+   }
+  ],
+  "lockSlots": [
+   6
+  ],
+  "bonusLockSlots": [],
+  "fogDurationMs": 8000
+ },
+ // v0.37 REBUILT so its gimmick decides the puzzle. VERIFIED: 1 winning rotation(s) [[8,0]]; start [5,7] is 8 moves away; needed (no answer without it): Amplifier. Every UFO is hit 1-3 moves from an answer and never by the answer itself.
+ {
+  "name": "MOVEMENT VI — AMPLIFIED",
+  "slots": 12,
+  "rings": [
+   {
+    "spokeSlots": [
+     8,
+     3
+    ],
+    "gimmicks": {
+     "4": {
+      "type": "ufo",
+      "fixed": true,
+      "lock": 9
+     },
+     "6": {
+      "type": "ufo",
+      "fixed": true,
+      "lock": 10
+     }
+    },
+    "initialRotation": 5
+   },
+   {
+    "spokeSlots": [
+     10
+    ],
+    "gimmicks": {
+     "1": "block",
+     "4": "amp",
+     "9": "block",
+     "11": "mirror_r"
+    },
+    "initialRotation": 7
+   }
+  ],
+  "lockSlots": [
+   9,
+   10
+  ],
+  "bonusLockSlots": [],
+  "fogDurationMs": 8500
+ },
+ // v0.37 REBUILT so its gimmick decides the puzzle. VERIFIED: 1 winning rotation(s) [[10,3]]; start [10,9] is 6 moves away; needed (no answer without it): Prism. Every UFO is hit 1-3 moves from an answer and never by the answer itself.
+ {
+  "name": "MOVEMENT VII — INTERLUDE",
+  "slots": 12,
+  "rings": [
+   {
+    "spokeSlots": [
+     2,
+     0
+    ],
+    "gimmicks": {
+     "3": {
+      "type": "ufo",
+      "fixed": true,
+      "lock": 2
+     },
+     "4": {
+      "type": "ufo",
+      "fixed": true,
+      "lock": 6
+     }
+    },
+    "initialRotation": 10
+   },
+   {
+    "spokeSlots": [],
+    "gimmicks": {
+     "1": "block",
+     "4": "block",
+     "7": {
+      "type": "prism"
+     },
+     "8": "block"
+    },
+    "initialRotation": 9
+   }
+  ],
+  "lockSlots": [
+   2,
+   6
+  ],
+  "bonusLockSlots": [],
+  "fogDurationMs": 9000
+ },
+ // v0.37 REBUILT so its gimmick decides the puzzle. VERIFIED: 1 winning rotation(s) [[9,9,0]]; start [8,9,4] is 5 moves away; needed (no answer without it): Satellite, Mirror. Every UFO is hit 1-3 moves from an answer and never by the answer itself.
+ {
+  "name": "MOVEMENT VIII — ECHO OF THE STARS",
+  "slots": 12,
+  "rings": [
+   {
+    "spokeSlots": [
+     11,
+     2
+    ],
+    "gimmicks": {
+     "1": "block",
+     "3": {
+      "type": "ufo",
+      "fixed": true,
+      "lock": 2
+     },
+     "6": {
+      "type": "ufo",
+      "fixed": true,
+      "lock": 8
+     }
+    },
+    "initialRotation": 8
+   },
+   {
+    "spokeSlots": [
+     1
+    ],
+    "gimmicks": {
+     "5": {
+      "type": "echo_portal",
+      "turn": 270,
+      "fixed": true
+     },
+     "7": "block"
+    },
+    "initialRotation": 9
+   },
+   {
+    "spokeSlots": [],
+    "gimmicks": {
+     "4": "mirror_l",
+     "7": "block"
+    },
+    "initialRotation": 4
+   }
+  ],
+  "lockSlots": [
+   2,
+   8
   ],
   "bonusLockSlots": [],
   "fogDurationMs": 7500
@@ -2938,50 +2929,44 @@ const ORCHESTRA_MOVEMENTS = [
   "bonusLockSlots": [],
   "fogDurationMs": 9000
  },
- // v0.36 MIRROR FIX: relabelled R1 s5 ╲→╱. [10,0,9] [10,8,10] no longer win (their beam turned in empty track beside a mirror); 2 of the 4 v0.35 solutions remain.
+ // v0.37 REBUILT so its gimmick decides the puzzle. VERIFIED: 1 winning rotation(s) [[7,5,0]]; start [8,4,6] is 8 moves away; needed (no answer without it): Black Hole, Prism, Mirror, Satellite, Amplifier. Every UFO is hit 1-3 moves from an answer and never by the answer itself.
  {
   "name": "MOVEMENT X — FINALE",
   "slots": 12,
   "rings": [
    {
     "spokeSlots": [
-     2,
-     9
+     8,
+     0
     ],
     "gimmicks": {
-     "0": {
+     "3": {
       "type": "ufo",
       "fixed": true,
-      "lock": 4
-     },
-     "2": {
-      "type": "ufo",
-      "fixed": true,
-      "lock": 11
+      "lock": 3
      },
      "4": {
       "type": "ufo",
       "fixed": true,
-      "lock": 0
+      "lock": 6
      },
-     "5": "mirror_r",
      "6": {
       "type": "ufo",
       "fixed": true,
-      "lock": 5
+      "lock": 8
      },
-     "7": {
-      "type": "echo_portal",
-      "turn": 90,
-      "fixed": true
-     },
-     "9": {
+     "10": {
       "type": "ufo",
       "fixed": true,
-      "lock": 6
+      "lock": 9
+     },
+     "11": {
+      "type": "ufo",
+      "fixed": true,
+      "lock": 2
      }
     },
-    "initialRotation": 7
+    "initialRotation": 8
    },
    {
     "spokeSlots": [
@@ -2991,60 +2976,58 @@ const ORCHESTRA_MOVEMENTS = [
      "0": {
       "type": "portal",
       "id": "P0",
-      "turn": 120,
-      "fixed": true
+      "turn": 45
      },
-     "10": {
+     "2": {
       "type": "prism"
+     },
+     "5": {
+      "type": "portal",
+      "id": "P0",
+      "turn": 0
      }
     },
-    "initialRotation": 5
+    "initialRotation": 4
    },
    {
     "spokeSlots": [
-     0,
-     7
+     2,
+     4
     ],
     "gimmicks": {
-     "3": "amp",
-     "4": {
-      "type": "portal",
-      "id": "P0",
+     "0": "mirror_r",
+     "1": "block",
+     "6": {
+      "type": "echo_portal",
+      "turn": 0,
       "fixed": true
      },
-     "9": "block",
-     "10": "mirror_l",
-     "11": "block"
+     "7": "block",
+     "9": "amp"
     },
-    "initialRotation": 3
+    "initialRotation": 6
    }
   ],
   "lockSlots": [
-   4,
-   5,
+   2,
+   3,
    6,
-   11
+   9
   ],
   "bonusLockSlots": [
-   0
+   8
   ],
   "fogDurationMs": 9000
  }
 ];
 
 // =========================================================================
-// SPECIAL MODE -- "METEOR ATTACK". 10 levels, each with exactly 6 lock
-// slots (lockSlots here doubles as "the 6 coins" -- see METEOR mechanic
-// notes below; bonusLockSlots is unused/empty for every level in this
-// set, since there is no separate required/optional split here, only 6
-// equally-weighted coins). Every level was built and exhaustively
-// verified against the real tracer (brute-forced across the full
-// rotation space, every claimed-necessary gimmick checked with the
-// disable-and-retrace technique) -- see
-// RINGSHIFT_SPECIAL_MODE_METEOR_ATTACK.md for the full per-level design
-// rationale, solution counts, and necessity findings. Do not hand-edit
-// these without re-running that verification; a single slot changed by
-// one can silently break uniqueness or make a lock unreachable.
+// SPECIAL MODE -- "METEOR ATTACK". 10 levels with 2-6 gift Locks each (lockSlots; bonusLockSlots is
+// always empty) and one Electricity Lock per ring (elecLocks[ring]). v0.37: 02, 03, 04, 06 and 07 were
+// rebuilt because later engine changes had left their gimmick doing nothing; tests/design.test.js now
+// checks every level (1-2 answers, featured gimmick needed by every answer, no idle ring, and a ring
+// frozen at the start costs at least one lock). Do not hand-edit a level without re-running the tests;
+// a single slot changed by one can silently break uniqueness or make a lock unreachable.
 //
 // THE METEOR MECHANIC (the only new gameplay rule Special Mode adds):
 // every METEOR_INTERVAL_MS (7s), a meteor destroys one target picked FULLY AT
@@ -3056,7 +3039,9 @@ const ORCHESTRA_MOVEMENTS = [
 // know which locks count as "saved" once the level ends. The level ends
 // -- always a "win", per design -- once every lock is either destroyed,
 // or every still-alive lock is lit all at once (that check fires
-// immediately, before the next meteor gets a chance to strike). Nothing
+// immediately, before the next meteor gets a chance to strike), or
+// (v0.37) a frozen ring means fewer can be lit together and the player
+// has lit that best still-possible number (see recomputeMeteorMax). Nothing
 // about ring rotation, beam tracing, or gimmick behavior changes; the
 // meteor only removes targets. See MeteorGame below.
 const METEOR_INTERVAL_MS = 7000;   // v0.30: a meteor every 7 seconds (was 10)
@@ -3064,49 +3049,41 @@ const METEOR_LEVELS = [
   // ---- SPECIAL 01 -- "First Contact". No gimmicks at all -- the very
   // first meteor cycle should teach ONLY the timer, not a new mechanic.
   // Two fully independent rings; either one banks half the board alone.
-  // Verified unique solution [0,8] (1/144). Start lights 1/6 (slot 9).
+  // v0.37 re-check: 2 winning rotations [2,6] and [0,8] of 144; start lights 0/2.
   {name:'SPECIAL 01 — FIRST CONTACT', slots:12, rings:[
       {spokeSlots:[3], gimmicks:{}, initialRotation:3},
       {spokeSlots:[9], gimmicks:{}, initialRotation:2}
     ], lockSlots:[9,11], bonusLockSlots:[], elecLocks:[3,6]},
-  // ---- SPECIAL 02 -- "Warning Shot". Block introduced alone. The block
-  // on ring0 is PREVENTIVE (not on the winning path -- removing it adds
-  // 2 accidental extra solutions, verified). Opens fully dark (0/6).
-  // Verified solutions: [0,1,6] and [0,3,6] (2/1728, documented honestly
-  // per this project's 1-2-solution convention for bonus-less puzzles).
+  // ---- SPECIAL 02 -- rebuilt in v0.37 so its gimmick decides the puzzle (brute-forced with the real tracer).
+  // VERIFIED: 1 winning rotation(s) [[4,0]] of 144; start [9,10] lights 0/2 locks, 7 moves from the answer.
+  // Needed (no answer exists without it): none. Trap (removing it opens a closer shortcut): Block.
+  // No idle ring. A meteor freezing any ring at the start leaves at most 1/2 lockable.
   {name:'SPECIAL 02 — WARNING SHOT', slots:12, rings:[
-      {spokeSlots:[1], gimmicks:{8:'block'}, initialRotation:5},
-      {spokeSlots:[7], gimmicks:{}, initialRotation:10},
-      {spokeSlots:[5], gimmicks:{}, initialRotation:9}
-    ], lockSlots:[5,7], bonusLockSlots:[], elecLocks:[1,3,10]},
-  // ---- SPECIAL 03 -- "The Mirror's Warning". Mirror introduced alone,
-  // unpinned... no -- PINNED (fixed:true), matching the main Easy/Normal
-  // convention (this set targets that difficulty band, not Space
-  // Orchestra's deliberately-unpinned I-VIII convention). Ring1's single
-  // spoke matters only through the mirror. First "prioritization" level:
-  // 2/6 already lit at start. Verified solutions: [0,0,1] and [1,10,5]
-  // (2/1728). Mirror confirmed necessary at the intended solution.
-  // v0.36 MIRROR FIX: relabelled R2 s0 ╱→╲ so the drawn bar matches the turn this level was built on. Win set unchanged (re-verified: 12 winning rotation(s), same coin results).
+      {spokeSlots:[6,10], gimmicks:{}, initialRotation:9},
+      {spokeSlots:[4,0], gimmicks:{10:'block'}, initialRotation:10}
+    ], lockSlots:[6,8], bonusLockSlots:[], elecLocks:[11,2]},
+  // ---- SPECIAL 03 -- rebuilt in v0.37 so its gimmick decides the puzzle (brute-forced with the real tracer).
+  // VERIFIED: 1 winning rotation(s) [[4,3,7]] of 1728; start [10,11,9] lights 1/3 locks, 12 moves from the answer.
+  // Needed (no answer exists without it): Mirror.
+  // No idle ring. A meteor freezing any ring at the start leaves at most 2/3 lockable.
   {name:'SPECIAL 03 — THE MIRROR\u2019S WARNING', slots:12, rings:[
-      {spokeSlots:[6], gimmicks:{}, initialRotation:5},
-      {spokeSlots:[], gimmicks:{0:{type:'mirror_l', fixed:true}}, initialRotation:6},
-      {spokeSlots:[1], gimmicks:{}, initialRotation:8}
-    ], lockSlots:[2,8], bonusLockSlots:[], elecLocks:[0,5,10]},
-  // ---- SPECIAL 04 -- "Crossfire". Mirror + Block, first real
-  // combination. Mirror confirmed necessary; block confirmed preventive
-  // (removing it raises the solution count from 1 to 2). Ring2 alone
-  // banks 3/6 immediately -- rewards grabbing the easy ring first.
-  // Verified unique solution [0,2,4] (1/1728).
+      {spokeSlots:[10,6], gimmicks:{}, initialRotation:10},
+      {spokeSlots:[5], gimmicks:{}, initialRotation:11},
+      {spokeSlots:[11], gimmicks:{8:{type:'mirror_l', fixed:true}}, initialRotation:9}
+    ], lockSlots:[0,4,6], bonusLockSlots:[], elecLocks:[10,5,7]},
+  // ---- SPECIAL 04 -- rebuilt in v0.37 so its gimmick decides the puzzle (brute-forced with the real tracer).
+  // VERIFIED: 1 winning rotation(s) [[9,0,11]] of 1728; start [7,4,3] lights 1/3 locks, 10 moves from the answer.
+  // Needed (no answer exists without it): Mirror. Trap (removing it opens a closer shortcut): Block.
+  // No idle ring. A meteor freezing any ring at the start leaves at most 2/3 lockable.
   {name:'SPECIAL 04 — CROSSFIRE', slots:12, rings:[
-      {spokeSlots:[7], gimmicks:{0:'block'}, initialRotation:9},
-      {spokeSlots:[5], gimmicks:{7:{type:'mirror_r', fixed:true}}, initialRotation:1},
-      {spokeSlots:[1], gimmicks:{}, initialRotation:10}
-    ], lockSlots:[1,3,11], bonusLockSlots:[], elecLocks:[4,6,9]},
+      {spokeSlots:[1], gimmicks:{}, initialRotation:7},
+      {spokeSlots:[8], gimmicks:{10:{type:'mirror_r', fixed:true}}, initialRotation:4},
+      {spokeSlots:[5], gimmicks:{1:'block'}, initialRotation:3}
+    ], lockSlots:[0,2,8], bonusLockSlots:[], elecLocks:[10,7,4]},
   // ---- SPECIAL 05 -- "Twin Signals". Mirror + Portal, both
   // independently confirmed necessary (first level where two genuinely
-  // load-bearing mechanics share the critical path). Ring2 carries its
-  // own 3 spokes AND both portal mouths. Opens fully dark (0/6).
-  // Verified unique solution [0,5,2] (1/1728).
+  // load-bearing mechanics share the critical path). Opens fully dark.
+  // v0.37 re-check: 1 winning rotation [1,2,9] of 1728; Mirror and Black Hole both needed.
   // BLACK HOLE (two-node footprint) rebuild: brute-forced 1 winning rotation(s); every portal/mirror/prism/amp on the winning path checked; no inert rings; start lights 0 required locks.
   // v0.36 MIRROR FIX: relabelled R2 s7 ╱→╲ so the drawn bar matches the turn this level was built on. Win set unchanged (re-verified: 1 winning rotation(s), same coin results).
   {name:'SPECIAL 05 — TWIN SIGNALS', slots:12, rings:[
@@ -3114,29 +3091,24 @@ const METEOR_LEVELS = [
         {spokeSlots:[2], gimmicks:{7:{type:'mirror_l', fixed:true}}, initialRotation:8},
         {spokeSlots:[3], gimmicks:{0:{type:'portal', id:'P0', turn:-165, fixed:true}, 8:{type:'portal', id:'P0', turn:-60, fixed:true}}, initialRotation:1}
       ], lockSlots:[4,6,10], bonusLockSlots:[], elecLocks:[0,2,8]},
-  // ---- SPECIAL 06 -- "One-Way Trip". Half-Block + Mirror. Half-Block
-  // sits on ring2 (NOT the outermost ring -- side:'in' is mechanically
-  // inert on ring0, see the knowledge doc's geometry section) and is
-  // PREVENTIVE here (removing it lets an extra accidental solution slip
-  // in at [2,4,7]). Mirror confirmed necessary. Verified unique solution
-  // [1,3,0] (1/1728).
-  // v0.36 MIRROR FIX: relabelled R2 s0 ╲→╱ so the drawn bar matches the turn this level was built on. Win set unchanged (re-verified: 8 winning rotation(s), same coin results).
+  // ---- SPECIAL 06 -- rebuilt in v0.37 so its gimmick decides the puzzle (brute-forced with the real tracer).
+  // VERIFIED: 1 winning rotation(s) [[6,2,4]] of 1728; start [9,4,11] lights 0/3 locks, 10 moves from the answer.
+  // Needed (no answer exists without it): Mirror. Trap (removing it opens a closer shortcut): Half-Block.
+  // No idle ring. A meteor freezing any ring at the start leaves at most 2/3 lockable.
   {name:'SPECIAL 06 — ONE-WAY TRIP', slots:12, rings:[
-      {spokeSlots:[4], gimmicks:{}, initialRotation:7},
-      {spokeSlots:[3], gimmicks:{0:{type:'mirror_r', fixed:true}}, initialRotation:9},
-      {spokeSlots:[3], gimmicks:{11:{type:'half_block', side:'in'}}, initialRotation:5}
-    ], lockSlots:[9,10,11], bonusLockSlots:[], elecLocks:[1,4,6]},
-  // ---- SPECIAL 07 -- "Overcharge". Amplifier + Portal, BOTH
-  // independently confirmed necessary (first level where every gimmick
-  // present is load-bearing, none preventive). No lock requires all 3
-  // rings at once -- risk is spread evenly rather than concentrated.
-  // Verified unique solution [0,5,9] (1/1728).
-  // BLACK HOLE (two-node footprint) rebuild: brute-forced 2 winning rotation(s); every portal/mirror/prism/amp on the winning path checked; no inert rings; start lights 0 required locks.
+      {spokeSlots:[4,11], gimmicks:{}, initialRotation:9},
+      {spokeSlots:[1], gimmicks:{5:{type:'mirror_r', fixed:true}}, initialRotation:4},
+      {spokeSlots:[2], gimmicks:{11:{type:'half_block', side:'out'}}, initialRotation:11}
+    ], lockSlots:[0,3,9], bonusLockSlots:[], elecLocks:[10,5,2]},
+  // ---- SPECIAL 07 -- rebuilt in v0.37 so its gimmick decides the puzzle (brute-forced with the real tracer).
+  // VERIFIED: 1 winning rotation(s) [[0,9,2]] of 1728; start [6,0,11] lights 1/4 locks, 12 moves from the answer.
+  // Needed (no answer exists without it): Black Hole, Amplifier.
+  // No idle ring. A meteor freezing any ring at the start leaves at most 3/4 lockable.
   {name:'SPECIAL 07 — OVERCHARGE', slots:12, rings:[
-        {spokeSlots:[11,2], gimmicks:{}, initialRotation:6},
-        {spokeSlots:[11], gimmicks:{}, initialRotation:3},
-        {spokeSlots:[6], gimmicks:{2:'amp', 3:{type:'portal', id:'P0', turn:-150, fixed:true}, 7:{type:'portal', id:'P0', fixed:true}}, initialRotation:8}
-      ], lockSlots:[4,8,9,10], bonusLockSlots:[], elecLocks:[0,2,6]},
+      {spokeSlots:[3,2], gimmicks:{}, initialRotation:6},
+      {spokeSlots:[0], gimmicks:{7:{type:'portal', id:'P0', turn:150, fixed:true}}, initialRotation:0},
+      {spokeSlots:[0,11], gimmicks:{2:{type:'portal', id:'P0', turn:180, fixed:true}, 7:'amp'}, initialRotation:11}
+    ], lockSlots:[3,8,9,11], bonusLockSlots:[], elecLocks:[7,4,1]},
   // ---- SPECIAL 08 -- "Split Decision". Prism + Mirror, both
   // independently confirmed necessary. Ring1's one spoke exists purely
   // to feed the prism split. Deliberate mid-set difficulty spike: 3 of
@@ -3155,9 +3127,10 @@ const METEOR_LEVELS = [
       ], lockSlots:[1,2,4,7,8,9], bonusLockSlots:[], elecLocks:[0,5,10]},
   // ---- SPECIAL 10 -- "The Gauntlet" (FINALE). Mirror + Prism +
   // Amplifier + Portal, all FOUR independently confirmed necessary at
-  // the single winning rotation -- the strongest verification result in
-  // the set. Ring1 carries both Mirror and Prism; ring2 carries both
-  // Portal mouths and the Amp. Verified unique solution [0,0,4] (1/1728).
+  // the single winning rotation. Ring1 carries both Mirror and Prism;
+  // ring2 carries both Portal mouths and the Amp.
+  // v0.37 re-check: 1 winning rotation [7,7,11]; Mirror, Prism and Amplifier needed by every answer;
+  // the Black Holes are needed by this answer (2 other answers exist only if they are removed).
   // BLACK HOLE rule update: holes now take beams only through their mouths; hole moved.
   // Brute-forced: 1 solution [7,7,11]; start lights 0/5 required.
   // v0.36 MIRROR FIX: relabelled R2 s5 ╲→╱ so the drawn bar matches the turn this level was built on. Win set unchanged (re-verified: 1 winning rotation(s), same coin results).
@@ -3186,7 +3159,7 @@ const METEOR_LEVELS = [
 //     rotation lights every gift lock), and the usual structure rules (no antipodal spokes, no spoke/
 //     gimmick collisions, Black Holes off the outer ring and >=120 degrees apart, Light Locks one per
 //     equal sector).
-// Rocket 11 is the untouched sandbox level (kept verbatim on purpose).
+// (v0.37: the unverified sandbox level that used to sit at Rocket 11 was removed -- it could not be cleared.)
 const ROCKET_LEVELS = [
   // VERIFIED (v0.29 rules): 2 winning rotation(s) [[0,3],[9,6]]; start [6,11] is unsolved and aims no rocket at a lock; 48/144 rotations are safe parking (no beam ends on a lock); trap slot -> near-solution landings {"5":2,"7":4,"8":4,"10":2}.
   {name:'ROCKET 01 — FIRST CONTACT', slots:12, rings:[
@@ -3244,31 +3217,21 @@ const ROCKET_LEVELS = [
       {spokeSlots:[1], gimmicks:{2:{type:'prism'}, 7:{type:'portal', id:'P0', turn:-150, fixed:true}, 11:{type:'mirror_r', fixed:true}}, initialRotation:11},
       {spokeSlots:[1], gimmicks:{3:{type:'portal', id:'P0', turn:-90, fixed:true}, 4:'amp'}, initialRotation:10}
     ], lockSlots:[2,3,7,10], bonusLockSlots:[], lightLocks:[1,5,6], elecLocks:[0,8,9]},
-  // ---- ROCKET 11 -- pasted in verbatim, unverified, for testing as-is.
-  // Not touched or rebalanced per instruction.
-  {name:'NEW LEVEL', slots:12, rings:[
-    // BLACK HOLE placement update: both mouths moved off the outer/rim ring (the only
-    // other ring here) to ring2, slots 0 and 5 -- 150 degrees apart, deliberately not
-    // slot 6 (that would put them exactly opposite on one ring, the self-resonating-loop
-    // case the engine's own portal rule forbids) -- since the standing "leave Rocket 11
-    // alone" instruction still applies to its other 8 gimmicks.
-    { spokeSlots:[3], gimmicks:{0:'mirror_r', 4:{type:'half_block', side:'in'}, 5:{type:'prism'}, 6:'mirror_l', 7:'amp', 8:{type:'echo_portal', angle:90}, 10:'block'}, initialRotation:0 },
-    { spokeSlots:[], gimmicks:{1:'bell', 11:{type:'half_block', side:'out'}, 0:{type:'portal', id:'A'}, 5:{type:'portal', id:'A'}}, initialRotation:0 }
-  ], lockSlots:[6, 3, 9], bonusLockSlots:[11]},
 ];
 
 // =========================================================================
 // CHALLENGE (v0.33) -- the hardest tier, next to Hard. Five hand-built levels, each:
 //   * ONE Rim Emitter (level.emitters) -- a source bolted to the rim that never turns,
-//   * FOUR rotatable rings with no spokes of their own -- only gimmicks (unpinned ones turn
-//     with their ring; Satellites are always pinned),
+//   * FOUR rotatable rings with no spokes of their own -- only gimmicks, which turn with their
+//     ring (v0.37: Challenge 5's Satellites are authored {moving:true}, so they ride their ring
+//     too while their dish keeps pointing the same way),
 //   * ONE Lock, which is the level's GIFT LOCK (lighting it = clearing the level),
 //   * exactly ONE winning rotation out of 12^4 = 20,736 (brute-forced with the real tracer).
 // Each level is gated by KEYS held (CHALLENGE_KEY_REQ -- keys are never spent; 15 = every key
 // the game hands out). First clear opens two gift boxes: CHALLENGE_GIFTS[level] = two themes,
 // each with its matching rim. See the per-level verification notes below.
-// Do not hand-edit a level without re-running the uniqueness sweep: moving one gimmick by one
-// slot can add solutions or break the route.
+// Do not hand-edit a level without re-running the tests (tests/levels.test.js, tests/design.test.js):
+// moving one gimmick by one slot can add solutions or break the route.
 const CHALLENGE_KEY_REQ = [1, 3, 7, 10, 15];
 const CHALLENGE_GIFTS = [
   ['vinyl','marbled'],      // Challenge 1 -- Vinyl Record, Marbled Endpaper
@@ -3279,66 +3242,56 @@ const CHALLENGE_GIFTS = [
 ];
 /*CHALLENGE_LEVELS_START*/
 const CHALLENGE_LEVELS = [
-  // ---- CHALLENGE 1 -- Hall of Mirrors. Twenty unpinned Mirrors (plus a few Blocks); the beam hits three of them twice.
-  // VERIFIED (v0.33, real tracer, all 12^4 = 20,736 rotations): exactly 1 winning rotation [7,0,8,11].
-  // Route (9 touches): R4:mirror_l > R2:mirror_r > R2:mirror_r > R4:mirror_r > R4:mirror_l > R1:mirror_l > R1:mirror_l > R4:mirror_r > R3:mirror_l. Board: 16 mirror_r, 5 block, 4 mirror_l.
-  // 59 wrong rotations follow the true route for 3+ touches before failing. Every bend on the route lands
-  // within 7 degrees of its gimmick. Start [4,8,2,6] is >=3 steps off on every ring and lights nothing.
-  // v0.36 MIRROR FIX: mirrors now turn the way their bar is drawn and bounce ON the mirror, which broke this route. Re-tuned, same answer: R1 s2 ╱→╲; R1 +Block at s8; R2 s5 ╱→╲; R2 ╱ mirror s8→s4 and now ╲; R3 +Block at s2; R3 +Block at s7; R3 +Block at s8; R4 s6 ╱→╲; R4 ╲ mirror s1→s11. Re-verified on all 20,736 rotations: exactly 1 winning rotation (the published answer), start lights nothing. Route/board notes above are from v0.33.
+  // ---- CHALLENGE 1 -- rebuilt in v0.37: the route really runs on Mirrors.
+  // VERIFIED (real tracer, all 12^4 = 20,736 rotations): exactly 1 winning rotation [5,9,2,11]. Start [9,4,5,6] is 3+ steps off on every ring and lights nothing.
+  // Route (10 touches): R4:Mirror > R3:Mirror > R1:Mirror > R1:Mirror > R3:Mirror > R2:Mirror > R1:Mirror > R1:Mirror > R3:Mirror > R3:Mirror. Lands 3.9 degrees from the Lock. 7 Mirrors on the route are each needed.
+  // Board: 20 Mirror, 12 Block. Every gimmick on the board is touched by some rotation.
   {name:'CHALLENGE 1 — HALL OF MIRRORS', slots:12, emitters:[0], rings:[
-        {spokeSlots:[], gimmicks:{0:'mirror_r', 2:'mirror_l', 3:'block', 7:'mirror_l', 8:'block', 9:'mirror_l', 10:'block'}, initialRotation:4},
-        {spokeSlots:[], gimmicks:{1:'mirror_r', 3:'mirror_r', 4:'mirror_l', 5:'mirror_l', 6:'block', 10:'mirror_r', 11:'mirror_r'}, initialRotation:8},
-        {spokeSlots:[], gimmicks:{1:'mirror_r', 2:'block', 3:'mirror_r', 5:'block', 7:'block', 8:'block', 10:'mirror_l', 11:'mirror_r'}, initialRotation:2},
-        {spokeSlots:[], gimmicks:{2:'mirror_r', 4:'mirror_r', 5:'mirror_r', 6:'mirror_l', 7:'mirror_r', 9:'block', 11:'mirror_l'}, initialRotation:6}
-      ], lockSlots:[8], bonusLockSlots:[]},
-  // ---- CHALLENGE 2 -- One-Way Street. Twenty Half-Blocks (lock in / lock out); the beam must thread four of them the right way.
-  // VERIFIED (v0.33, real tracer, all 12^4 = 20,736 rotations): exactly 1 winning rotation [1,2,2,5].
-  // Route (8 touches): R1:half_block > R2:half_block > R3:half_block > R4:mirror_l > R1:mirror_r > R1:mirror_r > R2:half_block > R2:mirror_l. Board: 20 half_block, 2 mirror_r, 3 mirror_l.
-  // 251 wrong rotations follow the true route for 3+ touches before failing. Every bend on the route lands
-  // within 7 degrees of its gimmick. Start [8,11,11,10] is >=3 steps off on every ring and lights nothing.
-  // v0.36 MIRROR FIX: mirrors now turn the way their bar is drawn and bounce ON the mirror, which broke this route. Re-tuned, same answer: R1 ╱ mirror s9→s5 and now ╲; R2 s11 ╲→╱; R2 +Half-Block (out) at s0; R2 +Half-Block (in) at s1; R2 +Half-Block (in) at s9; R3 s1 Half-Block (out) now in; R3 +Half-Block (in) at s2; R3 +Half-Block (out) at s6; R3 +Half-Block (in) at s8; R3 +Half-Block (out) at s9; R3 +Half-Block (out) at s11; R4 +Half-Block (in) at s1; R4 +Half-Block (in) at s3; R4 +Half-Block (in) at s4; R4 ╲ mirror s7→s5 and now ╱; R4 +Half-Block (in) at s6; R4 +Half-Block (out) at s8. Re-verified on all 20,736 rotations: exactly 1 winning rotation (the published answer), start lights nothing. Route/board notes above are from v0.33.
-  {name:'CHALLENGE 2 — ONE-WAY STREET', slots:12, emitters:[0], rings:[
-        {spokeSlots:[], gimmicks:{1:{type:'half_block', side:'in'}, 3:{type:'half_block', side:'in'}, 5:'mirror_l', 7:'mirror_r', 11:{type:'half_block', side:'out'}}, initialRotation:8},
-        {spokeSlots:[], gimmicks:{0:{type:'half_block', side:'out'}, 1:{type:'half_block', side:'in'}, 2:'mirror_l', 3:{type:'half_block', side:'in'}, 5:{type:'half_block', side:'out'}, 6:{type:'half_block', side:'out'}, 7:{type:'half_block', side:'in'}, 9:{type:'half_block', side:'in'}, 10:{type:'half_block', side:'out'}, 11:'mirror_r'}, initialRotation:11},
-        {spokeSlots:[], gimmicks:{0:{type:'half_block', side:'out'}, 1:{type:'half_block', side:'in'}, 2:{type:'half_block', side:'in'}, 3:{type:'half_block', side:'out'}, 4:{type:'half_block', side:'in'}, 5:{type:'half_block', side:'out'}, 6:{type:'half_block', side:'out'}, 7:{type:'half_block', side:'in'}, 8:{type:'half_block', side:'in'}, 9:{type:'half_block', side:'out'}, 10:{type:'half_block', side:'out'}, 11:{type:'half_block', side:'out'}}, initialRotation:11},
-        {spokeSlots:[], gimmicks:{0:{type:'half_block', side:'in'}, 1:{type:'half_block', side:'in'}, 2:{type:'half_block', side:'out'}, 3:{type:'half_block', side:'in'}, 4:{type:'half_block', side:'in'}, 5:'mirror_r', 6:{type:'half_block', side:'in'}, 8:{type:'half_block', side:'out'}, 9:{type:'half_block', side:'in'}, 10:{type:'half_block', side:'in'}, 11:{type:'half_block', side:'in'}}, initialRotation:10}
+        {spokeSlots:[], gimmicks:{2:'mirror_l', 3:'mirror_r', 4:'mirror_l', 5:'mirror_r', 6:'mirror_r', 8:'mirror_l', 9:'mirror_l', 10:'mirror_r', 11:'mirror_l'}, initialRotation:9},
+        {spokeSlots:[], gimmicks:{0:'mirror_l', 1:'mirror_r', 5:'mirror_l', 6:'block', 7:'block', 9:'block', 10:'block'}, initialRotation:4},
+        {spokeSlots:[], gimmicks:{0:'mirror_r', 1:'mirror_r', 2:'mirror_r', 3:'mirror_r', 4:'block', 5:'block', 6:'mirror_r', 7:'mirror_r', 9:'mirror_l', 11:'block'}, initialRotation:5},
+        {spokeSlots:[], gimmicks:{0:'block', 2:'block', 3:'block', 4:'block', 7:'mirror_r', 11:'block'}, initialRotation:6}
       ], lockSlots:[5], bonusLockSlots:[]},
-  // ---- CHALLENGE 3 -- Event Horizon. Eight unpinned Black Holes in four pairs that turn with their rings; three jumps on the route.
-  // VERIFIED (v0.33, real tracer, all 12^4 = 20,736 rotations): exactly 1 winning rotation [9,1,9,5].
-  // Route (9 touches): hole > R4:mirror_r > R2:mirror_r > hole > R4:mirror_l > R2:mirror_l > hole > R4:mirror_l > R1:mirror_r. Board: 10 mirror_r, 14 block, 4 mirror_l, 8 portal.
-  // 2 wrong rotations follow the true route for 3+ touches before failing. Every bend on the route lands
-  // within 7 degrees of its gimmick. Start [6,4,2,2] is >=3 steps off on every ring and lights nothing.
-  // v0.36 MIRROR FIX: mirrors now turn the way their bar is drawn and bounce ON the mirror, which broke this route. Re-tuned, same answer: R1 s0 ╱→╲; R2 s0 ╱→╲; R2 s5 ╱→╲; R2 Black Hole P2 s8→s11; R3 +Block at s3; R3 Black Hole P0 s3→s2; R3 +Block at s4; R3 +Block at s5; R3 +Block at s9; R3 +Block at s10. Re-verified on all 20,736 rotations: exactly 1 winning rotation (the published answer), start lights nothing. Route/board notes above are from v0.33.
+  // ---- CHALLENGE 2 -- rebuilt in v0.37: the route really runs on Half-Blocks.
+  // VERIFIED (real tracer, all 12^4 = 20,736 rotations): exactly 1 winning rotation [5,11,11,10]. Start [9,5,5,4] is 3+ steps off on every ring and lights nothing.
+  // Route (7 touches): R1:Half-Block > R2:Half-Block > R3:Half-Block > R4:Half-Block > R4:Mirror > R3:Mirror > R1:Half-Block. Lands 3.9 degrees from the Lock. 0 Half-Blocks on the route are each needed; 5 Half-Blocks are passed through (a full Block there breaks it).
+  // Board: 24 Half-Block, 2 Mirror. Every gimmick on the board is touched by some rotation.
+  {name:'CHALLENGE 2 — ONE-WAY STREET', slots:12, emitters:[0], rings:[
+        {spokeSlots:[], gimmicks:{0:{type:'half_block', side:'in'}, 1:{type:'half_block', side:'in'}, 2:{type:'half_block', side:'out'}, 3:{type:'half_block', side:'in'}, 4:{type:'half_block', side:'out'}, 5:{type:'half_block', side:'in'}, 6:{type:'half_block', side:'in'}, 7:{type:'half_block', side:'out'}, 8:{type:'half_block', side:'in'}, 9:{type:'half_block', side:'out'}, 10:{type:'half_block', side:'in'}}, initialRotation:9},
+        {spokeSlots:[], gimmicks:{0:{type:'half_block', side:'out'}, 1:{type:'half_block', side:'out'}, 2:{type:'half_block', side:'out'}, 3:{type:'half_block', side:'out'}, 4:{type:'half_block', side:'out'}, 5:{type:'half_block', side:'out'}, 7:{type:'half_block', side:'out'}, 8:{type:'half_block', side:'out'}, 9:{type:'half_block', side:'out'}, 10:{type:'half_block', side:'out'}, 11:{type:'half_block', side:'out'}}, initialRotation:5},
+        {spokeSlots:[], gimmicks:{1:{type:'half_block', side:'out'}, 5:'mirror_l'}, initialRotation:5},
+        {spokeSlots:[], gimmicks:{2:{type:'half_block', side:'out'}, 8:'mirror_r'}, initialRotation:4}
+      ], lockSlots:[5], bonusLockSlots:[]},
+  // ---- CHALLENGE 3 -- rebuilt in v0.37: the route really runs on Black Holes.
+  // VERIFIED (real tracer, all 12^4 = 20,736 rotations): exactly 1 winning rotation [7,3,1,0]. Start [2,9,8,8] is 3+ steps off on every ring and lights nothing.
+  // Route (9 touches): R4:Mirror > R3:Black Hole > R2:Mirror > hole > hole > R2:Black Hole > hole > R3:Black Hole > hole. Lands 0.6 degrees from the Lock. 3 Black Holes on the route are each needed; 4 Black Hole jumps.
+  // Board: 18 Block, 8 Black Hole, 2 Mirror. Every gimmick on the board is touched by some rotation.
   {name:'CHALLENGE 3 — EVENT HORIZON', slots:12, emitters:[0], rings:[
-        {spokeSlots:[], gimmicks:{0:'mirror_l', 1:'block', 2:'mirror_r', 4:'mirror_r', 5:'block', 7:'block', 9:'mirror_r', 10:'mirror_r', 11:'block'}, initialRotation:6},
-        {spokeSlots:[], gimmicks:{0:'mirror_l', 1:'mirror_l', 2:{type:'portal', id:'P3'}, 3:{type:'portal', id:'P1', turn:180}, 4:'block', 5:'mirror_l', 6:'mirror_l', 7:'block', 9:'block', 11:{type:'portal', id:'P2'}}, initialRotation:4},
-        {spokeSlots:[], gimmicks:{0:'block', 1:'block', 2:{type:'portal', id:'P0', turn:-90}, 3:'block', 4:'block', 5:'block', 6:'block', 7:'block', 8:'block', 9:'block', 10:'block', 11:'block'}, initialRotation:2},
-        {spokeSlots:[], gimmicks:{0:'mirror_l', 2:'mirror_r', 3:'mirror_r', 4:'mirror_l', 5:'mirror_r', 6:{type:'portal', id:'P1', turn:180}, 7:'block', 8:{type:'portal', id:'P3', turn:180}, 9:{type:'portal', id:'P0', turn:180}, 10:{type:'portal', id:'P2', turn:180}}, initialRotation:2}
-      ], lockSlots:[11], bonusLockSlots:[]},
-  // ---- CHALLENGE 4 -- Spectrum. Twelve Prisms; the winning branch is split five times, every other branch is a decoy.
-  // VERIFIED (v0.33, real tracer, all 12^4 = 20,736 rotations): exactly 1 winning rotation [2,10,0,1].
-  // Route (7 touches): R4:prism > R1:mirror_l > R1:prism > R1:prism > R1:mirror_l > R4:prism > R2:prism. Board: 5 mirror_l, 12 prism, 16 block.
-  // 8 wrong rotations follow the true route for 3+ touches before failing. Every bend on the route lands
-  // within 7 degrees of its gimmick. Start [11,2,8,7] is >=3 steps off on every ring and lights nothing.
-  // v0.36 MIRROR FIX: mirrors now turn the way their bar is drawn and bounce ON the mirror, which broke this route. Re-tuned, same answer: R1 s6 ╲→╱; R1 +Block at s1; R3 +Block at s4; R4 +Block at s1; R4 ╲ mirror s1→s5 and now ╱; R4 ╲ mirror s4→s8. Re-verified on all 20,736 rotations: exactly 1 winning rotation (the published answer), start lights nothing. Route/board notes above are from v0.33.
+        {spokeSlots:[], gimmicks:{0:'block', 1:'block', 3:{type:'portal', id:'P1', turn:-90}, 4:'block', 7:{type:'portal', id:'P2', turn:-90}, 8:'block', 9:'block', 10:'block'}, initialRotation:2},
+        {spokeSlots:[], gimmicks:{0:'block', 1:'mirror_l', 3:'block', 5:{type:'portal', id:'P3', turn:135}, 6:'block', 8:{type:'portal', id:'P2', turn:-135}, 10:'block', 11:{type:'portal', id:'P0', turn:45}}, initialRotation:9},
+        {spokeSlots:[], gimmicks:{0:'block', 2:'block', 3:{type:'portal', id:'P3', turn:90}, 5:'block', 6:'block', 7:'block', 9:{type:'portal', id:'P0', turn:0}, 10:'block'}, initialRotation:8},
+        {spokeSlots:[], gimmicks:{4:{type:'portal', id:'P1', turn:-90}, 5:'block', 6:'mirror_l', 10:'block'}, initialRotation:8}
+      ], lockSlots:[6], bonusLockSlots:[]},
+  // ---- CHALLENGE 4 -- rebuilt in v0.37: the route really runs on Prisms.
+  // VERIFIED (real tracer, all 12^4 = 20,736 rotations): exactly 1 winning rotation [6,5,0,0]. Start [3,9,7,8] is 3+ steps off on every ring and lights nothing.
+  // Route (6 touches): R4:Prism > R1:Prism > R3:Mirror > R3:Prism > R1:Prism > R2:Prism. Lands 0.3 degrees from the Lock. 3 Prisms on the route are each needed.
+  // Board: 26 Block, 10 Prism, 1 Mirror. Every gimmick on the board is touched by some rotation.
   {name:'CHALLENGE 4 — SPECTRUM', slots:12, emitters:[0], rings:[
-        {spokeSlots:[], gimmicks:{1:'block', 2:'mirror_l', 3:{type:'prism'}, 4:{type:'prism'}, 5:{type:'prism'}, 6:'mirror_r', 8:{type:'prism'}, 9:'block', 11:{type:'prism'}}, initialRotation:11},
-        {spokeSlots:[], gimmicks:{0:'block', 1:'block', 3:'block', 4:{type:'prism'}, 5:'block', 7:'block', 8:'block', 9:{type:'prism'}, 11:'block'}, initialRotation:2},
-        {spokeSlots:[], gimmicks:{1:'block', 3:'block', 4:'block', 5:'block', 6:'block', 7:'block', 9:'block', 10:'block', 11:'block'}, initialRotation:8},
-        {spokeSlots:[], gimmicks:{0:{type:'prism'}, 1:'block', 5:'mirror_r', 6:{type:'prism'}, 7:{type:'prism'}, 8:'mirror_l', 9:'mirror_l', 10:{type:'prism'}, 11:{type:'prism'}}, initialRotation:7}
-      ], lockSlots:[3], bonusLockSlots:[]},
-  // ---- CHALLENGE 5 -- Deep Space Relay. Sixteen pinned Satellites; one steerable Mirror per ring decides where the relay goes.
-  // VERIFIED (v0.33, real tracer, all 12^4 = 20,736 rotations): exactly 1 winning rotation [4,1,3,11].
-  // Route (9 touches): R1:satellite > R3:satellite > R4:mirror_r > R2:mirror_r > R2:satellite > R2:satellite > R1:mirror_r > R1:satellite > R2:satellite. Board: 16 echo_portal, 3 mirror_r, 1 mirror_l, 4 block.
-  // 846 wrong rotations follow the true route for 3+ touches before failing. Every bend on the route lands
-  // within 7 degrees of its gimmick. Start [11,9,11,3] is >=3 steps off on every ring and lights nothing.
-  // v0.36 MIRROR FIX: mirrors now turn the way their bar is drawn and bounce ON the mirror, which broke this route. Re-tuned, same answer: R1 s6 ╱→╲; R2 Satellite s5→s11; R4 s7 ╱→╲; R4 Satellite s11→s8. Re-verified on all 20,736 rotations: exactly 1 winning rotation (the published answer), start lights nothing. Route/board notes above are from v0.33.
+        {spokeSlots:[], gimmicks:{1:'block', 2:{type:'prism'}, 3:{type:'prism'}, 4:'block', 5:'block', 7:'block', 8:'block', 9:'block', 10:{type:'prism'}}, initialRotation:3},
+        {spokeSlots:[], gimmicks:{0:{type:'prism'}, 1:{type:'prism'}, 2:{type:'prism'}, 4:'block', 5:'block', 6:'block', 8:'block', 9:'block', 10:'block', 11:{type:'prism'}}, initialRotation:9},
+        {spokeSlots:[], gimmicks:{1:'block', 2:'block', 4:'mirror_l', 5:{type:'prism'}, 6:'block', 9:'block', 10:{type:'prism'}, 11:'block'}, initialRotation:7},
+        {spokeSlots:[], gimmicks:{0:{type:'prism'}, 1:'block', 2:'block', 4:'block', 5:'block', 6:'block', 7:'block', 8:'block', 10:'block', 11:'block'}, initialRotation:8}
+      ], lockSlots:[5], bonusLockSlots:[]},
+  // ---- CHALLENGE 5 -- rebuilt in v0.37: the route really runs on moving Satellites.
+  // VERIFIED (real tracer, all 12^4 = 20,736 rotations): exactly 1 winning rotation [3,8,6,11]. Start [6,11,1,4] is 3+ steps off on every ring and lights nothing.
+  // Route (9 touches): R4:Satellite > R2:Satellite > R2:Satellite > R4:Satellite > R2:Satellite > R1:Satellite > R2:Satellite > R3:Satellite > R3:Satellite. Lands 2.7 degrees from the Lock. 7 moving Satellites on the route are each needed.
+  // Board: 14 Satellite, 13 Block. Every gimmick on the board is touched by some rotation.
   {name:'CHALLENGE 5 — DEEP SPACE RELAY', slots:12, emitters:[0], rings:[
-        {spokeSlots:[], gimmicks:{0:{type:'echo_portal', turn:180, fixed:true}, 1:{type:'echo_portal', turn:90, fixed:true}, 2:{type:'echo_portal', turn:0, fixed:true}, 6:'mirror_l', 8:{type:'echo_portal', turn:90, fixed:true}, 9:{type:'echo_portal', turn:0, fixed:true}}, initialRotation:11},
-        {spokeSlots:[], gimmicks:{2:{type:'echo_portal', turn:270, fixed:true}, 3:'mirror_r', 6:{type:'echo_portal', turn:180, fixed:true}, 8:{type:'echo_portal', turn:180, fixed:true}, 10:{type:'echo_portal', turn:270, fixed:true}, 11:{type:'echo_portal', turn:0, fixed:true}}, initialRotation:9},
-        {spokeSlots:[], gimmicks:{0:{type:'echo_portal', turn:180, fixed:true}, 2:'mirror_l', 3:'block', 5:'block', 8:'block', 10:'block'}, initialRotation:11},
-        {spokeSlots:[], gimmicks:{2:{type:'echo_portal', turn:90, fixed:true}, 3:{type:'echo_portal', turn:270, fixed:true}, 4:{type:'echo_portal', turn:0, fixed:true}, 7:'mirror_l', 8:{type:'echo_portal', turn:90, fixed:true}, 9:{type:'echo_portal', turn:180, fixed:true}}, initialRotation:3}
-      ], lockSlots:[7], bonusLockSlots:[]},
+        {spokeSlots:[], gimmicks:{1:{type:'echo_portal', turn:270, moving:true}, 2:{type:'echo_portal', turn:0, moving:true}, 3:{type:'echo_portal', turn:180, moving:true}, 5:'block', 6:'block', 8:'block', 10:'block', 11:'block'}, initialRotation:6},
+        {spokeSlots:[], gimmicks:{0:{type:'echo_portal', turn:0, moving:true}, 1:'block', 3:'block', 5:'block', 6:{type:'echo_portal', turn:180, moving:true}, 8:{type:'echo_portal', turn:270, moving:true}, 9:'block', 10:{type:'echo_portal', turn:90, moving:true}}, initialRotation:11},
+        {spokeSlots:[], gimmicks:{1:{type:'echo_portal', turn:0, moving:true}, 4:{type:'echo_portal', turn:90, moving:true}, 5:{type:'echo_portal', turn:270, moving:true}}, initialRotation:1},
+        {spokeSlots:[], gimmicks:{1:{type:'echo_portal', turn:90, moving:true}, 3:'block', 4:{type:'echo_portal', turn:0, moving:true}, 5:'block', 6:{type:'echo_portal', turn:0, moving:true}, 7:{type:'echo_portal', turn:180, moving:true}, 9:'block', 11:'block'}, initialRotation:4}
+      ], lockSlots:[10], bonusLockSlots:[]},
 ];
 /*CHALLENGE_LEVELS_END*/
 
@@ -4811,6 +4764,7 @@ const MeteorGame = (function(){
       gstate.meteorCollected.delete(slot);
     }
     travelingMeteor = null;
+    recomputeMeteorMax(lvl);
     playImpact();
     spawnFx(slot, 'impact'); { const _a=slotToAngle(slot,lvl.slots); Fx.shatter(Math.cos(_a)*RIM_R,Math.sin(_a)*RIM_R,'rgba(255,205,90,.55)'); Fx.shake(true); }
     const app = document.getElementById('app');
@@ -4847,11 +4801,33 @@ const MeteorGame = (function(){
     if(gotNew || lostSome) updateHud();
     checkFinished();
   }
+  // v0.37: best number of SURVIVING locks that can still be lit together, trying every rotation of every
+  // ring that still has power (a frozen ring stays where it is) -- the same rule Rocket Attack uses. Without
+  // it, a ring frozen in the wrong place left the run waiting while meteors smashed the locks already lit.
+  function recomputeMeteorMax(lvl){
+    const alive = lvl.lockSlots.filter(s=>!gstate.meteorDestroyed.has(s));
+    const frozen = (gstate.mk && gstate.mk.frozen) || new Set();
+    if(!alive.length){ gstate.meteorMax = 0; return; }
+    if(!frozen.size){ gstate.meteorMax = alive.length; return; }   // every ring free: every Special level is solvable
+    const n = lvl.slots, rot = gstate.rotations.slice(), like = {slots:n, rings:lvl.rings, lockSlots:alive};
+    let best = 0;
+    const rec = (i)=>{
+      if(best === alive.length) return;
+      if(i === lvl.rings.length){ const t = traceAllBeams(like, rot); let c = 0; alive.forEach(s=>{ if(t.litLocks.has(s)) c++; }); if(c > best) best = c; return; }
+      if(frozen.has(i)) return rec(i+1);
+      for(let r=0; r<n && best<alive.length; r++){ rot[i] = r; rec(i+1); }
+      rot[i] = gstate.rotations[i];
+    };
+    rec(0);
+    gstate.meteorMax = best;
+  }
   function checkFinished(){
     const lvl = gstate.level;
     if(!lvl || finished) return false;
     const total = lvl.lockSlots.length;
-    if(gstate.meteorCollected.size + gstate.meteorDestroyed.size >= total){
+    const alive = total - gstate.meteorDestroyed.size;
+    const stuck = typeof gstate.meteorMax === 'number' && gstate.meteorMax < alive && gstate.meteorCollected.size >= gstate.meteorMax;
+    if(gstate.meteorCollected.size + gstate.meteorDestroyed.size >= total || stuck){
       finished = true;
       clearCycleTimers();
       hideWarning();
@@ -5175,6 +5151,7 @@ const MeteorGame = (function(){
     travelingMeteor=null;
     gstate.meteorCollected = new Set();
     gstate.meteorDestroyed = new Set();
+    gstate.meteorMax = lvl.lockSlots.length;
     // v0.30: Electricity Locks (one rim slot per ring). Destroyed -> that ring is frozen.
     // Same shape RocketGame uses, so the shared rim/ring drawing code can be reused.
     gstate.mk = { lights:[], sectors:[], frozen:new Set(), elecs:[] };
@@ -5266,7 +5243,7 @@ const RocketGame = (function(){
       if(authoredKey !== null) return;
       const s = parseInt(k,10);
       const raw = ring.gimmicks[k];
-      const isFixed = typeof raw === 'object' && (raw.fixed === true || raw.type === 'echo_portal');
+      const isFixed = typeof raw === 'object' && (raw.fixed === true || (raw.type === 'echo_portal' && raw.moving !== true));
       const width = typeof raw === 'string' ? 1 : Math.max(1, raw.width||1);
       for(let w=0; w<width; w++){
         const a = (s+w) % n;
@@ -5282,7 +5259,7 @@ const RocketGame = (function(){
     if(!ring || !ring.gimmicks || authoredKey === null || authoredKey === undefined) return null;
     const raw = ring.gimmicks[authoredKey];
     if(raw === undefined) return null;
-    const isFixed = typeof raw === 'object' && (raw.fixed === true || raw.type === 'echo_portal');
+    const isFixed = typeof raw === 'object' && (raw.fixed === true || (raw.type === 'echo_portal' && raw.moving !== true));
     const n = lvl.slots, s = parseInt(authoredKey, 10);
     const live = isFixed ? s : (s + (gstate.rotations[ringIdx] || 0)) % n;
     const radius = ringRadiusFn(ringIdx), a = slotToAngle(live, n);
@@ -7603,7 +7580,7 @@ const PowerSys = (function(){
       Object.keys(ring.gimmicks||{}).forEach(k=>{
         const raw = ring.gimmicks[k], type = typeof raw === 'string' ? raw : raw.type;
         if(type === 'bell' || type === 'coin' || type === 'ufo') return;
-        const fixed = (typeof raw === 'object' && raw.fixed === true) || type === 'echo_portal';
+        const fixed = (typeof raw === 'object' && raw.fixed === true) || (type === 'echo_portal' && raw.moving !== true);
         const w = typeof raw === 'string' ? 1 : Math.max(1, raw.width||1);
         for(let q=0; q<w; q++){
           const a0 = (parseInt(k,10)+q) % n, live = fixed ? a0 : (a0 + gstate.rotations[r]) % n;
@@ -8309,7 +8286,7 @@ function renderPuzzleFull(){
         // engine (see buildLiveContentMap) -- it's drawn fixed in
         // world-space no matter what raw.fixed says or how it was
         // authored.
-        const isPinned = ((typeof raw==='object') && raw.fixed===true) || type==='bell' || type==='ufo' || type==='echo_portal';
+        const isPinned = ((typeof raw==='object') && raw.fixed===true) || type==='bell' || type==='ufo' || (type==='echo_portal' && !(typeof raw==='object' && raw.moving===true));
 
         if(type==='block' || type==='half_block'){
           if(currentMode==='rocket' || !isPinned){
@@ -10843,7 +10820,16 @@ function ensureRewardShape(){
       grantReward(r); save.rewards.claimed[key] = r.id; changed = true;
     });
     if(changed) persistSave();
+    backfillRocketGift7();
   }
+}
+// v0.37: Rocket gift #7 changed from the Heat Shield rim to the Heat Shield theme. Anyone who already opened it
+// keeps the rim and is handed the theme as well (idempotent: the claim is rewritten to the new id).
+function backfillRocketGift7(){
+  const c = save.rewards && save.rewards.claimed;
+  if(!c || c['rocket:gift6'] !== 'rim:heatshield') return;
+  const r = rewardForRocketGift(6); if(!r.id) return;
+  grantReward(r); c['rocket:gift6'] = r.id; persistSave();
 }
 function rewardForLevel(mode, idx){
   if(!GIFT_MODES.includes(mode)) return null;
@@ -10931,8 +10917,9 @@ function bankOrchestraLocks(levelIdx, slots){
    Lock, so replays can't farm). Every ROCKET_LOCKS_PER_GIFT banked Locks opens
    the next gift box in ROCKET_GIFT_REWARDS.
    v0.31: all 10 slots filled -- color, color, rim, theme (Blueprint), color, color,
-   rim, theme (Heat Shield), rim, theme (Mission Patch). Gifts #9/#10 need 36/40
-   banked Locks, more than the mode currently holds.
+   theme (Heat Shield), rim, rim, theme (Mission Patch). v0.37: Rocket 11 was removed,
+   so the mode holds 29 gift Locks and gifts #8-#10 (32/36/40) are out of reach for
+   now; the Heat Shield theme moved from #8 to #7 so it stays earnable.
    ROCKET_GIFT_REWARDS: entries with id:null are EMPTY reward slots -- each is
    named so it's obvious what still has to be made. To fill one, give it an id
    ('source:<id>' | 'background:<id>' | 'lit:<id>' | 'rim:<id>' | 'theme:<id>')
@@ -10946,8 +10933,8 @@ const ROCKET_GIFT_REWARDS = [
   {kind:'theme', id:'theme:blueprint', name:'Rocket Gift #4 \u2014 Theme (Rocket Set A)'},
   {kind:'source', id:'source:plasma', name:'Rocket Gift #5 \u2014 Source Beam Color (Rocket Set B)'},
   {kind:'background', id:'background:denim', name:'Rocket Gift #6 \u2014 Background Beam Color (Rocket Set B)'},
-  {kind:'rim', id:'rim:heatshield', name:'Rocket Gift #7 \u2014 Rim (Rocket Set B)'},
-  {kind:'theme', id:'theme:heatshield', name:'Rocket Gift #8 \u2014 Theme (Rocket Set B)'},
+  {kind:'theme', id:'theme:heatshield', name:'Rocket Gift #7 \u2014 Theme (Rocket Set B)'},
+  {kind:'rim', id:'rim:heatshield', name:'Rocket Gift #8 \u2014 Rim (Rocket Set B)'},
   {kind:'rim', id:'rim:patch', name:'Rocket Gift #9 \u2014 Rim (Rocket Set C)'},
   {kind:'theme', id:'theme:patch', name:'Rocket Gift #10 \u2014 Theme (Rocket Set C)'},
 ];
