@@ -1,12 +1,16 @@
 # Ringshift
 
 A ring-rotation light puzzle game in a single self-contained HTML file
-(`ringshift v0.40.html`). There is nothing to install or build: open the file
+(`ringshift v0.41.html`). There is nothing to install or build: open the file
 in a browser to play.
 
 ## Live demo
 
 **https://ultramegaray0-lgtm.github.io/ringshift-game/**
+
+Legal pages, linked from the difficulty screen and from Options:
+[Privacy Policy](https://ultramegaray0-lgtm.github.io/ringshift-game/privacy.html) ·
+[Terms of Service](https://ultramegaray0-lgtm.github.io/ringshift-game/terms.html)
 
 The demo always shows the stable branch, `main`. It goes live after GitHub
 Pages has been enabled for this repository (see *One-time setup* below) and the
@@ -21,11 +25,12 @@ Publishing is automatic and handled by
 1. A commit reaches `main` (a direct push or a merged pull request), or someone
    starts the workflow by hand from **Actions → Publish Ringshift to GitHub
    Pages → Run workflow** with the branch set to `main`.
-2. The **build** job copies `ringshift v0.40.html` to `index.html` in a
-   temporary `_site/` folder. The source file in the repository is not renamed
-   or changed. It then runs `.github/scripts/check_site.py`, which fails the
-   run if the page references a local file that is missing or uses an absolute
-   path that would break under `/ringshift-game/`.
+2. The **build** job copies `ringshift v0.41.html` to `index.html` in a
+   temporary `_site/` folder, next to the legal pages listed in `EXTRA_PAGES`
+   (`privacy.html`, `terms.html`). The source files in the repository are not
+   renamed or changed. It then runs `.github/scripts/check_site.py`, which
+   checks every page and fails the run if one references a local file that is
+   missing or uses an absolute path that would break under `/ringshift-game/`.
 3. The **deploy** job publishes `_site/` to GitHub Pages using the official
    `actions/upload-pages-artifact` and `actions/deploy-pages` actions.
 
@@ -65,11 +70,11 @@ commit on `main`; the revert triggers a new deployment of the previous build.
 
 ## Run locally
 
-Open `ringshift v0.40.html` directly in a browser, or serve the folder:
+Open `ringshift v0.41.html` directly in a browser, or serve the folder:
 
 ```sh
 python3 -m http.server 8000
-# then open http://localhost:8000/ringshift%20v0.40.html
+# then open http://localhost:8000/ringshift%20v0.41.html
 ```
 
 ## Tests

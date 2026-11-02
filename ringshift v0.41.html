@@ -820,6 +820,19 @@ body.theme-sakura .gimmickChip, body.theme-sakura #powerStatus, body.theme-sakur
 
   /* How-To-Play legend rows */
   .htpSection{margin-bottom:16px;}
+  /* v0.41: Privacy / Terms links (difficulty screen footer + Options) */
+  .legalLinks{order:99; margin:14px 0 4px; font-size:11px; letter-spacing:1px; color:var(--text2); text-align:center}
+  .legalLinks a{color:var(--text1); text-decoration:underline; text-underline-offset:2px; padding:6px 4px; display:inline-block}
+  .legalBtns{display:flex; gap:6px; flex:none}
+  .legalBtns a.modalBtn{text-decoration:none; display:inline-flex; align-items:center}
+  /* v0.41: timed-mode rules fold away until opened; quick start sits first */
+  details.htpMode > summary{cursor:pointer; list-style:none; display:flex; align-items:baseline; gap:8px}
+  details.htpMode > summary::-webkit-details-marker{display:none}
+  details.htpMode > summary h3{flex:1}
+  details.htpMode > summary::after{content:'▸ SHOW'; font-family:var(--font-display); font-size:10px; letter-spacing:1.5px; color:var(--text2); flex:none}
+  details.htpMode[open] > summary::after{content:'▾ HIDE'}
+  .htpQuick .htpIcon{font-family:var(--font-display); font-size:12px; color:var(--accent); border-color:var(--accent)}
+  .htpRow.htpNote{display:block; font-size:11.5px; color:var(--text2)}
   .htpSection h3{font-family:var(--font-display); font-size:11px; letter-spacing:2px; color:var(--accent); margin:0 0 8px;
     padding-bottom:6px; border-bottom:1px solid var(--panel-line);}
   .htpRow{display:flex; align-items:flex-start; gap:12px; margin-bottom:10px; font-size:12.5px; color:var(--text1); line-height:1.45;}
@@ -1586,6 +1599,10 @@ body.theme-v2 .screenSub, body.theme-v2 #titleScreen .press, body.theme-v2 #game
 /* wide/tablet: keep one row, but start it to the right of the utility buttons */
 @media (min-width:641px) and (max-width:899px){ body.inGame #gameTop{padding-left:150px} }
 @media (min-width:900px){ body.inGame #gameTop{padding-left:max(10px, calc(156px - max(32px, (100vw - 1100px) / 2)))} }
+/* v0.41: between 641 and ~1100px wide (itch.io embeds, tablets, phones held sideways) the one-row HUD ran out of
+   room: "LOCKS 0/1" touched "0 moves", the timer touched the moves, and Rocket's stats broke mid-line. Keep a gap
+   between items and let the row wrap onto a second line only when it doesn't fit. */
+@media (min-width:641px){ body.inGame #gameTop{flex-wrap:wrap; column-gap:14px; row-gap:2px} }
 /* phones: row 1 = [utility buttons] ◀ LEVELS · title, row 2 = the stats */
 @media (max-width:640px){
   #gameTop{flex-direction:column; align-items:stretch; gap:4px; padding:4px 6px}
@@ -1659,6 +1676,14 @@ body.theme-v2 .screenSub, body.theme-v2 #titleScreen .press, body.theme-v2 #game
     <h2>HOW TO PLAY</h2>
     <div class="modalSub">Rotate the rings. Every beam fires straight through the center. Light every LOCK at once to breach.</div>
 
+    <div class="htpSection htpQuick">
+      <h3>// QUICK START</h3>
+      <div class="htpRow"><span class="htpIcon">1</span><div><b>Pick a ring</b>Tap its track, or use ▲ ▼.</div></div>
+      <div class="htpRow"><span class="htpIcon">2</span><div><b>Turn it</b>Drag along the track, or use ◀ ▶. Every Source fires its beam straight through the center.</div></div>
+      <div class="htpRow"><span class="htpIcon">3</span><div><b>Light every Lock at once</b>When every Lock on the rim is lit at the same time, the level is cleared. The gift Lock is optional: light it too to open a gift box.</div></div>
+      <div class="htpRow htpNote">The rest of this page explains each piece. During play, tap a piece's name above the board to open this page again.</div>
+    </div>
+
     <div class="htpSection">
       <h3>// CONTROLS</h3>
       <div class="htpKeys">
@@ -1687,13 +1712,13 @@ body.theme-v2 .screenSub, body.theme-v2 #titleScreen .press, body.theme-v2 #game
       <div class="htpRow"><span class="htpIcon" style="opacity:.4">◍</span><div><b>Stacked pieces</b>When turning a ring slides one of its pieces onto another of its own pieces, only one of them works: the other is drawn faded and the beam ignores it. A Black Hole whose twin is faded has a red dashed ring: it swallows a beam without sending it on.</div></div>
     </div>
 
-    <div class="htpSection">
-      <h3>// ☄ SPECIAL MODE — METEOR ATTACK</h3>
-      <div class="htpRow"><span class="htpIcon met">☄</span><div><b>Meteor Lock Destruction</b>Every Meteor Attack level has 2 to 6 gift Locks, plus one Electricity Lock per ring. Every 7 seconds a meteor picks one of them at complete random and destroys it — gone for good, whether it was lit or dark. Being lit does NOT protect a Lock. A destroyed Electricity Lock means its ring can't turn for the rest of the attempt. Nothing about beams or gimmicks changes. The run always ends in a win: the instant every surviving Lock is lit at once — or, if a frozen ring makes that impossible, the instant you light as many as are still possible. The goal is having as many lit as possible when it ends.</div></div>
-    </div>
+    <details class="htpSection htpMode">
+      <summary><h3>// ☄ SPECIAL MODE — METEOR ATTACK</h3></summary>
+      <div class="htpRow"><span class="htpIcon met">☄</span><div><b>Meteor Lock Destruction</b>Every Meteor Attack level has 2 to 6 gift Locks, plus one Electricity Lock per ring. Every 7 seconds a meteor picks one of them at complete random and destroys it — gone for good, whether it was lit or dark. Being lit does NOT protect a Lock. A destroyed Electricity Lock means its ring can't turn for the rest of the attempt. Nothing about beams or mechanisms changes. The run always ends in a win: the instant every surviving Lock is lit at once — or, if a frozen ring makes that impossible, the instant you light as many as are still possible. The goal is having as many lit as possible when it ends.</div></div>
+    </details>
 
-    <div class="htpSection">
-      <h3>// 🚀 ROCKET ATTACK — LAST TOUCH &amp; GIFT, LIGHT, ELECTRICITY LOCKS</h3>
+    <details class="htpSection htpMode">
+      <summary><h3>// 🚀 ROCKET ATTACK — LAST TOUCH &amp; GIFT, LIGHT, ELECTRICITY LOCKS</h3></summary>
       <div class="htpRow"><span class="htpIcon" style="color:#7dff9d; border-color:#7dff9d;">🚀</span><div><b>Rockets hit where a beam ENDS</b>Every 5 seconds the boss UFO fires a rocket at the last thing each beam touches: the Lock it lands on, or the wall, Block / Half-Block / Satellite that stops it. 10 seconds later that target is destroyed. Mirrors and Amplifiers are never targeted, and neither is anything a beam passes straight through. A Prism or Black Hole is only targeted in the rare case a beam ends inside it. A beam that ends on empty rim glass is safe.</div></div>
       <div class="htpRow"><span class="htpIcon" style="color:#ffd23f; border-color:#ffd23f;">🎁</span><div><b>Gift Locks</b>Every Lock is a gift lock. Light every surviving one at the same moment to clear the level. Each Lock lit at the clear is banked once, and every 4 banked Locks opens a gift box. A Lock a rocket destroys is gone for that attempt.</div></div>
       <div class="htpRow"><span class="htpIcon" style="color:#ff6a5a; border-color:#ff6a5a;">🧱</span><div><b>Walled Gift Locks</b>For every 2 gift locks, 1 has a Block or Half-Block in front of it. Light can't reach that lock until a rocket destroys the wall, so land a beam on the wall first — ideally while no other beam ends on a gift lock — then light everything once it's gone.</div></div>
@@ -1701,14 +1726,14 @@ body.theme-v2 .screenSub, body.theme-v2 #titleScreen .press, body.theme-v2 #game
       <div class="htpRow"><span class="htpIcon" style="color:#ffe27a; border-color:#ffe27a;">💡</span><div><b>Light Locks</b>Each one lights an equal share of the board (2 Light Locks = half each, 4 = a quarter each). If a rocket destroys one, its share goes dark and only your beams still light what they touch there.</div></div>
       <div class="htpRow"><span class="htpIcon" style="color:#5ad8ff; border-color:#5ad8ff;">⚡</span><div><b>Electricity Locks</b>One per ring; the small number shows which ring it powers. If a rocket destroys it, that ring loses power and can't be turned again this attempt.</div></div>
       <div class="htpRow"><span class="htpIcon" style="color:#a8ffc0; border-color:#a8ffc0;">✓</span><div><b>You can't lose</b>Whatever gets hit, the level always finishes. If the damage means not every gift lock can be lit together any more, it clears the moment you light as many as are still possible. RESET restores everything.</div></div>
-    </div>
+    </details>
 
-    <div class="htpSection">
-      <h3>// ✦ SPACE ORCHESTRA — FOG, GRAY UFOS &amp; GIFT LOCKS</h3>
+    <details class="htpSection htpMode">
+      <summary><h3>// ✦ SPACE ORCHESTRA — FOG, GRAY UFOS &amp; GIFT LOCKS</h3></summary>
       <div class="htpRow"><span class="htpIcon" style="color:#eaf6fb; border-color:#eaf6fb;">🌫️</span><div><b>Fog</b>Every Lock in Space Orchestra starts fogged. A fogged Lock is a physical wall — a beam that reaches it is blocked there, no matter how correctly the rings are set, and its true state stays hidden.</div></div>
       <div class="htpRow"><span class="htpIcon" style="color:#eaf6fb; border-color:#eaf6fb;">🛸</span><div><b>One UFO per Lock</b>Each fogged Lock has its own numbered gray UFO. Route any beam onto UFO 1 and it's knocked out for 10 seconds — Lock 1's fog lifts while it's down, then the UFO rises again and the fog comes back. UFO 2 does the same for Lock 2, and so on, so knock out every UFO you need and light their Locks before they get back up. A beam left sitting on a UFO won't knock it out again; it has to newly reach it. The UFOs leave one by one — UFO 1 at 0:30, UFO 2 at 1:30, UFO 3 at 2:30, UFO 4 at 4:00 — and a Lock whose UFO escaped stays fogged, so reset and try again.</div></div>
       <div class="htpRow"><span class="htpIcon" style="color:#ffd23f; border-color:#ffd23f;">🎁</span><div><b>Gift Locks</b>Every Lock in Space Orchestra is a gift lock. Each Lock you light when you clear a movement is banked (once per Lock), and every 4 banked Locks opens a gift box: two beam colors, then a rim, then a theme, and the cycle repeats.</div></div>
-    </div>
+    </details>
 
     <div class="htpFooter">
       <span style="font-size:11.5px; color:var(--text2);">Find this again anytime from Options.</span>
@@ -1734,7 +1759,7 @@ body.theme-v2 .screenSub, body.theme-v2 #titleScreen .press, body.theme-v2 #game
       <div><div class="optLabel">Sound Effects Volume</div></div>
       <input type="range" class="optSlider" id="sfxVolSlider" min="0" max="100" value="60">
     </div>
-    <div class="optRow">
+    <div class="optRow" id="fullscreenRow">
       <div><div class="optLabel">Fullscreen</div><div class="optHint">Toggle borderless fullscreen display</div></div>
       <div class="optToggle" id="fullscreenToggle"></div>
     </div>
@@ -1755,7 +1780,7 @@ body.theme-v2 .screenSub, body.theme-v2 #titleScreen .press, body.theme-v2 #game
       <input type="range" class="optSlider" id="sourceSizeSlider" min="50" max="400" step="5" value="100">
     </div>
     <div class="optRow">
-      <div><div class="optLabel">Gimmick Size <span id="gimmickSizeVal" style="color:var(--accent);font-family:var(--font-mono);">1.0&times;</span></div><div class="optHint">0.5&times; to 4&times;</div></div>
+      <div><div class="optLabel">Mechanism Size <span id="gimmickSizeVal" style="color:var(--accent);font-family:var(--font-mono);">1.0&times;</span></div><div class="optHint">0.5&times; to 4&times;</div></div>
       <input type="range" class="optSlider" id="gimmickSizeSlider" min="50" max="400" step="5" value="100">
     </div>
     <div class="optRow">
@@ -1766,8 +1791,12 @@ body.theme-v2 .screenSub, body.theme-v2 #titleScreen .press, body.theme-v2 #game
       <div><div class="optLabel">Debug Mode</div><div class="optHint">Unlocks all difficulties &amp; bonus modes, every level, and every Shop cosmetic/theme</div></div>
       <div class="optToggle" id="debugModeToggle"></div>
     </div>
+    <div class="optRow">
+      <div><div class="optLabel">Privacy &amp; Terms</div><div class="optHint">Opens in a new tab</div></div>
+      <div class="legalBtns"><a class="modalBtn" href="privacy.html" target="_blank" rel="noopener">PRIVACY</a><a class="modalBtn" href="terms.html" target="_blank" rel="noopener">TERMS</a></div>
+    </div>
     <div class="optRow" style="border-bottom:none;">
-      <div><div class="optLabel">Reset Save Data</div><div class="optHint">Clears all progress and coins — cannot be undone</div></div>
+      <div><div class="optLabel">Reset Save Data</div><div class="optHint">Clears all progress, keys and gift boxes — cannot be undone</div></div>
       <button class="modalBtn danger" id="eraseSaveBtn">ERASE</button>
     </div>
 
@@ -1806,7 +1835,7 @@ body.theme-v2 .screenSub, body.theme-v2 #titleScreen .press, body.theme-v2 #game
 </div>
 
 <div id="powersModal" class="modalOverlay"><div class="modalBox"><button class="modalClose" id="powersCloseBtn">✕</button>
-  <h2>⚡ POWERS</h2><div class="modalSub">Equip ONE Power before entering a level, then activate it with the ⚡ button during play. Using a Power disables that attempt's coin.</div>
+  <h2>⚡ POWERS</h2><div class="modalSub">Equip ONE Power before entering a level, then activate it with the ⚡ button during play. Using a Power means no gift box on that attempt.</div>
   <div id="powersList"></div><div class="modalActions"><button class="modalBtn primary" id="powersDoneBtn">DONE</button></div></div></div>
 <div id="giftModal" class="modalOverlay"><div class="modalBox"><div id="giftHead">GIFT BOX</div><div id="giftArt" class="giftArt"></div><div id="giftReveal"></div><div class="modalActions" id="giftActions" style="justify-content:center;"></div></div></div>
 <div id="newGimmickToast"></div>
@@ -1842,7 +1871,7 @@ body.theme-v2 .screenSub, body.theme-v2 #titleScreen .press, body.theme-v2 #game
     <div class="ringdeco r3"></div>
     <div class="ringdeco r2"></div>
     <h1 class="logo">RINGSHIFT</h1>
-    <div class="sub">DEMO · v0.40</div>
+    <div class="sub">DEMO · v0.41</div>
     <div class="press">PRESS ANY BUTTON</div>
   </div>
 
@@ -1863,6 +1892,7 @@ body.theme-v2 .screenSub, body.theme-v2 #titleScreen .press, body.theme-v2 #game
       <div id="bonusSection"></div>
       <div id="rocketSection"></div>
     </div>
+    <div class="legalLinks"><a href="privacy.html" target="_blank" rel="noopener">Privacy</a> · <a href="terms.html" target="_blank" rel="noopener">Terms</a></div>
   </div>
 
   <!-- LEVEL SELECT -->
@@ -1958,7 +1988,7 @@ body.theme-v2 .screenSub, body.theme-v2 #titleScreen .press, body.theme-v2 #game
     <div class="wlTitle" id="wlTitle">DEMO CHAPTER CLEAR</div>
     <div class="wlBody" id="wlBody">
       Thanks for playing the <b>RINGSHIFT</b> demo! You've cleared everything currently available in this build.
-      Full release will bring more rings, more gimmicks, and a much longer ladder of levels.
+      Full release will bring more rings, more mechanisms, and a much longer ladder of levels.
     </div>
     <div class="wlBtns">
       <a class="wlBtn" id="wlWishlistBtn" target="_blank" rel="noopener" hidden>☆ WISHLIST ON STEAM</a>
@@ -6470,6 +6500,10 @@ document.getElementById('htpGotItBtn').addEventListener('click', ()=>{
 
 // ---- Options ----
 function applyOptionsToUI(){
+  // v0.41: hide the Fullscreen switch where the browser can't do it (iPhone Safari has no fullscreen API, and an
+  // embed such as itch.io's may not allow it) instead of showing a switch that silently does nothing.
+  { const row = document.getElementById('fullscreenRow');
+    if(row) row.style.display = (document.documentElement.requestFullscreen && document.fullscreenEnabled !== false) ? '' : 'none'; }
   // v0.39: Debug Mode (unlock everything + free coins) is a developer switch. It is hidden in the public demo
   // unless the page is opened with ?debug, or it is already on in this save (so it can always be turned off).
   { const row = document.getElementById('debugModeRow');
@@ -6546,7 +6580,7 @@ document.addEventListener('fullscreenchange', ()=>{
   document.getElementById('fullscreenToggle').classList.toggle('on', !!document.fullscreenElement);
 });
 document.getElementById('eraseSaveBtn').addEventListener('click', ()=>{
-  showConfirm('ERASE SAVE DATA?', 'This deletes ALL progress, coins, and options on this device. This cannot be undone.', ()=>{
+  showConfirm('ERASE SAVE DATA?', 'This deletes ALL progress, keys, gift boxes and options on this device. This cannot be undone.', ()=>{
     try{ localStorage.removeItem(SAVE_KEY); }catch(e){}
     save = defaultSave();
     persistSave();
@@ -7516,8 +7550,8 @@ function updateNextButtonUI(){
   }
   nextBtn.disabled = !gstate.nextUnlocked;
   nextBtn.title = currentMode === 'special'
-    ? 'Wait it out \u2014 the run finishes once every coin is saved or lost'
-    : (gstate.nextUnlocked ? 'Move on without the coin' : 'Light every required Lock to unlock');
+    ? 'Wait it out \u2014 the run finishes once every gift lock is saved or lost'
+    : (gstate.nextUnlocked ? 'Move on without the gift box' : 'Light every required Lock to unlock');
 }
 
 // Manual escape hatch: once NEXT has unlocked (every required Lock was lit
@@ -7631,7 +7665,7 @@ function showWishlistScreen(finishedMode){
   document.getElementById('wlTitle').textContent = allModesCleared ? 'DEMO COMPLETE' : 'DEMO CHAPTER CLEAR';
   document.getElementById('wlBody').innerHTML = allModesCleared
     ? `You've cleared <b>everything</b> in the RINGSHIFT demo — every mode, every level. Thank you for playing this far!
-       The full release will bring more rings, more gimmicks, and a much longer ladder of levels.`
+       The full release will bring more rings, more mechanisms, and a much longer ladder of levels.`
     : `You've cleared every level in <b>${MODE_META[finishedMode].label}</b> mode. That's as far as this demo build goes
        for now on this difficulty — thanks for playing! Check other modes from the menu${STEAM_STORE_URL ? ', or wishlist the full game below' : ''}.`;
   document.getElementById('wlContinueBtn').style.display = allModesCleared ? 'none' : '';
@@ -7691,10 +7725,10 @@ function stopGameTimers(){
 const POWER_MODES = ['easy','normal','hard'];
 const POWER_DEFS = [
   {id:'lock_expansion', slot:1, name:'LOCK EXPANSION', icon:'\u21d4', unlocked:true, durationMs:0,
-   desc:'Every rim Lock grows to cover two adjacent rim slots (where there is room). Disables this attempt\u2019s coin.',
+   desc:'Every rim Lock grows to cover two adjacent rim slots (where there is room). No gift box on this attempt.',
    activate:()=>PowerSys.lockExpansion()},
   {id:'ufo_strike', slot:2, name:'UFO STRIKE', icon:'\ud83d\udef8', unlocked:true, durationMs:10000,
-   desc:'Summons the UFO for 10s. Tap ONE gimmick to destroy it. Never targets Locks. Disables this attempt\u2019s coin.',
+   desc:'Summons the UFO for 10s. Tap ONE mechanism to destroy it. Never targets Locks. No gift box on this attempt.',
    activate:()=>PowerSys.ufoStrike()},
 ];
 for(let sl=3; sl<=10; sl++) POWER_DEFS.push({id:'power_'+sl, slot:sl, name:'LOCKED', icon:'\ud83d\udd12', unlocked:false, reserved:true, desc:'Reserved for a future Power.', activate:null});
@@ -7730,7 +7764,7 @@ const PowerSys = (function(){
     P().alias = m; P().fresh = true; setTimeout(()=>{ if(P()) P().fresh = false; }, 900);
     m.forEach((owner, extra)=>{ const a = slotToAngle(extra, lvl.slots), x = Math.cos(a)*RIM_R, y = Math.sin(a)*RIM_R; Fx.ring(x,y,6,42,'#9ff7ff'); Fx.burst(x,y,'#d8fbff',12); });
     AudioSys.playMenuBlip();
-    toast('LOCK EXPANSION \u2014 Locks widened. Coin disabled for this attempt.');
+    toast('LOCK EXPANSION \u2014 Locks widened. No gift box this attempt.');
     recomputeFlow(); checkWin(); renderPuzzle(); updateTopBar();
     return true;
   }
@@ -7754,10 +7788,10 @@ const PowerSys = (function(){
     return out;
   }
   function ufoStrike(){
-    if(!listTargets().length){ toast('No gimmicks on this level to target \u2014 Power not used.'); return false; }
+    if(!listTargets().length){ toast('No mechanisms on this level to target \u2014 Power not used.'); return false; }
     P().ufo = {endsAt:Date.now()+UFO_MS, paused:false, pauseAt:0, shot:null};
     startTimer(); AudioSys.playRocketLaunch();
-    toast('UFO on station \u2014 tap ONE gimmick within 10s. Coin disabled.');
+    toast('UFO on station \u2014 tap ONE mechanism within 10s. No gift box this attempt.');
     renderPuzzle();
     return true;
   }
@@ -7780,7 +7814,7 @@ const PowerSys = (function(){
     const ring = gstate.level.rings[t.ringIdx];
     if(ring && ring.gimmicks) delete ring.gimmicks[t.key];
     AudioSys.playRocketImpact(); Fx.shatter(t.x,t.y,'rgba(255,150,90,.55)'); Fx.burst(t.x,t.y,'#ffb347',16); Fx.shake(true);
-    toast('UFO STRIKE \u2014 gimmick destroyed. Restart to undo.');
+    toast('UFO STRIKE \u2014 mechanism destroyed. Restart to undo.');
     recomputeFlow(); checkWin(); renderPuzzle(); updateTopBar(); updateUI();
   }
   const targeting = ()=>{ const u = P() && P().ufo; return !!(u && !u.shot && !u.paused && !gstate.won); };
@@ -7855,7 +7889,8 @@ const PowerSys = (function(){
   function renderModal(){
     const wrap = $('powersList'); wrap.innerHTML = '';
     const eq = equipped();
-    POWER_DEFS.forEach(d=>{
+    // v0.41: the 8 empty "Reserved for a future Power" slots are no longer listed to players
+    POWER_DEFS.filter(d=>!d.reserved).forEach(d=>{
       const un = isUnlocked(d), isEq = !!(eq && eq.id === d.id);
       const row = document.createElement('div'); row.className = 'shopItem'+(isEq ? ' equipped' : '');
       row.innerHTML = `<div class="shopSwatch" style="display:flex;align-items:center;justify-content:center;font-size:13px;background:rgba(255,210,63,.1);">${d.icon}</div>

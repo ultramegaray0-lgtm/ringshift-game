@@ -1,5 +1,5 @@
 {
- "gameFile": "ringshift v0.40.html",
+ "gameFile": "ringshift v0.41.html",
  "note": "Every winning rotation per level as \"r1,r2,..|lit coin locks\". Regenerate only after a deliberate change.",
  "levels": {
   "easy#1": {

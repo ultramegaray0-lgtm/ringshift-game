@@ -13,8 +13,15 @@
 
 The board is a real Ringshift position (12 slots, 3 rings: a Prism, a pinned
 Mirror, two Blocks, three lit Locks and one unlit Lock). Its beams are not
-drawn by hand: `trace_board.py` loads `ringshift v0.34.html` and calls the
-game's `traceAllBeams()`, and the cover draws exactly those segments. The
+drawn by hand: `trace_board.py` loads the game file (currently
+`ringshift v0.41.html`) and calls the game's `traceAllBeams()`, and the cover
+draws exactly those segments. The Mirror is drawn as the game draws it since
+v0.35 (dark disc, white slash bar).
+
+v0.41: the cover was re-traced. The v0.34 cover predated the v0.36 Mirror fix,
+so its beam bent the old way and its Mirror used the retired turn-arrow glyph.
+The Mirror is now a ╲ (`mirror_l`), which lights the same three Locks under
+current rules. The
 engine ends a beam on a Block, a Source, an unpaired hole, or at `RIM_R`
 (232), the centre line of the rim glass, so no beam can leave the board.
 
@@ -32,7 +39,7 @@ inside the lit Lock panel at 3 o'clock.
 ```sh
 pip install playwright pillow numpy && playwright install chromium
 cd marketing/itch-cover
-python3 trace_board.py "../../ringshift v0.34.html" board.json
+python3 trace_board.py "../../ringshift v0.41.html" board.json
 python3 build_cover.py board.json .
 ```
 

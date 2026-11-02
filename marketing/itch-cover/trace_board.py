@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Trace the cover's showcase board with the GAME'S OWN engine and write board.json.
 
-  python3 trace_board.py "../../ringshift v0.34.html" board.json
+  python3 trace_board.py "../../ringshift v0.41.html" board.json
 
 Loads the game in headless Chromium and calls its traceAllBeams() on the board
 below (12 slots, 3 rings, all rotations 0). Nothing in the game file is changed.
@@ -9,11 +9,11 @@ below (12 slots, 3 rings, all rotations 0). Nothing in the game file is changed.
 import asyncio, json, sys
 from playwright.async_api import async_playwright
 
-GAME = sys.argv[1] if len(sys.argv) > 1 else '../../ringshift v0.34.html'
+GAME = sys.argv[1] if len(sys.argv) > 1 else '../../ringshift v0.41.html'
 OUT = sys.argv[2] if len(sys.argv) > 2 else 'board.json'
 
 RINGS = [
-    {"spokeSlots": [9], "gimmicks": {"4": {"type": "block"}, "5": {"type": "mirror_r", "fixed": True}, "10": {"type": "block"}}},
+    {"spokeSlots": [9], "gimmicks": {"4": {"type": "block"}, "5": {"type": "mirror_l", "fixed": True}, "10": {"type": "block"}}},
     {"spokeSlots": [2], "gimmicks": {}},
     {"spokeSlots": [11], "gimmicks": {"3": {"type": "prism"}}},
 ]

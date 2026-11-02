@@ -23,7 +23,9 @@ concurrency:
 env:
   # The game source file in the repository. It is published as index.html;
   # the file in the repository is never renamed or deleted.
-  GAME_FILE: ringshift v0.40.html
+  GAME_FILE: ringshift v0.41.html
+  # Other pages published next to the game (the game links to them).
+  EXTRA_PAGES: privacy.html terms.html
 
 jobs:
   build:
@@ -48,7 +50,7 @@ jobs:
       - name: Check Pages is enabled for GitHub Actions
         uses: actions/configure-pages@v6
 
-      - name: Assemble site (game file -> index.html)
+      - name: Assemble site (game file -> index.html, plus the legal pages)
         run: |
           set -euo pipefail
           if [ ! -f "$GAME_FILE" ]; then
@@ -58,7 +60,15 @@ jobs:
           rm -rf _site
           mkdir _site
           cp -- "$GAME_FILE" _site/index.html
+          for page in $EXTRA_PAGES; do
+            if [ ! -f "$page" ]; then
+              echo "::error::'$page' (EXTRA_PAGES) not found in the repository root."
+              exit 1
+            fi
+            cp -- "$page" "_site/$page"
+          done
           ls -l _site
+          (cd _site && sha256sum -- *)
 
       - name: Check for missing assets and broken relative paths
         run: python3 .github/scripts/check_site.py _site

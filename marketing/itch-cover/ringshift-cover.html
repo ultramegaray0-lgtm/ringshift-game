@@ -245,13 +245,15 @@ B.rings.forEach((ring,ri)=>{
       el('polygon',{points:'0,-8.6 7.6,5 -7.6,5',fill:'rgba(255,94,196,.22)',stroke:C.prism,'stroke-width':1.9,'stroke-linejoin':'round'},pg);
       el('polygon',{points:'0,-4.3 3.6,2.2 -3.6,2.2',fill:'#ffe3f5',opacity:.9},pg);
     } else if(g.type==='mirror_l'||g.type==='mirror_r'){
-      const mg=el('g',{transform:`translate(${f(x)},${f(y)}) scale(1.15)`},glTop);
-      el('circle',{r:12.6,fill:'none',stroke:'#ffe9a6','stroke-width':1.1,'stroke-dasharray':'1.6 2.2',opacity:.85},mg); // pinned ring
-      el('circle',{r:9.8,fill:'#0a1018',stroke:'#ffffff','stroke-width':1.8},mg);
-      // turn glyph: 90° bend arrow (mirror_r = counter-clockwise bend)
-      const sx=g.type==='mirror_r'?-1:1;
-      el('path',{d:`M ${f(3.4*sx)} 4.6 L ${f(3.4*sx)} -1.2 Q ${f(3.4*sx)} -3.6 ${f(1*sx)} -3.6 L ${f(-3.4*sx)} -3.6`,fill:'none',stroke:'#fff','stroke-width':1.9,'stroke-linecap':'round','stroke-linejoin':'round'},mg);
-      el('path',{d:`M ${f(-1.4*sx)} -6 L ${f(-4.2*sx)} -3.6 L ${f(-1.4*sx)} -1.2`,fill:'none',stroke:'#fff','stroke-width':1.9,'stroke-linecap':'round','stroke-linejoin':'round'},mg);
+      // The game's Mirror since v0.35 (mechTurnGlyph): dark disc + white slash bar at MIRROR_BAR_DEG
+      // (mirror_l = 45 deg, drawn as a backslash; mirror_r = 135 deg), half-extent 10.5, MECH_SCALE 1.3.
+      const mg=el('g',{transform:`translate(${f(x)},${f(y)}) scale(1.3)`},glTop);
+      el('circle',{r:12.4,fill:'none',stroke:'#ffe9a6','stroke-width':1,'stroke-dasharray':'1.6 2.2',opacity:.85},mg); // pinned ring
+      el('circle',{r:9,fill:'#0a1018',stroke:'#ffffff','stroke-width':1.9},mg);
+      const ba=(g.type==='mirror_l'?45:135)*Math.PI/180, k=10.5*Math.SQRT2, ex=Math.cos(ba)*k, ey=Math.sin(ba)*k;
+      const pts={x1:f(-ex),y1:f(-ey),x2:f(ex),y2:f(ey)};
+      el('line',Object.assign({stroke:'rgba(0,0,0,.6)','stroke-width':5.6,'stroke-linecap':'round'},pts),mg);
+      el('line',Object.assign({stroke:'#ffffff','stroke-width':3.4,'stroke-linecap':'round'},pts),mg);
     } else if(g.type==='amp'){
       const ag=el('g',{transform:`translate(${f(x)},${f(y)}) scale(1.2)`},glTop);
       el('circle',{r:9,fill:'#2a2108',stroke:'#ffd23f','stroke-width':1.8},ag);

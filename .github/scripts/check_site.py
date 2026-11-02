@@ -3,8 +3,9 @@
 
 Usage: python3 .github/scripts/check_site.py _site
 
-Fails (exit 1) if:
-  * index.html is missing, empty, or not an HTML document;
+Checks index.html and every other .html page in the site folder (the legal
+pages). Fails (exit 1) if:
+  * index.html is missing, or a page is empty or not an HTML document;
   * the page references a local file (img/script/link/source/... or a CSS
     url()) that is not present in the site folder;
   * the page references a local file by an absolute path ("/foo.js"), which
@@ -60,6 +61,17 @@ def main(site):
     if not os.path.isfile(index) or os.path.getsize(index) == 0:
         print(f"::error::{index} is missing or empty")
         return 1
+    pages = sorted(f for f in os.listdir(site) if f.lower().endswith(".html"))
+    status = 0
+    for name in pages:
+        status |= check_page(site, name)
+    if not status:
+        print(f"Site check passed: {len(pages)} page(s) ({', '.join(pages)}), no missing assets or broken relative paths.")
+    return status
+
+
+def check_page(site, name):
+    index = os.path.join(site, name)
     with open(index, encoding="utf-8") as fh:
         html = fh.read()
     if not re.search(r"<html[\s>]", html, re.I):
@@ -86,13 +98,10 @@ def main(site):
             problems.append(f"{where} references missing file '{url}'")
 
     size_kb = os.path.getsize(index) / 1024
-    print(f"index.html: {size_kb:.0f} KB, {len(parser.refs)} URL references, {local} local")
+    print(f"{name}: {size_kb:.0f} KB, {len(parser.refs)} URL references, {local} local")
     for p in problems:
-        print(f"::error::{p}")
-    if problems:
-        return 1
-    print("Site check passed: no missing assets or broken relative paths.")
-    return 0
+        print(f"::error::{name}: {p}")
+    return 1 if problems else 0
 
 
 if __name__ == "__main__":
