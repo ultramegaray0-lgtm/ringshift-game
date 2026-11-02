@@ -915,6 +915,7 @@ body.theme-sakura .gimmickChip, body.theme-sakura #powerStatus, body.theme-sakur
     border-radius:6px; cursor:pointer; border:1.5px solid var(--target-bonus-on); color:var(--target-bonus-on);
     background:rgba(255,210,63,0.08);}
   #wishlistScreen .wlBtn:hover{box-shadow:0 0 20px rgba(255,210,63,.35);}
+  #wishlistScreen .wlBtn[hidden]{display:none !important;}
   #wishlistScreen .wlBtn.secondary{border-color:var(--panel-line); color:var(--text1); background:rgba(127,231,255,0.04);}
   #wishlistScreen .wlBtn.secondary:hover{border-color:var(--ring); color:var(--ring);}
 
@@ -1612,6 +1613,13 @@ body.theme-v2 .screenSub, body.theme-v2 #titleScreen .press, body.theme-v2 #game
 #modeScreen.active{overflow-y:auto; overflow-x:hidden; justify-content:flex-start; -webkit-overflow-scrolling:touch}
 #modeScreen::before, #modeScreen::after{content:''; flex:1 0 0}
 @media (max-width:520px){ #modeScreen{padding-top:64px} }
+/* v0.40: phones held sideways (short landscape): the WINS / KEYS tally, pinned top-right, overlapped the subtitle
+   and the POWER button, and the title ran under INVENTORY. Same fix as narrow phones: the tally joins the column
+   and the column starts below the corner buttons. */
+@media (orientation:landscape) and (max-height:520px){
+  #modeScreen{padding-top:64px}
+  #modeScreen .coinTally{position:static; margin:0 0 10px; text-align:center}
+}
 /* 2. Level select: "◀ MODES" sat under the round options button. */
 #levelScreen > .backBtn{left:62px}
 /* 4. Stacked pieces: a piece covered by another piece of its ring is ignored by the beam, so it is drawn faded. */
@@ -1834,7 +1842,7 @@ body.theme-v2 .screenSub, body.theme-v2 #titleScreen .press, body.theme-v2 #game
     <div class="ringdeco r3"></div>
     <div class="ringdeco r2"></div>
     <h1 class="logo">RINGSHIFT</h1>
-    <div class="sub">DEMO · v0.39</div>
+    <div class="sub">DEMO · v0.40</div>
     <div class="press">PRESS ANY BUTTON</div>
   </div>
 
@@ -1953,7 +1961,7 @@ body.theme-v2 .screenSub, body.theme-v2 #titleScreen .press, body.theme-v2 #game
       Full release will bring more rings, more gimmicks, and a much longer ladder of levels.
     </div>
     <div class="wlBtns">
-      <a class="wlBtn" id="wlWishlistBtn" href="https://store.steampowered.com/" target="_blank" rel="noopener">☆ WISHLIST ON STEAM</a>
+      <a class="wlBtn" id="wlWishlistBtn" target="_blank" rel="noopener" hidden>☆ WISHLIST ON STEAM</a>
       <button class="wlBtn secondary" id="wlContinueBtn">CONTINUE PLAYING</button>
       <button class="wlBtn secondary" id="wlMenuBtn">◀ BACK TO MENU</button>
     </div>
@@ -7611,7 +7619,13 @@ function finishLevel(withCoin){
   } else proceed(false);
 }
 
+// v0.40: Ringshift has no Steam store page yet, so the WISHLIST ON STEAM button stays hidden (it used to open
+// Steam's home page). Put the game's own store URL here (https://store.steampowered.com/app/<id>/...) to show it.
+const STEAM_STORE_URL = '';
 function showWishlistScreen(finishedMode){
+  const wlBtn = document.getElementById('wlWishlistBtn');
+  if(STEAM_STORE_URL){ wlBtn.href = STEAM_STORE_URL; wlBtn.hidden = false; }
+  else { wlBtn.removeAttribute('href'); wlBtn.hidden = true; }
   const allModesCleared = Object.keys(LEVELS).every(m => LEVELS[m].length===0 ||
     save.progress[m].every(p=>p.completed));
   document.getElementById('wlTitle').textContent = allModesCleared ? 'DEMO COMPLETE' : 'DEMO CHAPTER CLEAR';
@@ -7619,7 +7633,7 @@ function showWishlistScreen(finishedMode){
     ? `You've cleared <b>everything</b> in the RINGSHIFT demo — every mode, every level. Thank you for playing this far!
        The full release will bring more rings, more gimmicks, and a much longer ladder of levels.`
     : `You've cleared every level in <b>${MODE_META[finishedMode].label}</b> mode. That's as far as this demo build goes
-       for now on this difficulty — thanks for playing! Check other modes from the menu, or wishlist the full game below.`;
+       for now on this difficulty — thanks for playing! Check other modes from the menu${STEAM_STORE_URL ? ', or wishlist the full game below' : ''}.`;
   document.getElementById('wlContinueBtn').style.display = allModesCleared ? 'none' : '';
   showScreen('wishlistScreen');
   AudioSys.stopMusic();
@@ -11354,7 +11368,7 @@ const GamepadNav = (function(){
     if(document.getElementById('levelScreen').classList.contains('active'))
       return [...document.querySelectorAll('#levelGrid .levelCard'), document.getElementById('backToModeBtn')];
     if(document.getElementById('wishlistScreen').classList.contains('active'))
-      return [...document.querySelectorAll('#wishlistScreen .wlBtn')];
+      return [...document.querySelectorAll('#wishlistScreen .wlBtn')].filter(b => !b.hidden && b.style.display !== 'none');
     return [];
   }
   function applyFocusHighlight(){

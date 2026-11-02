@@ -1,7 +1,7 @@
 # Ringshift
 
 A ring-rotation light puzzle game in a single self-contained HTML file
-(`ringshift v0.39.html`). There is nothing to install or build: open the file
+(`ringshift v0.40.html`). There is nothing to install or build: open the file
 in a browser to play.
 
 ## Live demo
@@ -21,7 +21,7 @@ Publishing is automatic and handled by
 1. A commit reaches `main` (a direct push or a merged pull request), or someone
    starts the workflow by hand from **Actions → Publish Ringshift to GitHub
    Pages → Run workflow** with the branch set to `main`.
-2. The **build** job copies `ringshift v0.39.html` to `index.html` in a
+2. The **build** job copies `ringshift v0.40.html` to `index.html` in a
    temporary `_site/` folder. The source file in the repository is not renamed
    or changed. It then runs `.github/scripts/check_site.py`, which fails the
    run if the page references a local file that is missing or uses an absolute
@@ -65,11 +65,11 @@ commit on `main`; the revert triggers a new deployment of the previous build.
 
 ## Run locally
 
-Open `ringshift v0.39.html` directly in a browser, or serve the folder:
+Open `ringshift v0.40.html` directly in a browser, or serve the folder:
 
 ```sh
 python3 -m http.server 8000
-# then open http://localhost:8000/ringshift%20v0.39.html
+# then open http://localhost:8000/ringshift%20v0.40.html
 ```
 
 ## Tests
@@ -79,7 +79,7 @@ by `GAME_FILE` in the workflow, so they check exactly what players run. They
 need only Node.js; the publish workflow runs them before every deployment.
 
 ```sh
-node tests/run.js               # mirror rules + every level's win set + design rules + float robustness + stacked pieces
+node tests/run.js               # mirror rules + every level's win set + design rules + float robustness + stacked pieces + phone layout
 node tests/render.test.js       # optional: drawn mirrors/beams vs engine, needs Playwright + Chromium
 ```
 
@@ -105,6 +105,10 @@ node tests/render.test.js       # optional: drawn mirrors/beams vs engine, needs
   the piece in play normally, marks a Black Hole whose twin is covered, and
   that a touch drag keeps working when the board is rebuilt mid-drag (its
   browser part needs Playwright + Chromium and skips without them).
+- `tests/layout.test.js` (browser part needs Playwright + Chromium and skips without them): the difficulty
+  screen's tally, title, POWER and INVENTORY never overlap in portrait or short landscape, and the demo-end
+  screen shows no Steam link or WISHLIST button while `STEAM_STORE_URL` in the game file is empty (there is no
+  store page yet; put the game's own store URL there to show the button).
 - `tests/design.test.js`: design rules for Meteor Attack, Space Orchestra,
   Rocket Attack and Challenge, which the golden file can't catch: each level's
   featured gimmick is needed by every answer, no ring is idle, every level can
