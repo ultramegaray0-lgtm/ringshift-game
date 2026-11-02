@@ -39,7 +39,7 @@ inside the lit Lock panel at 3 o'clock.
 ```sh
 pip install playwright pillow numpy && playwright install chromium
 cd marketing/itch-cover
-python3 trace_board.py "../../ringshift v0.42.html" board.json
+python3 trace_board.py "../../ringshift v0.43.html" board.json
 python3 build_cover.py board.json .
 ```
 

@@ -29,7 +29,7 @@ answer). Easy 4 was reviewed but not approved, so it is unchanged. Space Orchest
 Winning positions do not depend on the start: the engine decides a win from the rings' rotations alone. The proof
 is mechanical, not by inspection:
 
-1. The game file's diff against v0.42 is exactly the `initialRotation` values above (7 numbers on 7 lines).
+1. The game file's diff against v0.42 is the `initialRotation` values above (9 numbers on 9 lines), one comment line per level recording the change, a note on Normal 24's old comment, and the version label.
 2. The engine (`function slotToAngle(` … `const EMITTER_BOUNCES`) is byte-identical to v0.42.
 3. `tests/golden/level-wins.json` (every winning rotation of every level and which gift Locks each lights) passes
    **without** `--update`; only its version header line changes.

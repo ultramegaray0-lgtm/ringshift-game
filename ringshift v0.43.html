@@ -1911,7 +1911,7 @@ body.theme-v2 .screenSub, body.theme-v2 #titleScreen .press, body.theme-v2 #game
     <div class="ringdeco r3"></div>
     <div class="ringdeco r2"></div>
     <h1 class="logo">RINGSHIFT</h1>
-    <div class="sub">DEMO · v0.42</div>
+    <div class="sub">DEMO · v0.43</div>
     <div class="press">PRESS ANY BUTTON</div>
   </div>
 
@@ -3535,11 +3535,12 @@ const LEVELS = {
       ], lockSlots:[4,9], bonusLockSlots:[1]},
     // BLACK HOLE (two-node footprint) rebuild: brute-forced 2 winning rotation(s) -- 1 coin solution, 1 no-coin; every portal/mirror/prism/amp on the winning path checked; no inert rings; start lights 0 required locks.
     // v0.36 MIRROR FIX: relabelled R1 s1 ╲→╱ so the drawn bar matches the turn this level was built on. Win set unchanged (re-verified: 2 winning rotation(s), same coin results).
+    // v0.43 START (approved difficulty change): initialRotation [6,5,8,1] -> [9,4,8,4] (fewest moves 7 -> 5, gift 7 -> 6). Start lights 0 required Locks and every ring must turn. Win set and gift results unchanged (tests/golden).
     {name:'LEVEL 13', slots:12, rings:[
-        {spokeSlots:[3], gimmicks:{1:{type:'mirror_r', fixed:true}}, initialRotation:6},
-        {spokeSlots:[2], gimmicks:{1:'block'}, initialRotation:5},
+        {spokeSlots:[3], gimmicks:{1:{type:'mirror_r', fixed:true}}, initialRotation:9},
+        {spokeSlots:[2], gimmicks:{1:'block'}, initialRotation:4},
         {spokeSlots:[5], gimmicks:{2:{type:'portal', id:'P0', turn:180, fixed:true}}, initialRotation:8},
-        {spokeSlots:[7,8], gimmicks:{10:{type:'portal', id:'P0', fixed:true}}, initialRotation:1}
+        {spokeSlots:[7,8], gimmicks:{10:{type:'portal', id:'P0', fixed:true}}, initialRotation:4}
       ], lockSlots:[2,4,8,10], bonusLockSlots:[3]},
     // SATELLITE FIX (horizontal, dish RIGHT, pinned): brute-forced 5 winning rotation(s) -- 1 coin solution, 4 no-coin; 0 solutions exist with the Satellite removed, so it is REQUIRED to win; no inert rings; start lights 0/2 required.
     {name:'LEVEL 14', slots:10, rings:[
@@ -3566,9 +3567,10 @@ const LEVELS = {
         {spokeSlots:[4,8], gimmicks:{3:{type:'half_block', side:'in'}, 6:{type:'portal', id:'P0', fixed:true}, 10:{type:'portal', id:'P0', turn:180, fixed:true}}, initialRotation:5}
       ], lockSlots:[11,4], bonusLockSlots:[7]},
     // SATELLITE FIX (horizontal, dish RIGHT, pinned): brute-forced 4 winning rotation(s) -- 1 coin solution, 3 no-coin; 0 solutions exist with the Satellite removed, so it is REQUIRED to win; no inert rings; start lights 0/2 required.
+    // v0.43 START (approved difficulty change): initialRotation [6,9] -> [1,4] (fewest moves 1 -> 6, gift 4 -> 6). Start lights 0 required Locks and every ring must turn. Win set and gift results unchanged (tests/golden).
     {name:'LEVEL 19', slots:10, rings:[
-        {spokeSlots:[0,2,8], gimmicks:{}, initialRotation:6},
-        {spokeSlots:[2], gimmicks:{0:{type:'echo_portal', turn:90, fixed:true}}, initialRotation:9}
+        {spokeSlots:[0,2,8], gimmicks:{}, initialRotation:1},
+        {spokeSlots:[2], gimmicks:{0:{type:'echo_portal', turn:90, fixed:true}}, initialRotation:4}
       ], lockSlots:[1,6], bonusLockSlots:[9]},
     // Black Hole mouths kept off the outer ring, 120° apart (ring 2/3 slot 7; ring 3/3 slot 11 turn -150); solution unchanged.
     // v0.39 GIFT BOX FIX: since the v0.36 mirror fix no winning rotation lit the gift box (bonus Lock) here. Bonus Lock moved 1 -> 11: lit only by [7,2,2] (the v0.35 gift answer). Required Locks, pieces and every winning rotation unchanged.
@@ -3735,12 +3737,13 @@ const LEVELS = {
         {spokeSlots:[7,8], gimmicks:{6:{type:'portal', id:'P0', turn:-165, fixed:true}}, initialRotation:5}
       ], lockSlots:[2,8,11], bonusLockSlots:[1]},
     // REBUILT for the exact-90-degree Mirror rule. Rings/gimmicks unchanged; only Locks (and start rotation if needed) re-derived.
-    // Brute-forced: 1 coin solution [9,5,5], 1 no-coin; mirror all necessary; start lights 1/4 required.
+    // Brute-forced: 1 coin solution [9,5,5], 1 no-coin; mirror all necessary; start lights 1/4 required (v0.43 start: 0/4).
     // v0.36 MIRROR FIX: relabelled R2 s7 ╲→╱ so the drawn bar matches the turn this level was built on. Win set unchanged (re-verified: 2 winning rotation(s), same coin results).
+    // v0.43 START (approved difficulty change): initialRotation [3,11,11] -> [3,7,4] (fewest moves 17 -> 8, gift 18 -> 9). Start lights 0 required Locks and every ring must turn. Win set and gift results unchanged (tests/golden).
     {name:'LEVEL 24', slots:12, rings:[
         {spokeSlots:[10], gimmicks:{}, initialRotation:3},
-        {spokeSlots:[0,11], gimmicks:{1:{type:'half_block', side:'in'}, 3:'block', 7:{type:'mirror_r', fixed:true}}, initialRotation:11},
-        {spokeSlots:[2,3], gimmicks:{}, initialRotation:11}
+        {spokeSlots:[0,11], gimmicks:{1:{type:'half_block', side:'in'}, 3:'block', 7:{type:'mirror_r', fixed:true}}, initialRotation:7},
+        {spokeSlots:[2,3], gimmicks:{}, initialRotation:4}
       ], lockSlots:[1,2,5,11], bonusLockSlots:[10]},
     // BLACK HOLE (two-node footprint) rebuild: brute-forced 3 winning rotation(s) -- 1 coin solution, 2 no-coin; every portal/mirror/prism/amp on the winning path checked; no inert rings; start lights 0 required locks.
     {name:'LEVEL 25', slots:12, rings:[
@@ -3781,9 +3784,10 @@ const LEVELS = {
         {spokeSlots:[10], gimmicks:{2:{type:'prism'}}, initialRotation:7}
       ], lockSlots:[9,3], bonusLockSlots:[10]},
     // BLACK HOLE (two-node footprint) rebuild: brute-forced 3 winning rotation(s) -- 1 coin solution, 2 no-coin; every portal/mirror/prism/amp on the winning path checked; no inert rings; start lights 0 required locks.
+    // v0.43 START (approved difficulty change): initialRotation [8,6] -> [11,2] (fewest moves 2 -> 7, gift 5 -> 12). Start lights 0 required Locks and every ring must turn. Win set and gift results unchanged (tests/golden).
     {name:'LEVEL 6', slots:12, rings:[
-        {spokeSlots:[8,10], gimmicks:{}, initialRotation:8},
-        {spokeSlots:[8], gimmicks:{6:{type:'portal', id:'P0', turn:-150, fixed:true}, 7:{type:'prism'}, 10:{type:'portal', id:'P0', fixed:true}}, initialRotation:6}
+        {spokeSlots:[8,10], gimmicks:{}, initialRotation:11},
+        {spokeSlots:[8], gimmicks:{6:{type:'portal', id:'P0', turn:-150, fixed:true}, 7:{type:'prism'}, 10:{type:'portal', id:'P0', fixed:true}}, initialRotation:2}
       ], lockSlots:[7,11], bonusLockSlots:[2]},
     // SATELLITE FIX (vertical, dish DOWN, pinned): brute-forced 2 winning rotation(s) -- 1 coin solution, 1 no-coin; 0 solutions exist with the Satellite removed, so it is REQUIRED to win; no inert rings; start lights 0/3 required.
     // v0.36 MIRROR FIX: relabelled R3 s1 ╱→╲ so the drawn bar matches the turn this level was built on. Win set unchanged (re-verified: 2 winning rotation(s), same coin results).
