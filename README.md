@@ -1,7 +1,7 @@
 # Ringshift
 
 A ring-rotation light puzzle game in a single self-contained HTML file
-(`ringshift v0.41.html`). There is nothing to install or build: open the file
+(`ringshift v0.42.html`). There is nothing to install or build: open the file
 in a browser to play.
 
 ## Live demo
@@ -25,7 +25,7 @@ Publishing is automatic and handled by
 1. A commit reaches `main` (a direct push or a merged pull request), or someone
    starts the workflow by hand from **Actions → Publish Ringshift to GitHub
    Pages → Run workflow** with the branch set to `main`.
-2. The **build** job copies `ringshift v0.41.html` to `index.html` in a
+2. The **build** job copies `ringshift v0.42.html` to `index.html` in a
    temporary `_site/` folder, next to the legal pages listed in `EXTRA_PAGES`
    (`privacy.html`, `terms.html`). The source files in the repository are not
    renamed or changed. It then runs `.github/scripts/check_site.py`, which
@@ -70,11 +70,11 @@ commit on `main`; the revert triggers a new deployment of the previous build.
 
 ## Run locally
 
-Open `ringshift v0.41.html` directly in a browser, or serve the folder:
+Open `ringshift v0.42.html` directly in a browser, or serve the folder:
 
 ```sh
 python3 -m http.server 8000
-# then open http://localhost:8000/ringshift%20v0.41.html
+# then open http://localhost:8000/ringshift%20v0.42.html
 ```
 
 ## Tests
@@ -114,6 +114,9 @@ node tests/render.test.js       # optional: drawn mirrors/beams vs engine, needs
   screen's tally, title, POWER and INVENTORY never overlap in portrait or short landscape, and the demo-end
   screen shows no Steam link or WISHLIST button while `STEAM_STORE_URL` in the game file is empty (there is no
   store page yet; put the game's own store URL there to show the button).
+- `tests/save.test.js` (browser part needs Playwright + Chromium and skips without them): Options → Back Up
+  Progress. A backup code and a backup file each restore the exact same progress into an empty browser after a
+  confirm; a wrong or cut-off code is refused; a damaged save falls back to the last save that loaded cleanly.
 - `tests/design.test.js`: design rules for Meteor Attack, Space Orchestra,
   Rocket Attack and Challenge, which the golden file can't catch: each level's
   featured gimmick is needed by every answer, no ring is idle, every level can

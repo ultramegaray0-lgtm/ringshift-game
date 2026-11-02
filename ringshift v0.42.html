@@ -820,6 +820,14 @@ body.theme-sakura .gimmickChip, body.theme-sakura #powerStatus, body.theme-sakur
 
   /* How-To-Play legend rows */
   .htpSection{margin-bottom:16px;}
+  /* v0.42: Back Up Progress modal */
+  .backupBtns{display:flex; flex-wrap:wrap; gap:8px; margin:12px 0}
+  .backupBtns .modalBtn{flex:1 1 180px}
+  .backupLabel{font-size:11.5px; color:var(--text2); margin-top:6px}
+  #backupCode{width:100%; box-sizing:border-box; margin-top:6px; font-family:var(--font-mono); font-size:11px; line-height:1.35;
+    color:var(--text0); background:rgba(0,0,0,.35); border:1px solid var(--panel-line); border-radius:6px; padding:8px; resize:vertical; word-break:break-all}
+  .backupStatus{min-height:18px; font-size:12px; color:var(--ok)}
+  .backupStatus.err{color:var(--warn)}
   /* v0.41: Privacy / Terms links (difficulty screen footer + Options) */
   .legalLinks{order:99; margin:14px 0 4px; font-size:11px; letter-spacing:1px; color:var(--text2); text-align:center}
   .legalLinks a{color:var(--text1); text-decoration:underline; text-underline-offset:2px; padding:6px 4px; display:inline-block}
@@ -1795,6 +1803,10 @@ body.theme-v2 .screenSub, body.theme-v2 #titleScreen .press, body.theme-v2 #game
       <div><div class="optLabel">Privacy &amp; Terms</div><div class="optHint">Opens in a new tab</div></div>
       <div class="legalBtns"><a class="modalBtn" href="privacy.html" target="_blank" rel="noopener">PRIVACY</a><a class="modalBtn" href="terms.html" target="_blank" rel="noopener">TERMS</a></div>
     </div>
+    <div class="optRow">
+      <div><div class="optLabel">Back Up Progress</div><div class="optHint" id="backupHint">Progress lives only in this browser. Last backup: never</div></div>
+      <button class="modalBtn" id="backupOpenBtn">BACK UP</button>
+    </div>
     <div class="optRow" style="border-bottom:none;">
       <div><div class="optLabel">Reset Save Data</div><div class="optHint">Clears all progress, keys and gift boxes — cannot be undone</div></div>
       <button class="modalBtn danger" id="eraseSaveBtn">ERASE</button>
@@ -1823,6 +1835,28 @@ body.theme-v2 .screenSub, body.theme-v2 #titleScreen .press, body.theme-v2 #game
 </div>
 
 <!-- GENERIC CONFIRM DIALOG -->
+<!-- v0.42 SAVE BACKUP: progress lives only in this browser (localStorage). Browsers can clear it (Safari after
+     7 days of use without a visit; itch.io moving its game host; "clear site data"), so players can keep a copy. -->
+<div id="backupModal" class="modalOverlay">
+  <div class="modalBox" style="max-width:460px;">
+    <button class="modalClose" id="backupCloseBtn">✕</button>
+    <h2>BACK UP PROGRESS</h2>
+    <div class="modalSub">Your progress is saved only in this browser, on this device. Browsers can clear it, for example Safari after a week without playing. Keep a copy somewhere safe: iCloud Drive, Google Drive, Notes or an email to yourself.</div>
+    <div class="backupBtns">
+      <button class="modalBtn primary" id="backupSaveFileBtn">⬇ SAVE BACKUP FILE</button>
+      <button class="modalBtn" id="backupCopyBtn">COPY BACKUP CODE</button>
+    </div>
+    <div class="backupLabel">Backup code (paste a code here to restore it):</div>
+    <textarea id="backupCode" spellcheck="false" autocomplete="off" autocapitalize="off" rows="4"></textarea>
+    <div class="backupBtns">
+      <button class="modalBtn" id="backupLoadFileBtn">⬆ LOAD BACKUP FILE</button>
+      <button class="modalBtn danger" id="backupRestoreBtn">RESTORE FROM CODE</button>
+      <input type="file" id="backupFileInput" accept=".json,.txt,application/json,text/plain" hidden>
+    </div>
+    <div class="backupStatus" id="backupStatus" role="status"></div>
+  </div>
+</div>
+
 <div id="confirmModal" class="modalOverlay">
   <div class="modalBox">
     <h2 id="confirmTitle">ARE YOU SURE?</h2>
@@ -1871,7 +1905,7 @@ body.theme-v2 .screenSub, body.theme-v2 #titleScreen .press, body.theme-v2 #game
     <div class="ringdeco r3"></div>
     <div class="ringdeco r2"></div>
     <h1 class="logo">RINGSHIFT</h1>
-    <div class="sub">DEMO · v0.41</div>
+    <div class="sub">DEMO · v0.42</div>
     <div class="press">PRESS ANY BUTTON</div>
   </div>
 
@@ -5798,8 +5832,18 @@ function defaultSave(){
 }
 let save = loadSave();
 function loadSave(){
+  let raw = null;
+  try{ raw = localStorage.getItem(SAVE_KEY); }catch(e){}
+  if(raw){
+    let ok = false;
+    try{ JSON.parse(raw); ok = true; }catch(e){}
+    if(ok){ try{ localStorage.setItem(SAVE_KEY + '_lastGood', raw); }catch(e){} }
+    else { try{ const bak = localStorage.getItem(SAVE_KEY + '_lastGood'); if(bak){ JSON.parse(bak); raw = bak; } }catch(e){} }
+  }
+  return loadSaveFrom(raw);
+}
+function loadSaveFrom(raw){
   try{
-    const raw = localStorage.getItem(SAVE_KEY);
     if(!raw) return defaultSave();
     const parsed = JSON.parse(raw);
     const fresh = defaultSave();
@@ -5887,6 +5931,10 @@ function loadSave(){
 function persistSave(){
   try{ localStorage.setItem(SAVE_KEY, JSON.stringify(save)); }catch(e){}
 }
+// v0.42: a copy of the last save that loaded cleanly. If the main save is ever unreadable (a half-written or
+// damaged value), loadSave() falls back to this copy instead of silently starting a new game and then
+// overwriting the damaged save on the next write.
+const SAVE_BACKUP_KEY = SAVE_KEY + '_lastGood';
 // STAR = earned by clearing a level. GIFT BOX (stored as .coin) = earned by also lighting the bonus lock.
 // Old saves have no .star field, so any completed level counts as starred.
 function hasStar(p){ return !!(p && (p.star || p.completed)); }
@@ -6579,6 +6627,86 @@ document.getElementById('fullscreenToggle').addEventListener('click', ()=>{
 document.addEventListener('fullscreenchange', ()=>{
   document.getElementById('fullscreenToggle').classList.toggle('on', !!document.fullscreenElement);
 });
+/* ===== v0.42 SAVE BACKUP =====
+   A backup is the save itself (the same JSON localStorage holds), as a .json file or as a text code
+   "RINGSHIFT-SAVE-1:<base64>". Restoring checks it, asks for confirmation, writes it to localStorage and reloads,
+   so loadSave() normalises it exactly like a save written by the game. Nothing is sent anywhere. */
+const BACKUP_PREFIX = 'RINGSHIFT-SAVE-1:', BACKUP_STAMP_KEY = 'ringshiftLastBackup';
+function backupB64(str){ const b = new TextEncoder().encode(str); let s = ''; for(let i=0;i<b.length;i+=0x8000) s += String.fromCharCode.apply(null, b.subarray(i, i+0x8000)); return btoa(s); }
+function backupUnB64(b64){ const s = atob(b64.replace(/\s+/g,'')); const b = new Uint8Array(s.length); for(let i=0;i<s.length;i++) b[i] = s.charCodeAt(i); return new TextDecoder().decode(b); }
+function backupCodeNow(){ persistSave(); return BACKUP_PREFIX + backupB64(JSON.stringify(save)); }
+function backupMarkDone(){ try{ localStorage.setItem(BACKUP_STAMP_KEY, new Date().toISOString()); }catch(e){} backupUpdateHint(); }
+function backupUpdateHint(){
+  const h = document.getElementById('backupHint'); if(!h) return;
+  let t = null; try{ t = localStorage.getItem(BACKUP_STAMP_KEY); }catch(e){}
+  h.textContent = 'Progress lives only in this browser. Last backup: ' + (t ? new Date(t).toLocaleDateString() : 'never');
+}
+function backupStatus(msg, err){ const el2 = document.getElementById('backupStatus'); el2.textContent = msg; el2.classList.toggle('err', !!err); }
+// Reads a backup code, a backup file's text, or raw save JSON. Returns {json, summary} or throws a readable message.
+function backupParse(text){
+  text = String(text||'').trim();
+  if(!text) throw new Error('Paste a backup code or load a backup file first.');
+  let json = text;
+  if(text.startsWith(BACKUP_PREFIX)){ try{ json = backupUnB64(text.slice(BACKUP_PREFIX.length)); }catch(e){ throw new Error('That code is incomplete or damaged. Copy the whole code and try again.'); } }
+  let obj; try{ obj = JSON.parse(json); }catch(e){ throw new Error('That is not a Ringshift backup.'); }
+  if(obj && obj.ringshiftBackup === 1 && obj.save) obj = obj.save;
+  if(!obj || typeof obj !== 'object' || !obj.progress || typeof obj.progress !== 'object' || !['easy','normal','hard'].every(m=>Array.isArray(obj.progress[m])))
+    throw new Error('That is not a Ringshift backup.');
+  const wins = ['easy','normal','hard'].reduce((n,m)=>n + obj.progress[m].filter(p=>p && p.completed).length, 0);
+  return { json: JSON.stringify(obj), summary: wins + (wins===1?' level':' levels') + ' won' };
+}
+function backupRestore(text){
+  let r; try{ r = backupParse(text); }catch(e){ backupStatus(e.message, true); AudioSys.playError(); return; }
+  const here = levelWinCount();
+  showConfirm('RESTORE BACKUP?', `This replaces the progress on this device (${here} ${here===1?'level':'levels'} won) with the backup (${r.summary}). The game reloads after.`, ()=>{
+    try{ localStorage.setItem(SAVE_KEY, r.json); localStorage.setItem(SAVE_KEY + '_lastGood', r.json); }catch(e){ backupStatus('This browser would not store the backup.', true); return; }
+    location.reload();
+  });
+}
+function openBackup(){
+  AudioSys.playMenuBlip();
+  document.getElementById('backupCode').value = backupCodeNow();
+  backupStatus('');
+  openModal('backupModal');
+  // Ask the browser to keep this site's storage (no prompt in Chrome / Safari; Firefox may ask). Best effort only.
+  try{ if(navigator.storage && navigator.storage.persist) navigator.storage.persist().catch(()=>{}); }catch(e){}
+}
+document.getElementById('backupOpenBtn').addEventListener('click', openBackup);
+document.getElementById('backupCloseBtn').addEventListener('click', ()=>closeModal('backupModal'));
+document.getElementById('backupSaveFileBtn').addEventListener('click', ()=>{
+  AudioSys.playMenuBlip();
+  const code = backupCodeNow(), d = new Date(), pad = x=>String(x).padStart(2,'0');
+  const name = `ringshift-backup-${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}.json`;
+  const body = JSON.stringify({ ringshiftBackup:1, savedAt:d.toISOString(), wins:levelWinCount(), code, save }, null, 1);
+  try{
+    const file = new File([body], name, {type:'application/json'});
+    // phones: the share sheet lets players put the file in Files / iCloud Drive / Drive directly
+    if(navigator.canShare && navigator.canShare({files:[file]}) && /iPhone|iPad|Android/i.test(navigator.userAgent)){
+      navigator.share({files:[file], title:'Ringshift backup'}).then(()=>{ backupMarkDone(); backupStatus('Backup shared. Keep it somewhere safe.'); }).catch(()=>{});
+      return;
+    }
+    const a = document.createElement('a'); a.href = URL.createObjectURL(file); a.download = name;
+    document.body.appendChild(a); a.click(); a.remove(); setTimeout(()=>URL.revokeObjectURL(a.href), 4000);
+    backupMarkDone(); backupStatus('Saved ' + name + '. If no file appeared, use COPY BACKUP CODE instead.');
+  }catch(e){ backupStatus('This browser blocked the download. Use COPY BACKUP CODE instead.', true); }
+});
+document.getElementById('backupCopyBtn').addEventListener('click', ()=>{
+  AudioSys.playMenuBlip();
+  const ta = document.getElementById('backupCode'); ta.value = backupCodeNow();
+  const done = ()=>{ backupMarkDone(); backupStatus('Code copied. Paste it into Notes or an email to yourself.'); };
+  const manual = ()=>{ ta.focus(); ta.select(); try{ if(document.execCommand('copy')){ done(); return; } }catch(e){} backupStatus('Copying is blocked here: the code is selected, copy it by hand.', true); };
+  try{ if(navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(ta.value).then(done, manual); else manual(); }catch(e){ manual(); }
+});
+document.getElementById('backupRestoreBtn').addEventListener('click', ()=>{ AudioSys.playMenuBlip(); backupRestore(document.getElementById('backupCode').value); });
+document.getElementById('backupLoadFileBtn').addEventListener('click', ()=>{ AudioSys.playMenuBlip(); const i = document.getElementById('backupFileInput'); i.value = ''; i.click(); });
+document.getElementById('backupFileInput').addEventListener('change', ev=>{
+  const f = ev.target.files && ev.target.files[0]; if(!f) return;
+  if(f.size > 2*1024*1024){ backupStatus('That file is too large to be a Ringshift backup.', true); return; }
+  f.text().then(t=>{ let text = t; try{ const o = JSON.parse(t); if(o && o.ringshiftBackup === 1 && o.code) text = o.code; }catch(e){} document.getElementById('backupCode').value = text.trim(); backupRestore(text); },
+    ()=>backupStatus('Could not read that file.', true));
+});
+backupUpdateHint();
+
 document.getElementById('eraseSaveBtn').addEventListener('click', ()=>{
   showConfirm('ERASE SAVE DATA?', 'This deletes ALL progress, keys, gift boxes and options on this device. This cannot be undone.', ()=>{
     try{ localStorage.removeItem(SAVE_KEY); }catch(e){}
@@ -6671,6 +6799,7 @@ window.addEventListener('keydown', (ev)=>{
   if(ev.key !== 'Escape') return;
   if(document.getElementById('shopOverlay').classList.contains('show')){ closeShop(); return; }
   if(document.getElementById('confirmModal').classList.contains('show')){ document.getElementById('confirmCancelBtn').click(); return; }
+  if(document.getElementById('backupModal').classList.contains('show')){ closeModal('backupModal'); return; }
   if(document.getElementById('optionsModal').classList.contains('show')){ closeModal('optionsModal'); return; }
   if(document.getElementById('howToPlayModal').classList.contains('show')){ closeModal('howToPlayModal'); return; }
   if(document.body.classList.contains('inGame')){
