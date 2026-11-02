@@ -5840,11 +5840,16 @@ let save = loadSave();
 function loadSave(){
   let raw = null;
   try{ raw = localStorage.getItem(SAVE_KEY); }catch(e){}
+  // a save is readable when it parses to an object (a cut-off write, "null" or a stray string is not)
+  const readable = s=>{ try{ const o = JSON.parse(s); return !!o && typeof o === 'object' && !Array.isArray(o); }catch(e){ return false; } };
   if(raw){
-    let ok = false;
-    try{ JSON.parse(raw); ok = true; }catch(e){}
-    if(ok){ try{ localStorage.setItem(SAVE_KEY + '_lastGood', raw); }catch(e){} }
-    else { try{ const bak = localStorage.getItem(SAVE_KEY + '_lastGood'); if(bak){ JSON.parse(bak); raw = bak; } }catch(e){} }
+    if(readable(raw)){ try{ localStorage.setItem(SAVE_KEY + '_lastGood', raw); }catch(e){} }
+    else {
+      // keep the unreadable value aside (it is never deleted by the game), then use the last good copy if any
+      try{ localStorage.setItem(SAVE_KEY + '_damaged', raw); }catch(e){}
+      let bak = null; try{ bak = localStorage.getItem(SAVE_KEY + '_lastGood'); }catch(e){}
+      raw = (bak && readable(bak)) ? bak : null;
+    }
   }
   return loadSaveFrom(raw);
 }
@@ -6659,12 +6664,12 @@ function backupParse(text){
   if(!obj || typeof obj !== 'object' || !obj.progress || typeof obj.progress !== 'object' || !['easy','normal','hard'].every(m=>Array.isArray(obj.progress[m])))
     throw new Error('That is not a Ringshift backup.');
   const wins = ['easy','normal','hard'].reduce((n,m)=>n + obj.progress[m].filter(p=>p && p.completed).length, 0);
-  return { json: JSON.stringify(obj), summary: wins + (wins===1?' level':' levels') + ' won' };
+  return { json: JSON.stringify(obj), wins, summary: wins + (wins===1?' level':' levels') + ' won' };
 }
 function backupRestore(text){
   let r; try{ r = backupParse(text); }catch(e){ backupStatus(e.message, true); AudioSys.playError(); return; }
   const here = levelWinCount();
-  showConfirm('RESTORE BACKUP?', `This replaces the progress on this device (${here} ${here===1?'level':'levels'} won) with the backup (${r.summary}). The game reloads after.`, ()=>{
+  showConfirm('RESTORE BACKUP?', `This replaces the progress on this device (${here} ${here===1?'level':'levels'} won) with the backup (${r.summary}).${r.wins < here ? ' The backup has FEWER wins than this device: the newer progress will be lost.' : ''} The game reloads after.`, ()=>{
     try{ localStorage.setItem(SAVE_KEY, r.json); localStorage.setItem(SAVE_KEY + '_lastGood', r.json); }catch(e){ backupStatus('This browser would not store the backup.', true); return; }
     location.reload();
   });

@@ -117,6 +117,11 @@ node tests/render.test.js       # optional: drawn mirrors/beams vs engine, needs
 - `tests/save.test.js` (browser part needs Playwright + Chromium and skips without them): Options → Back Up
   Progress. A backup code and a backup file each restore the exact same progress into an empty browser after a
   confirm; a wrong or cut-off code is refused; a damaged save falls back to the last save that loaded cleanly.
+  Also: `tests/fixtures/save-v0.41.json` (a real save written by v0.41 after a full playthrough) loads to the
+  identical save and restores through the dialog (raw, file, code); restoring an older backup warns, CANCEL keeps
+  the newer save, CONFIRM gives exactly the older one; 19 kinds of invalid backup never touch a valid save (stored
+  bytes unchanged); a damaged value is kept aside as `ringshiftDemoSave_v1_damaged`; and the whole flow works by
+  taps on emulated iPhone SE and Pixel 5.
 - `tests/design.test.js`: design rules for Meteor Attack, Space Orchestra,
   Rocket Attack and Challenge, which the golden file can't catch: each level's
   featured gimmick is needed by every answer, no ring is idle, every level can
