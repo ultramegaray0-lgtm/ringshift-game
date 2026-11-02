@@ -533,6 +533,12 @@ body.theme-sakura .gimmickChip, body.theme-sakura #powerStatus, body.theme-sakur
     #bonusRow{flex-direction:column; align-items:center;}
     #bonusRow > div{flex:none; width:min(92vw,420px);}
   }
+  /* v0.42: on phones the Meteor / Orchestra / Rocket cards sat off-centre (24 px left, 1 px right on a Pixel 7;
+     2 px past the right edge at 360 px): 94vw/92vw ignored the screen's side padding. Size them to the column. */
+  #bonusRow{width:min(100%,900px); box-sizing:border-box}
+  @media (max-width:640px){
+    #bonusRow > div{width:min(100%,420px)}
+  }
 
   /* ---------------- COSMETIC SHOP ----------------
      100% visual: this system is only ever allowed to change which hex
