@@ -23,7 +23,7 @@ function without(l, ri, s) {
 }
 const levelsOf = mode => E.LEVELS[mode].map((l, i) => ({ id: `${mode}#${i + 1}`, mode, l, locks: giftLocks(mode, l) }));
 const BONUS = [...levelsOf('special'), ...levelsOf('orchestra'), ...levelsOf('rocket'), ...levelsOf('challenge')];
-const WINS = new Map(BONUS.map(L => [L.id, winsOf(L.l, L.locks)]));
+const WINS = new Map(BONUS.map(L => [L.id, winsOf(H.wallsDown(L.l), L.locks)]));
 
 // The gimmick each level is built around. Every winning rotation must depend on at least one of each listed kind:
 // remove it and none of the level's answers works any more.
@@ -47,7 +47,7 @@ test('each level’s featured gimmick is needed by every answer', () => {
   for (const L of BONUS) for (const kind of FEATURED[L.id] || []) {
     const wins = WINS.get(L.id), cands = [];
     L.l.rings.forEach((R, ri) => Object.keys(R.gimmicks || {}).forEach(s => { if (family(R.gimmicks[s]) === kind) cands.push([ri, s]); }));
-    const needed = cands.some(([ri, s]) => { const c = without(L.l, ri, s); return wins.every(w => !lights(c, L.locks, w)); });
+    const needed = cands.some(([ri, s]) => { const c = without(H.wallsDown(L.l), ri, s); return wins.every(w => !lights(c, L.locks, w)); });
     if (!needed) bad.push(`${L.id} ${L.l.name}: no ${kind} is needed (${cands.length} on the board)`);
   }
   assert(!bad.length, bad.join('\n        '));
@@ -119,6 +119,34 @@ test('moving Satellites appear only in Challenge levels', () => {
     if (typeOf(g) === 'echo_portal' && typeof g === 'object' && g.moving) bad.push(`${mode}#${i + 1}`); })));
   assert(!bad.length, bad.join(', '));
   assert(!isPinned({ type: 'echo_portal', moving: true }) && isPinned({ type: 'echo_portal' }), 'pinning rule');
+});
+
+// v0.38 walled gift locks: for every 2 gift locks, 1 sits behind a wall a rocket has to destroy first.
+test('Rocket Attack: 1 wall per 2 gift locks; walls must be destroyed to win, can be hit cleanly, and the start aims at none', () => {
+  const bad = [];
+  for (const L of BONUS.filter(x => x.mode === 'rocket')) {
+    const l = L.l, G = L.locks, W = Object.keys(l.lockGuards || {}).map(Number), elec = l.elecLocks || [];
+    const start = l.rings.map(r => r.initialRotation || 0), up = { ...l, lockSlots: G };
+    if (W.length !== Math.floor(G.length / 2)) bad.push(`${L.id}: ${W.length} walls for ${G.length} gift locks`);
+    W.forEach(s => { const g = l.lockGuards[s];
+      if (!G.includes(s)) bad.push(`${L.id}: wall at ${s} is not in front of a gift lock`);
+      if (!(typeOf(g) === 'block' || (typeOf(g) === 'half_block' && g.side === 'out'))) bad.push(`${L.id}: wall at ${s} would not stop light heading into its lock`); });
+    const clean = new Set();
+    for (const r of H.rotations(l.slots, l.rings.length)) {
+      const t = E.traceAllBeams(up, r), ends = t.beamResults.flatMap(b => b.result.ends);
+      const lit = W.filter(s => t.litLocks.has(s));
+      if (lit.length) { bad.push(`${L.id}: walled lock ${lit} lights at ${r} with its wall up`); break; }
+      const rim = ends.filter(e => e.kind === 'rim').map(e => e.slot), hit = ends.filter(e => e.kind === 'guard').map(e => e.slot);
+      if (hit.length && !rim.some(s => G.includes(s) || elec.includes(s))) hit.forEach(s => clean.add(s));
+      if (r.join() === start.join()) {
+        if (hit.length) bad.push(`${L.id}: the start already aims a rocket at a wall`);
+        if (rim.some(s => G.includes(s) || elec.includes(s))) bad.push(`${L.id}: the start aims a rocket at a lock`);
+      }
+    }
+    W.filter(s => !clean.has(s)).forEach(s => bad.push(`${L.id}: wall at ${s} can't be hit without also aiming at a gift or Electricity Lock`));
+    if (W.length && winsOf(up, G).length) bad.push(`${L.id}: can be won with the walls up`);
+  }
+  assert(!bad.length, bad.join('\n        '));
 });
 
 process.exitCode = finish() ? 1 : 0;
