@@ -1614,6 +1614,8 @@ body.theme-v2 .screenSub, body.theme-v2 #titleScreen .press, body.theme-v2 #game
 @media (max-width:520px){ #modeScreen{padding-top:64px} }
 /* 2. Level select: "◀ MODES" sat under the round options button. */
 #levelScreen > .backBtn{left:62px}
+/* 4. Stacked pieces: a piece covered by another piece of its ring is ignored by the beam, so it is drawn faded. */
+#puzzle .stackedOut{opacity:.22; filter:grayscale(1)}
 /* 3. Phones held sideways: the d-pad stacked under the board left it ~130px wide. The controls move to the
       right-hand side so the board can use the full height. */
 @media (orientation:landscape) and (max-height:520px) and (max-width:1000px){
@@ -1674,6 +1676,7 @@ body.theme-v2 .screenSub, body.theme-v2 #titleScreen .press, body.theme-v2 #game
       <div class="htpRow"><span class="htpIcon eco">◍</span><div><b>Echo (Satellite)</b>Pinned in place — except in Challenge, where a Satellite rides its ring when you turn it (its dish keeps pointing the same way). Its DISH shows which way it fires, and it is built pointing UP, DOWN, LEFT or RIGHT depending on the level. A beam that arrives from the DISH side (within 45° of the dish axis) dies there. A beam that arrives from either SIDE or from the ENGINE end (below) is absorbed and relaunched straight out of the DISH.</div></div>
       <div class="htpRow"><span class="htpIcon lck">◎</span><div><b>Lock</b>Needs a beam landing on it. ALL Locks must be lit at once to breach the level.</div></div>
       <div class="htpRow"><span class="htpIcon bon">☆</span><div><b>Gift Box Lock</b>Optional — light it too, at the same time as every Lock, to open that level's gift box. Never required.</div></div>
+      <div class="htpRow"><span class="htpIcon" style="opacity:.4">◍</span><div><b>Stacked pieces</b>When turning a ring slides one of its pieces onto another of its own pieces, only one of them works: the other is drawn faded and the beam ignores it. A Black Hole whose twin is faded has a red dashed ring: it swallows a beam without sending it on.</div></div>
     </div>
 
     <div class="htpSection">
@@ -2083,6 +2086,9 @@ function buildLiveContentMap(ring, rotation, n, disabled){
       // A Satellite is pinned unless it is authored {moving:true} (Challenge only, v0.37): then it rides its ring,
       // but its dish keeps pointing the same screen direction (see traceBeamBranch's echo_portal branch).
       const isFixed = (typeof raw === 'object' && raw.fixed === true) || type === 'bell' || type === 'ufo' || (type === 'echo_portal' && !(typeof raw === 'object' && raw.moving === true));
+      // v0.39: every live entry records which authored piece wrote it (`src`), so the renderer can show which of
+      // two pieces stacked on one slot is the one in play (see stackedOutKeys). Never read by the tracer.
+      const put = (live, content)=>{ content.src = slotStr; map.set(live, content); };
       for(let w=0; w<width; w++){
         const authoredSlot = (s+w)%n;
         const live = isFixed ? authoredSlot : (authoredSlot+rotation)%n;
@@ -2095,24 +2101,46 @@ function buildLiveContentMap(ring, rotation, n, disabled){
         // level do not have to match. The axis follows the hole's live slot,
         // so an unpinned hole turns with its ring. Only read by the portal
         // branch of traceBeamBranch below.
-        if(type==='portal') map.set(live, {kind:'portal', id:raw.id, face: slotToAngle(live, n) + ((raw.turn||0)*Math.PI/180)});
-        else if(type==='echo_portal') map.set(live, {kind:'echo_portal', turn:((typeof raw==='object' && raw.turn)||0)});
-        else if(type==='half_block') map.set(live, {kind:'half_block', side:raw.side});
+        if(type==='portal') put(live, {kind:'portal', id:raw.id, face: slotToAngle(live, n) + ((raw.turn||0)*Math.PI/180)});
+        else if(type==='echo_portal') put(live, {kind:'echo_portal', turn:((typeof raw==='object' && raw.turn)||0)});
+        else if(type==='half_block') put(live, {kind:'half_block', side:raw.side});
         // 'bell' (Space Orchestra only): a transparent target -- registers
         // a hit but never stops/bends/duplicates the beam, so adding one
         // to a level can never change whether any Lock lights.
-        else if(type==='bell') map.set(live, {kind:'bell'});
-        else if(type==='ufo') ufoLate.push(live);
+        else if(type==='bell') put(live, {kind:'bell'});
+        else if(type==='ufo') ufoLate.push({live, src:slotStr});
         else if(type==='coin'){ if(!map.has(live)) map.set(live, {kind:'coin'}); }  // transparent: never hides a spoke/gimmick sharing its slot
         // MIRROR: remember the angle its bar is DRAWN at right now (see mirrorBarAngle).
-        else if(type==='mirror_l' || type==='mirror_r') map.set(live, {kind:type, bar: mirrorBarAngle(type, isFixed ? 0 : rotation, n)});
-        else map.set(live, {kind:type});
+        else if(type==='mirror_l' || type==='mirror_r') put(live, {kind:type, bar: mirrorBarAngle(type, isFixed ? 0 : rotation, n)});
+        else put(live, {kind:type});
       }
     });
   }
-  ufoLate.forEach(l=>map.set(l, {kind:'bell'}));
+  ufoLate.forEach(u=>map.set(u.live, {kind:'bell', src:u.src}));
   return map;
 }
+// v0.39 STACKED PIECES: two pieces of one ring can land on the same live slot (an unpinned piece turning under a
+// pinned one, or two pinned/unpinned pieces meeting). The map above keeps only ONE of them -- the one written last
+// (the higher authored slot number; a UFO always). This returns the authored slot keys of every piece that is
+// covered right now, i.e. present on the board but ignored by the beam. Coins never cover anything. The tracer is
+// unchanged; the renderer uses this to draw covered pieces faded so the board shows exactly what the beam uses.
+function stackedOutKeys(ring, rotation, n, liveMap){
+  const out = new Set();
+  if(!ring.gimmicks) return out;
+  const map = liveMap || buildLiveContentMap(ring, rotation, n, false);
+  Object.keys(ring.gimmicks).forEach(k=>{
+    const raw = ring.gimmicks[k], type = typeof raw==='string' ? raw : raw.type;
+    if(type==='coin') return;
+    const pinned = (typeof raw==='object' && raw.fixed===true) || type==='bell' || type==='ufo' || (type==='echo_portal' && !(typeof raw==='object' && raw.moving===true));
+    const width = typeof raw==='string' ? 1 : Math.max(1, raw.width||1);
+    for(let w=0; w<width; w++){
+      const s = (parseInt(k,10)+w)%n, live = pinned ? s : (s+rotation)%n, c = map.get(live);
+      if(!c || c.src!==k){ out.add(k); return; }
+    }
+  });
+  return out;
+}
+
 // BLACK HOLE (Portal) RULE -- see the portal branch of traceBeamBranch.
 // Every hole is a complete circular NODE: any beam that reaches it, from any
 // direction, is absorbed. The beam is then re-emitted from the PAIRED hole in
@@ -8258,6 +8286,9 @@ function renderPuzzleFull(){
     const rot = gstate.rotations[r];
     const angleDeg = (rot/n)*360;
     const isSelected = r===gstate.selectedRing;
+    // v0.39 STACKED PIECES: pieces covered by another piece of this ring right now (ignored by the beam) are drawn
+    // faded; a Black Hole whose twin is covered swallows beams without sending them on, and is marked as unlinked.
+    const coveredKeys = stackedOutKeys(ring, rot, n), loneHoles = rpLoneHoles(lvl);
     const g = el('g',{class: isSelected ? 'ring-group selected' : 'ring-group'}, svg);
     if(V2C){
       V2C.track(g, radius, isSelected, n);
@@ -8398,6 +8429,7 @@ function renderPuzzleFull(){
       // now always draws Block/Half-Block as an arc band, pinned or not --
       // this bucket just needs its own (non-rotating) parent group below.
       const pinnedWallSlots = { block:[], half_block_in:[], half_block_out:[] };
+      const coveredWallSlots = { block:[], half_block_in:[], half_block_out:[] }, coveredPinnedWallSlots = { block:[], half_block_in:[], half_block_out:[] };
       Object.keys(ring.gimmicks).forEach(slotStr=>{
         const slot = parseInt(slotStr,10);
         const raw = ring.gimmicks[slotStr];
@@ -8410,7 +8442,8 @@ function renderPuzzleFull(){
 
         if(type==='block' || type==='half_block'){
           if(currentMode==='rocket' || !isPinned){
-            const bucket = (currentMode==='rocket' && isPinned) ? pinnedWallSlots : wallLiveSlots;
+            const covered = coveredKeys.has(slotStr);
+            const bucket = (currentMode==='rocket' && isPinned) ? (covered ? coveredPinnedWallSlots : pinnedWallSlots) : (covered ? coveredWallSlots : wallLiveSlots);
             if(type==='block') bucket.block.push(slot);
             else bucket[raw.side==='in' ? 'half_block_in' : 'half_block_out'].push(slot);
             return;
@@ -8433,7 +8466,8 @@ function renderPuzzleFull(){
         const drawRadius = radius;
         const x = Math.cos(a)*drawRadius, y = Math.sin(a)*drawRadius;
         const parentG = isPinned ? g : spokeG;
-        const tip = el('g',{transform:`translate(${x},${y}) scale(${isHole?1:optScale('gimmickSize')})`, 'pointer-events':'none'}, parentG);
+        const tip = el('g',{transform:`translate(${x},${y}) scale(${isHole?1:optScale('gimmickSize')})`, 'pointer-events':'none', 'data-ring':r, 'data-key':slotStr}, parentG);
+        if(coveredKeys.has(slotStr)) tip.setAttribute('class','stackedOut');
         if(isPinned) g.insertBefore(tip, spokeG);
         if(V2C && !isHole && type!=='ufo' && type!=='coin') v2Socket(tip, type==='echo_portal' ? 15.5 : 16.5);
         if(isPinned && !isHole) el('circle',{r:type==='echo_portal'?14.5:17,fill:'none',stroke:'#fff6c8','stroke-width':1.3,'stroke-dasharray':'2 3',opacity:0.9}, tip);
@@ -8460,6 +8494,10 @@ function renderPuzzleFull(){
           ? el('g',{transform:`rotate(${-angleDeg})`}, tip)
           : tip;
         drawGimmickGlyph(gmWrap(echoDrawParent, type, isSelected, bellActive, slot+r*3), type, raw, a, type==='echo_portal' ? echoState : bellActive);
+        if(isHole && loneHoles.has(r+':'+slotStr)){
+          tip.setAttribute('class','loneHole');
+          el('circle',{r:24, fill:'none', stroke:'#ff5d5d', 'stroke-width':1.6, 'stroke-dasharray':'3 3', opacity:0.95}, tip);
+        }
       });
 
       // Draw Block/Half-Block as one clean grouped arc band per contiguous
@@ -8521,6 +8559,11 @@ function renderPuzzleFull(){
       }
       drawWallBand(wallLiveSlots, spokeG);
       if(currentMode==='rocket') drawWallBand(pinnedWallSlots, g);
+      // covered Block / Half-Block slots: same band, faded, in their own group (data-ring / data-keys for the tests)
+      [[coveredWallSlots, spokeG], [coveredPinnedWallSlots, g]].forEach(([bk, par])=>{
+        const keys = [...bk.block, ...bk.half_block_in, ...bk.half_block_out];
+        if(keys.length) drawWallBand(bk, el('g',{class:'stackedOut', 'data-ring':r, 'data-keys':keys.join(',')}, par));
+      });
     }
   });
 
@@ -8728,13 +8771,26 @@ function drawRimLocks(rimG){
 const RPS = {spokeGs:[], applied:[], key:null, sig:null, built:null, shadow:null};
 
 // Everything that changes the STATIC drawing (rings, gimmick glyphs, spokes, theme, sizes).
+// v0.39: which pieces are covered right now + which Black Holes have lost their twin; part of rpKey so the
+// board is rebuilt (faded pieces redrawn) whenever a rotation changes it.
+function rpLoneHoles(lvl){
+  const n = lvl.slots, live = new Map(), covered = new Map(), out = new Set();
+  lvl.rings.forEach((ring, r)=>{ const ck = stackedOutKeys(ring, gstate.rotations[r], n);
+    Object.keys(ring.gimmicks||{}).forEach(k=>{ const raw = ring.gimmicks[k]; if(typeof raw!=='object' || raw.type!=='portal') return;
+      const m = ck.has(k) ? covered : live; if(!m.has(raw.id)) m.set(raw.id, []); m.get(raw.id).push(r+':'+k); }); });
+  covered.forEach((_, id)=>{ (live.get(id)||[]).forEach(x=>out.add(x)); });
+  return out;
+}
+function rpStackSig(lvl){
+  return lvl.rings.map((ring, r)=>[...stackedOutKeys(ring, gstate.rotations[r], lvl.slots)].join('.')).join('/');
+}
 function rpKey(lvl){
   const o = save.options||{};
   return [applyTheme._last||'', document.body.classList.contains('reduceMotion')?1:0, o.rimSize, o.sourceSize, o.gimmickSize,
     gstate.selectedRing, currentMode, lvl.slots,
     JSON.stringify([lvl.rings.map(r=>[r.spokeSlots,r.gimmicks]), lvl.lockSlots, lvl.bonusLockSlots]),
     (currentMode==='orchestra' ? OrchestraAudio.fogSig() : ''),
-    getControlledBeamColor(), getBackgroundBeamColor(), litOpt().id, rimEquippedId()].join('|');
+    getControlledBeamColor(), getBackgroundBeamColor(), litOpt().id, rimEquippedId(), rpStackSig(lvl)].join('|');
 }
 // Rim/lock appearance only.
 function rpLit(){
@@ -8862,7 +8918,8 @@ function renderBeams(force){
     const gh=new Set();
     sortedBeams.forEach(b=>b.result.segments.forEach(s=>{ const rd=Math.hypot(s.x2,s.y2), sl=angleToNearestSlot(Math.atan2(s.y2,s.x2),n);
       lvl.rings.forEach((ring,r)=>{ if(!ring.gimmicks || Math.abs(rd-ringRadius(r))>.6) return;
-        Object.keys(ring.gimmicks).forEach(k=>{ const raw=ring.gimmicks[k], ty=typeof raw==='string'?raw:raw.type; if(!CC[ty]) return;
+        const cov=stackedOutKeys(ring, gstate.rotations[r], n);
+        Object.keys(ring.gimmicks).forEach(k=>{ const raw=ring.gimmicks[k], ty=typeof raw==='string'?raw:raw.type; if(!CC[ty] || cov.has(k)) return;
           const fx=(typeof raw==='object'&&raw.fixed===true)||ty==='bell', w=typeof raw==='string'?1:Math.max(1,raw.width||1);
           for(let q=0;q<w;q++){ const live=fx?(parseInt(k,10)+q)%n:(parseInt(k,10)+q+gstate.rotations[r])%n; if(live===sl) gh.add(r+':'+sl+':'+ty); } }); }); }));
     const eh=(gstate.echoHits||[]).map(e=>e.ringIdx+':'+e.slot+':'+e.mode);
@@ -9554,6 +9611,13 @@ function attachRingDrag(dragRing, ringIdx, slotCount){
     if(RocketGame.isFrozen(ringIdx)){ RocketGame.denyRotate(ringIdx); return; }
     _drag.on=true; _drag.accum=0; _drag.moves=0; _drag.ringIdx=ringIdx; _drag.n=slotCount;
     _drag.startAngle=_dragAng(ev); _drag.startRot=gstate.rotations[ringIdx];
+    // v0.39: the board is rebuilt mid-drag when pieces stack/unstack, and a touch keeps firing at its ORIGINAL
+    // element even after that element leaves the page -- where it no longer bubbles to window. Listening on the
+    // touched element itself keeps the drag alive through a rebuild.
+    if(ev.type==='touchstart' && ev.target && ev.target.addEventListener){
+      const t = ev.target, mv = e=>_dragMove(e), up = ()=>{ _dragUp(); t.removeEventListener('touchmove', mv); t.removeEventListener('touchend', up); t.removeEventListener('touchcancel', up); };
+      t.addEventListener('touchmove', mv, {passive:false}); t.addEventListener('touchend', up); t.addEventListener('touchcancel', up);
+    }
     ev.preventDefault();
   }
   dragRing.addEventListener('mousedown', onDown);

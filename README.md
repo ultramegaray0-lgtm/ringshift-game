@@ -79,7 +79,7 @@ by `GAME_FILE` in the workflow, so they check exactly what players run. They
 need only Node.js; the publish workflow runs them before every deployment.
 
 ```sh
-node tests/run.js               # mirror rules + every level's win set + design rules + float robustness
+node tests/run.js               # mirror rules + every level's win set + design rules + float robustness + stacked pieces
 node tests/render.test.js       # optional: drawn mirrors/beams vs engine, needs Playwright + Chromium
 ```
 
@@ -99,6 +99,12 @@ node tests/render.test.js       # optional: drawn mirrors/beams vs engine, needs
   error (1e-13) and requires identical results, so no level depends on
   last-bit float differences between browser engines (V8 / Safari /
   Firefox).
+- `tests/stack.test.js`: stacked pieces. When turning a ring puts two of its
+  pieces on one slot the engine keeps only one; this checks, for every
+  rotation of every level, that the board draws the covered piece faded and
+  the piece in play normally, marks a Black Hole whose twin is covered, and
+  that a touch drag keeps working when the board is rebuilt mid-drag (its
+  browser part needs Playwright + Chromium and skips without them).
 - `tests/design.test.js`: design rules for Meteor Attack, Space Orchestra,
   Rocket Attack and Challenge, which the golden file can't catch: each level's
   featured gimmick is needed by every answer, no ring is idle, every level can

@@ -59,7 +59,9 @@ const { test, finish } = H.runner('RENDER vs ENGINE  (' + path.basename(H.gameFi
           if (!live || live.kind !== type) {
             // KNOWN, PRE-EXISTING: another piece of the same ring sits on this live slot, and the engine keeps only one
             // piece per slot (buildLiveContentMap: last one wins). Counted and reported, not a mirror-maths problem.
-            if (live) { out.stacked.add(`${j.id} R${ri + 1}·s${slot} (${type} under ${live.kind})`); return; }
+            // v0.39: such a covered mirror must be drawn faded (inside a .stackedOut group), never as an active piece.
+            if (live) { out.stacked.add(`${j.id} R${ri + 1}·s${slot} (${type} under ${live.kind})`);
+              if (!g.closest('.stackedOut')) out.problems.push(`${j.id} rot ${rot}: covered ${type} at R${ri + 1}·s${slot} is drawn as if active`); return; }
             out.problems.push(`${j.id} rot ${rot}: drawn ${type} at R${ri + 1}·s${slot} but engine has nothing there`); return; }
           const eng = ((live.bar * 180 / Math.PI) % 180 + 180) % 180, d = Math.min(Math.abs(eng - ang), 180 - Math.abs(eng - ang));
           if (d > 0.01) out.problems.push(`${j.id} rot ${rot}: R${ri + 1}·s${slot} drawn bar ${ang.toFixed(2)}°, engine reflects off ${eng.toFixed(2)}°`);
@@ -102,7 +104,7 @@ const { test, finish } = H.runner('RENDER vs ENGINE  (' + path.basename(H.gameFi
     H.assert(!res.problems.length, `${res.problems.length} problems, e.g.\n        ` + res.problems.slice(0, 8).join('\n        '));
     console.log(`        (${jobs.length} levels, ${jobs.reduce((a, j) => a + j.rots.length, 0)} positions, ${res.glyphs} drawn mirrors, ${res.bounces} drawn bounces, ${res.approaches} off-centre slot crossings drawn into the mirror)`);
   });
-  if (res.stacked.length) console.log(`  NOTE (known, pre-existing): ${res.stacked.length} drawn mirror(s) share their slot with another piece of the same ring in a tested position, so the engine ignores them there: ${res.stacked.join('; ')}`);
+  if (res.stacked.length) console.log(`  (${res.stacked.length} covered mirror(s) in tested positions, each checked to be drawn faded: ${res.stacked.join('; ')})`);
   test('no page errors while loading and rendering', () => H.assert(!errors.length, errors.slice(0, 3).join(' | ')));
 
   if (shotsDir) { // screenshots of Easy 3 at each winning rotation, for a human look
