@@ -1604,6 +1604,25 @@ body.theme-v2 .screenSub, body.theme-v2 #titleScreen .press, body.theme-v2 #game
   @media (min-width:900px){ #stage{width:min(52vw,100cqh,620px); height:min(52vw,100cqh,620px)} }
 }
 
+/* ===== v0.39 RELEASE AUDIT -- small screens (layout only) =====
+   1. Difficulty screen: on phones shorter than ~760px the centred column overflowed both ends with no way to
+      scroll (title + tally cut off at the top, Rocket Attack card at the bottom). It now scrolls, and the
+      spacers keep it centred whenever it fits. On narrow phones the tally sits below the corner buttons
+      instead of underneath the INVENTORY button. */
+#modeScreen.active{overflow-y:auto; overflow-x:hidden; justify-content:flex-start; -webkit-overflow-scrolling:touch}
+#modeScreen::before, #modeScreen::after{content:''; flex:1 0 0}
+@media (max-width:520px){ #modeScreen{padding-top:64px} }
+/* 2. Level select: "◀ MODES" sat under the round options button. */
+#levelScreen > .backBtn{left:62px}
+/* 3. Phones held sideways: the d-pad stacked under the board left it ~130px wide. The controls move to the
+      right-hand side so the board can use the full height. */
+@media (orientation:landscape) and (max-height:520px) and (max-width:1000px){
+  body #gameScreen #gameBottom{position:absolute; right:66px; bottom:8px; width:auto; padding:0; gap:8px; z-index:5}
+  body #gameScreen #gameCenter{padding-right:310px}
+  #gameScreen .dpadRow{gap:14px}
+  body.inGame #gameTop{column-gap:12px; row-gap:2px; flex-wrap:wrap}
+}
+
 </style>
 </head>
 <body>
@@ -1654,7 +1673,7 @@ body.theme-v2 .screenSub, body.theme-v2 #titleScreen .press, body.theme-v2 #game
       <div class="htpRow"><span class="htpIcon">⛯</span><div><b>Rim Emitter (Challenge)</b>A source bolted to the rim. It never turns and fires straight at the center. In Challenge, it is the only beam, there is one Lock (the gift lock), and exactly one way to turn the four rings so the beam reaches it.</div></div>
       <div class="htpRow"><span class="htpIcon eco">◍</span><div><b>Echo (Satellite)</b>Pinned in place — except in Challenge, where a Satellite rides its ring when you turn it (its dish keeps pointing the same way). Its DISH shows which way it fires, and it is built pointing UP, DOWN, LEFT or RIGHT depending on the level. A beam that arrives from the DISH side (within 45° of the dish axis) dies there. A beam that arrives from either SIDE or from the ENGINE end (below) is absorbed and relaunched straight out of the DISH.</div></div>
       <div class="htpRow"><span class="htpIcon lck">◎</span><div><b>Lock</b>Needs a beam landing on it. ALL Locks must be lit at once to breach the level.</div></div>
-      <div class="htpRow"><span class="htpIcon bon">☆</span><div><b>Bonus Lock</b>Optional — light it too, at the same time as every Lock, for a bonus coin. Never required.</div></div>
+      <div class="htpRow"><span class="htpIcon bon">☆</span><div><b>Gift Box Lock</b>Optional — light it too, at the same time as every Lock, to open that level's gift box. Never required.</div></div>
     </div>
 
     <div class="htpSection">
@@ -1717,22 +1736,22 @@ body.theme-v2 .screenSub, body.theme-v2 #titleScreen .press, body.theme-v2 #game
       <div class="optToggle" id="colorblindToggle"></div>
     </div>
     <div class="optRow">
-      <div><div class="optLabel">Rim Size <span id="rimSizeVal" style="color:var(--accent);font-family:var(--font-mono);">1.0&times;</span></div><div class="optHint">Test slider: 0.5&times; to 4&times;</div></div>
+      <div><div class="optLabel">Rim Size <span id="rimSizeVal" style="color:var(--accent);font-family:var(--font-mono);">1.0&times;</span></div><div class="optHint">0.5&times; to 4&times;</div></div>
       <input type="range" class="optSlider" id="rimSizeSlider" min="50" max="400" step="5" value="100">
     </div>
     <div class="optRow">
-      <div><div class="optLabel">Source / Beam Size <span id="sourceSizeVal" style="color:var(--accent);font-family:var(--font-mono);">1.0&times;</span></div><div class="optHint">Test slider: 0.5&times; to 4&times;</div></div>
+      <div><div class="optLabel">Source / Beam Size <span id="sourceSizeVal" style="color:var(--accent);font-family:var(--font-mono);">1.0&times;</span></div><div class="optHint">0.5&times; to 4&times;</div></div>
       <input type="range" class="optSlider" id="sourceSizeSlider" min="50" max="400" step="5" value="100">
     </div>
     <div class="optRow">
-      <div><div class="optLabel">Gimmick Size <span id="gimmickSizeVal" style="color:var(--accent);font-family:var(--font-mono);">1.0&times;</span></div><div class="optHint">Test slider: 0.5&times; to 4&times;</div></div>
+      <div><div class="optLabel">Gimmick Size <span id="gimmickSizeVal" style="color:var(--accent);font-family:var(--font-mono);">1.0&times;</span></div><div class="optHint">0.5&times; to 4&times;</div></div>
       <input type="range" class="optSlider" id="gimmickSizeSlider" min="50" max="400" step="5" value="100">
     </div>
     <div class="optRow">
       <div><div class="optLabel">How To Play</div><div class="optHint">Only need this if you're stuck — full field legend &amp; controls</div></div>
       <button class="modalBtn" id="optHelpBtn">? OPEN</button>
     </div>
-    <div class="optRow">
+    <div class="optRow" id="debugModeRow">
       <div><div class="optLabel">Debug Mode</div><div class="optHint">Unlocks all difficulties &amp; bonus modes, every level, and every Shop cosmetic/theme</div></div>
       <div class="optToggle" id="debugModeToggle"></div>
     </div>
@@ -1812,7 +1831,7 @@ body.theme-v2 .screenSub, body.theme-v2 #titleScreen .press, body.theme-v2 #game
     <div class="ringdeco r3"></div>
     <div class="ringdeco r2"></div>
     <h1 class="logo">RINGSHIFT</h1>
-    <div class="sub">DEMO · v0.38</div>
+    <div class="sub">DEMO · v0.39</div>
     <div class="press">PRESS ANY BUTTON</div>
   </div>
 
@@ -1953,8 +1972,11 @@ function rayCircleIntersections(pos, dir, radius){
   const a = dir.x*dir.x + dir.y*dir.y;
   const b = 2*(pos.x*dir.x + pos.y*dir.y);
   const c = pos.x*pos.x + pos.y*pos.y - radius*radius;
-  const disc = b*b - 4*a*c;
-  if(disc < 0) return [];
+  let disc = b*b - 4*a*c;
+  // v0.39: a beam running exactly along a tangent (e.g. Challenge 5's answer grazes ring 3 at the bottom) has
+  // disc == 0 in exact maths; float noise decided hit/miss, and Math.sin/cos differ in the last bit between
+  // browser engines. Treat a near-zero discriminant as touching, so every browser agrees.
+  if(disc < 0){ if(disc > -1e-6*radius*radius) disc = 0; else return []; }
   const sq = Math.sqrt(disc);
   return [(-b-sq)/(2*a), (-b+sq)/(2*a)];
 }
@@ -2255,7 +2277,10 @@ function traceBeamBranch(rings, rimRadius, lockSlotsSet, portalRegistry, n, pos,
       // DOWN in the satellite's frame, ld.y > 0) and mostly vertical is a dead end.
       // A beam arriving from BELOW (ld.y <= 0) is never killed any more -- it is
       // absorbed and relaunched UP, exactly like a LEFT/RIGHT hit.
-      const vertical = ld.y > 0 && ay >= ax;
+      // v0.39: a Prism branch meets a Satellite at exactly 45 degrees (ay == ax); last-bit float noise used to
+      // pick kill/absorb there (differently per browser). The tie is now decided with a tolerance: it kills,
+      // as the help text says ("within 45 degrees of the dish axis").
+      const vertical = ld.y > 1e-9 && ay >= ax - 1e-9;
       if(hitEchoSlots) hitEchoSlots.push({ringIdx: nearest.ringIdx, slot, mode: vertical ? 'kill' : 'absorb'});
       if(vertical){ _end(); return; }
       dir = tRad ? vecRotateByAngle({x:0,y:-1}, tRad) : {x:0,y:-1};
@@ -3440,11 +3465,12 @@ const LEVELS = {
         {spokeSlots:[2], gimmicks:{0:{type:'echo_portal', turn:90, fixed:true}}, initialRotation:9}
       ], lockSlots:[1,6], bonusLockSlots:[9]},
     // Black Hole mouths kept off the outer ring, 120° apart (ring 2/3 slot 7; ring 3/3 slot 11 turn -150); solution unchanged.
+    // v0.39 GIFT BOX FIX: since the v0.36 mirror fix no winning rotation lit the gift box (bonus Lock) here. Bonus Lock moved 1 -> 11: lit only by [7,2,2] (the v0.35 gift answer). Required Locks, pieces and every winning rotation unchanged.
     {name:'LEVEL 20', slots:12, rings:[
         {spokeSlots:[8], gimmicks:{0:{type:'mirror_l', fixed:true}}, initialRotation:1},
         {spokeSlots:[11], gimmicks:{5:'block', 7:{type:'portal', id:'P0', fixed:true}}, initialRotation:4},
         {spokeSlots:[0,4], gimmicks:{11:{type:'portal', id:'P0', turn:-150, fixed:true}}, initialRotation:3}
-      ], lockSlots:[6,8,9], bonusLockSlots:[1]},
+      ], lockSlots:[6,8,9], bonusLockSlots:[11]},
     {name:'LEVEL 21', slots:12, rings:[
         {spokeSlots:[6], gimmicks:{4:{type:'half_block', side:'out'}}, initialRotation:7},
         {spokeSlots:[3], gimmicks:{9:'amp'}, initialRotation:0},
@@ -3464,10 +3490,11 @@ const LEVELS = {
       ], lockSlots:[1,2,7], bonusLockSlots:[4]},
     // REBUILT for the exact-90-degree Mirror rule. Rings/gimmicks unchanged; only Locks (and start rotation if needed) re-derived.
     // Brute-forced: 1 coin solution [3,5], 3 no-coin; prism/mirror all necessary; start lights 0/2 required.
+    // v0.39 GIFT BOX FIX: since the v0.36 mirror fix no winning rotation lit the gift box (bonus Lock) here. Bonus Lock moved 3 -> 10: lit only by [3,5] (the v0.35 gift answer). Required Locks, pieces and every winning rotation unchanged.
     {name:'LEVEL 24', slots:12, rings:[
         {spokeSlots:[4], gimmicks:{10:{type:'prism'}}, initialRotation:4},
         {spokeSlots:[5,1], gimmicks:{0:{type:'mirror_l', fixed:true}}, initialRotation:10}
-      ], lockSlots:[1,4], bonusLockSlots:[3]},
+      ], lockSlots:[1,4], bonusLockSlots:[10]},
     {name:'LEVEL 25', slots:12, rings:[
         {spokeSlots:[11], gimmicks:{10:{type:'prism'}}, initialRotation:7},
         {spokeSlots:[0,8], gimmicks:{10:{type:'half_block', side:'in'}}, initialRotation:5}
@@ -3637,11 +3664,12 @@ const LEVELS = {
         {spokeSlots:[0], gimmicks:{6:{type:'mirror_l', fixed:true}, 7:{type:'portal', id:'P0', fixed:true}}, initialRotation:5}
       ], lockSlots:[0,4,9,11], bonusLockSlots:[3]},
     // SATELLITE FIX (horizontal, dish LEFT, pinned): brute-forced 4 winning rotation(s) -- 1 coin solution, 3 no-coin; 0 solutions exist with the Satellite removed, so it is REQUIRED to win; no inert rings; start lights 0/3 required.
+    // v0.39 GIFT BOX FIX: since the v0.36 mirror fix no winning rotation lit the gift box (bonus Lock) here. Bonus Lock moved 9 -> 1: lit only by [10,5,2] and [10,6,2] ([10,5,2] is the v0.35 gift answer; no slot is lit by it alone). Required Locks, pieces and every winning rotation unchanged.
     {name:'LEVEL 4', slots:12, rings:[
         {spokeSlots:[10,8], gimmicks:{3:{type:'mirror_r', fixed:true}}, initialRotation:5},
         {spokeSlots:[0,1], gimmicks:{6:{type:'echo_portal', turn:270, fixed:true}}, initialRotation:7},
         {spokeSlots:[8], gimmicks:{11:{type:'mirror_r', fixed:true}}, initialRotation:9}
-      ], lockSlots:[0,4,8], bonusLockSlots:[9]},
+      ], lockSlots:[0,4,8], bonusLockSlots:[1]},
     {name:'LEVEL 5', slots:12, rings:[
         {spokeSlots:[10,7], gimmicks:{}, initialRotation:5},
         {spokeSlots:[10], gimmicks:{2:{type:'prism'}}, initialRotation:7}
@@ -3723,11 +3751,12 @@ const LEVELS = {
         {spokeSlots:[7], gimmicks:{4:{type:'portal', id:'P0', fixed:true}}, initialRotation:5}
       ], lockSlots:[1,7,10], bonusLockSlots:[11]},
     // SATELLITE FIX (vertical, dish UP, pinned): brute-forced 2 winning rotation(s) -- 1 coin solution, 1 no-coin; 0 solutions exist with the Satellite removed, so it is REQUIRED to win; no inert rings; start lights 0/4 required.
+    // v0.39 GIFT BOX FIX: since the v0.36 mirror fix no winning rotation lit the gift box (bonus Lock) here. Bonus Lock moved 9 -> 5: lit only by [6,7,5] (the v0.35 gift answer). Required Locks, pieces and every winning rotation unchanged.
     {name:'LEVEL 18', slots:12, rings:[
         {spokeSlots:[7,3], gimmicks:{}, initialRotation:1},
         {spokeSlots:[4,5], gimmicks:{3:{type:'echo_portal', turn:0, fixed:true}, 7:{type:'mirror_l', fixed:true}}, initialRotation:0},
         {spokeSlots:[5], gimmicks:{6:{type:'prism'}}, initialRotation:1}
-      ], lockSlots:[1,3,6,7], bonusLockSlots:[9]},
+      ], lockSlots:[1,3,6,7], bonusLockSlots:[5]},
     // BLACK HOLE (two-node footprint) rebuild: brute-forced 2 winning rotation(s) -- 1 coin solution, 1 no-coin; every portal/mirror/prism/amp on the winning path checked; no inert rings; start lights 0 required locks.
     {name:'LEVEL 19', slots:12, rings:[
         {spokeSlots:[7], gimmicks:{3:{type:'half_block', side:'out'}}, initialRotation:11},
@@ -5778,6 +5807,13 @@ function loadSave(){
       const pol = parsed.rewards.orchLocks, ol = {};
       if(pol && typeof pol==='object') Object.keys(pol).forEach(k=>{ if(/^\d+:\d+$/.test(k) && pol[k]) ol[k] = true; });
       fresh.rewards.orchLocks = ol;
+      // v0.39: Rocket / Meteor banked gift locks ('<level index>:<rim slot>') were dropped here, so every
+      // reload reset their gift-box progress to 0. Keep them exactly like orchLocks.
+      ['rocketLocks','meteorLocks'].forEach(f=>{
+        const src = parsed.rewards[f], dst = {};
+        if(src && typeof src==='object' && !Array.isArray(src)) Object.keys(src).forEach(k=>{ if(/^\d+:\d+$/.test(k) && src[k]) dst[k] = true; });
+        fresh.rewards[f] = dst;
+      });
     }
     return fresh;
   }catch(e){ return defaultSave(); }
@@ -6352,6 +6388,7 @@ function goGame(mode, levelIdx){
     OrchestraAudio.stop(); MeteorGame.stop(); RocketGame.stop(); AudioSys.playMood(mode);
   }
   showScreen('gameScreen');
+  maybeShowTutorial();
 }
 
 document.getElementById('backToModeBtn').addEventListener('click', ()=>{ AudioSys.playMenuBlip(); goModeSelect(); });
@@ -6382,6 +6419,9 @@ function closeModal(id){ document.getElementById(id).classList.remove('show'); p
 // ---- How To Play ----
 function maybeShowTutorial(){
   if(save.tutorialSeen) return;
+  // v0.39: this was never called, so a new player started Level 1 with no instructions. Shown once, on the
+  // first level ever opened; "Find this again anytime from Options" at its foot points to the way back.
+  save.tutorialSeen = true; persistSave();
   openModal('howToPlayModal');
 }
 function openHowToPlay(){ AudioSys.playMenuBlip(); openModal('howToPlayModal'); }
@@ -6394,6 +6434,10 @@ document.getElementById('htpGotItBtn').addEventListener('click', ()=>{
 
 // ---- Options ----
 function applyOptionsToUI(){
+  // v0.39: Debug Mode (unlock everything + free coins) is a developer switch. It is hidden in the public demo
+  // unless the page is opened with ?debug, or it is already on in this save (so it can always be turned off).
+  { const row = document.getElementById('debugModeRow');
+    if(row) row.style.display = (/[?&]debug(=|&|$)/.test(location.search) || (save.options && save.options.debugMode)) ? '' : 'none'; }
   document.getElementById('musicVolSlider').value = save.options.musicVol;
   document.getElementById('sfxVolSlider').value = save.options.sfxVol;
   document.getElementById('reduceMotionToggle').classList.toggle('on', !!save.options.reduceMotion);
@@ -9533,6 +9577,12 @@ function _dragMove(ev){
 function _dragUp(){
   if(!_drag.on) return;
   _drag.on=false;
+  // v0.39: a drag counts its slot steps as moves, like the arrow buttons (it used to leave the counter at 0).
+  if(_drag.accum) gstate.moves += Math.abs(_drag.accum);
+  // v0.39: a touch drag (or tap) on a ring's track now selects that ring, as a mouse press already did -- before,
+  // on phones the arrow buttons kept turning the previously selected ring. Done here at the END of the touch:
+  // changing the selection rebuilds the board, and rebuilding it mid-drag would orphan the touch.
+  if(gstate.selectedRing!==_drag.ringIdx){ gstate.selectedRing=_drag.ringIdx; updateRingTag(); if(currentMode==='orchestra') OrchestraAudio.updateOrchestraHud(); }
   flowRenderScheduled=false;
   recomputeFlow(); checkWin(); renderPuzzle(); updateTopBar();
 }
@@ -9540,6 +9590,7 @@ window.addEventListener('mousemove', _dragMove);
 window.addEventListener('mouseup', _dragUp);
 window.addEventListener('touchmove', _dragMove, {passive:false});
 window.addEventListener('touchend', _dragUp);
+window.addEventListener('touchcancel', _dragUp);   // v0.39: a cancelled touch (system gesture) no longer leaves the drag stuck on
 
 /* =========================================================================
    AMBIENT BACKGROUND

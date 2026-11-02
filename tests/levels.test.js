@@ -38,6 +38,12 @@ test('no level starts already solved', () => {
     return L.l.lockSlots.length && L.l.lockSlots.every(s => t.litLocks.has(s)); }).map(L => L.id);
   assert(!bad.length, bad.join(', '));
 });
+test('every Easy / Normal / Hard gift box can be earned (some winning rotation also lights its gift Lock)', () => {
+  // v0.39: 4 gift boxes (incl. Easy 20's key, needed for Challenge 5) were unreachable from v0.36 to v0.38.
+  const bad = levels.filter(L => ['easy', 'normal', 'hard'].includes(L.mode) && (L.l.bonusLockSlots || []).length &&
+    !sigs[L.id].wins.some(w => w.split('|')[1] !== '')).map(L => L.id);
+  assert(!bad.length, 'no winning rotation lights the gift box: ' + bad.join(', '));
+});
 test('every Challenge level has exactly one winning rotation', () => {
   const bad = levels.filter(L => L.mode === 'challenge' && sigs[L.id].wins.length !== 1).map(L => `${L.id}: ${sigs[L.id].wins.length}`);
   assert(!bad.length, bad.join(', '));
