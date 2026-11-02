@@ -48,8 +48,12 @@ function* rotations(n, k) {
     if (i === k) return;
   }
 }
+// Rocket Attack walls (lockGuards) are destroyed by rockets during play; a level's answers are the rotations that
+// win once they are down.
+const wallsDown = l => (l.lockGuards ? { ...l, lockGuards: undefined } : l);
 // A level's puzzle signature: every winning rotation, plus which coin locks that rotation also lights.
 function winSignature(E, l) {
+  l = wallsDown(l);
   const out = [], bonus = l.bonusLockSlots || [];
   for (const rot of rotations(l.slots, l.rings.length)) {
     const t = E.traceAllBeams(l, rot);
@@ -80,4 +84,4 @@ function runner(title) {
 function assert(cond, msg) { if (!cond) throw new Error(msg); }
 function near(a, b, eps = 1e-9) { return Math.abs(a - b) <= eps; }
 
-module.exports = { ROOT, gameFile, load, allLevels, rotations, winSignature, typeOf, hasMirror, runner, assert, near };
+module.exports = { ROOT, gameFile, load, allLevels, rotations, winSignature, wallsDown, typeOf, hasMirror, runner, assert, near };
