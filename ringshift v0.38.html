@@ -5428,12 +5428,13 @@ const RocketGame = (function(){
     if(app){ app.classList.remove('rocketStrike'); void app.offsetWidth; app.classList.add('rocketStrike'); }
   }
 
-  function launchRockets(lvl, launchAt){
+  function launchRockets(lvl, launchAt, spare){
     recomputeFlow();
     const busy = new Set(inFlight.map(r=>r.key));
     let any = false;
     currentTargets(lvl).forEach(t=>{
       if(busy.has(t.key)) return;            // already a rocket on its way to this exact target
+      if(spare && spare.has(t.key)) return;  // a lock whose wall fell on this very tick gets one launch of grace
       inFlight.push({ id: flightIdSeq++, key: t.key, ring: t.ring, authoredSlot: t.authoredSlot,
         touch: Object.assign({}, t.touch), launchedAt: launchAt, impactAt: launchAt + ROCKET_TRAVEL_MS });
       any = true;
@@ -5463,7 +5464,7 @@ const RocketGame = (function(){
     if(gstate.won) return;
     const lvl = gstate.level, now = Date.now();
     // 1) impacts first, so a launch on this same tick sees the post-destruction board
-    const stillFlying = [], losses = [];
+    const stillFlying = [], losses = [], opened = new Set();
     inFlight.forEach(r=>{
       if(now >= r.impactAt){
         AudioSys.playRocketImpact();
@@ -5471,6 +5472,9 @@ const RocketGame = (function(){
         Fx.shatter(q.x,q.y,r.touch.kind==='rim'?'rgba(190,235,255,.5)':'rgba(255,150,90,.55)'); Fx.burst(q.x,q.y,'#ffb347',16); Fx.ring(q.x,q.y,4,38,'#ffb347',.45); Fx.shake(r.touch.kind!=='rim');
         const what = destroyTarget(lvl, r.touch);
         if(what) losses.push(what);
+        // A wall's impact always lands on a launch mark (5s metronome, 10s flight), so a beam still resting on
+        // the wall would otherwise aim a rocket at the lock behind it the same instant it opens.
+        if(what === 'guard') opened.add('rim:'+r.touch.slot);
         flashImpact();
       } else stillFlying.push(r);
     });
@@ -5491,7 +5495,7 @@ const RocketGame = (function(){
     // 2) launches on the fixed 5s metronome from level start
     while(now >= levelStartAt + (launchCount+1)*ROCKET_LAUNCH_INTERVAL_MS){
       launchCount++;
-      launchRockets(lvl, levelStartAt + launchCount*ROCKET_LAUNCH_INTERVAL_MS);
+      launchRockets(lvl, levelStartAt + launchCount*ROCKET_LAUNCH_INTERVAL_MS, opened);
     }
     recomputeFlow();
     renderPuzzle();
@@ -7257,7 +7261,7 @@ function recomputeFlow(){
   const lvl = gstate.level;
   const alias = PowerSys.aliasMap(lvl);
   const allTargets = [...new Set([...lvl.lockSlots, ...(lvl.bonusLockSlots||[]), ...alias.keys()])];
-  const lvlLike = { slots: lvl.slots, rings: lvl.rings, lockSlots: allTargets, emitters: lvl.emitters };
+  const lvlLike = { slots: lvl.slots, rings: lvl.rings, lockSlots: allTargets, emitters: lvl.emitters, lockGuards: lvl.lockGuards };
   // Space Orchestra only: thread fog state into the tracer so a fogged
   // Lock physically blocks the beam while active (see traceBeamBranch),
   // and report which gray UFOs a beam crossed this trace. Every
