@@ -1091,13 +1091,13 @@ svg#puzzle.win-surge,#puzzleArena.win-surge{animation:surge 1s ease-out}
 @media (max-width:520px){.coinTally{position:static;margin:0 0 10px;text-align:center}}
 
 /* POWERS */
-#powerBtn{display:none;} body.inGame #powerBtn{display:flex;}
+#powerBtn{display:none;} body.inGame #powerBtn.avail{display:flex;animation:hintBtnIn .5s cubic-bezier(.2,1.5,.4,1) backwards;}
+@keyframes hintBtnIn{from{transform:scale(0);opacity:0}to{transform:none;opacity:1}}
 #powerBtn.ready{color:#ffd23f;border-color:#ffd23f;box-shadow:0 0 10px rgba(255,210,63,.45);}
 #powerBtn.used{color:#ff9aa8;border-color:#5a2230;opacity:.7;} #powerBtn.none{opacity:.55;}
 #powerStatus{display:none;font-family:var(--font-mono);font-size:10.5px;letter-spacing:.4px;padding:2px 10px;border-radius:10px;border:1px solid var(--panel-line);color:var(--text1);margin:2px auto 0;text-align:center;position:relative;z-index:3;}
 #powerStatus.ready{border-color:#6b5400;color:#ffd23f;} #powerStatus.used{border-color:#5a2230;color:#ff9aa8;}
 #gameTop .coinStatus.off{color:#ff5d5d;text-decoration:line-through;}
-.powerEquipBtn{margin:-14px 0 14px;}
 .lockExpandPop{transform-box:fill-box;transform-origin:center;animation:lockExpandIn .6s cubic-bezier(.2,1.5,.4,1) backwards;}
 @keyframes lockExpandIn{from{transform:scale(0);opacity:0}to{transform:none;opacity:1}}
 
@@ -1679,7 +1679,7 @@ body.theme-v2 .screenSub, body.theme-v2 #titleScreen .press, body.theme-v2 #game
 
 <div id="utilityBtns">
   <button class="utilBtn" id="optionsBtn" title="Options">⚙</button>
-  <button class="utilBtn none" id="powerBtn" title="Power">⚡</button>
+  <button class="utilBtn none" id="powerBtn" title="Hint">💡</button>
   <button class="utilBtn" id="pauseBtn" title="Pause (Esc)">❚❚</button>
 </div>
 
@@ -1723,6 +1723,7 @@ body.theme-v2 .screenSub, body.theme-v2 #titleScreen .press, body.theme-v2 #game
       <div class="htpRow"><span class="htpIcon eco">◍</span><div><b>Echo (Satellite)</b>Pinned in place — except in Challenge, where a Satellite rides its ring when you turn it (its dish keeps pointing the same way). Its DISH shows which way it fires, and it is built pointing UP, DOWN, LEFT or RIGHT depending on the level. A beam that arrives from the DISH side (within 45° of the dish axis) dies there. A beam that arrives from either SIDE or from the ENGINE end (below) is absorbed and relaunched straight out of the DISH.</div></div>
       <div class="htpRow"><span class="htpIcon lck">◎</span><div><b>Lock</b>Needs a beam landing on it. ALL Locks must be lit at once to breach the level.</div></div>
       <div class="htpRow"><span class="htpIcon bon">☆</span><div><b>Gift Box Lock</b>Optional — light it too, at the same time as every Lock, to open that level's gift box. Never required.</div></div>
+      <div class="htpRow"><span class="htpIcon" style="color:#ffd23f; border-color:#ffd23f;">💡</span><div><b>Hint: Lock Expansion</b>Stuck on an Easy, Normal or Hard level? After 5 minutes on it, a 💡 button appears at the top. Tap it and every Lock grows to cover the rim slot next to it. Using it means no gift box on that attempt; restart to try for the gift again.</div></div>
       <div class="htpRow"><span class="htpIcon" style="opacity:.4">◍</span><div><b>Stacked pieces</b>When turning a ring slides one of its pieces onto another of its own pieces, only one of them works: the other is drawn faded and the beam ignores it. A Black Hole whose twin is faded has a red dashed ring: it swallows a beam without sending it on.</div></div>
     </div>
 
@@ -1874,9 +1875,6 @@ body.theme-v2 .screenSub, body.theme-v2 #titleScreen .press, body.theme-v2 #game
   </div>
 </div>
 
-<div id="powersModal" class="modalOverlay"><div class="modalBox"><button class="modalClose" id="powersCloseBtn">✕</button>
-  <h2>⚡ POWERS</h2><div class="modalSub">Equip ONE Power before entering a level, then activate it with the ⚡ button during play. Using a Power means no gift box on that attempt.</div>
-  <div id="powersList"></div><div class="modalActions"><button class="modalBtn primary" id="powersDoneBtn">DONE</button></div></div></div>
 <div id="giftModal" class="modalOverlay"><div class="modalBox"><div id="giftHead">GIFT BOX</div><div id="giftArt" class="giftArt"></div><div id="giftReveal"></div><div class="modalActions" id="giftActions" style="justify-content:center;"></div></div></div>
 <div id="newGimmickToast"></div>
 
@@ -1911,7 +1909,7 @@ body.theme-v2 .screenSub, body.theme-v2 #titleScreen .press, body.theme-v2 #game
     <div class="ringdeco r3"></div>
     <div class="ringdeco r2"></div>
     <h1 class="logo">RINGSHIFT</h1>
-    <div class="sub">DEMO · v0.43</div>
+    <div class="sub">DEMO · v0.44</div>
     <div class="press">PRESS ANY BUTTON</div>
   </div>
 
@@ -1921,7 +1919,6 @@ body.theme-v2 .screenSub, body.theme-v2 #titleScreen .press, body.theme-v2 #game
     <div class="coinTally">🏆 <span id="winTallyVal">0</span> WINS · 🔑 <span id="coinTallyVal">0</span> KEYS<br><span style="font-size:10px;color:var(--text2);font-weight:normal;">★ <span id="starTallyVal">0</span> stars · 🎁 <span id="walletTallyVal">0</span> gift boxes (Hard unlocks at 8)</span></div>
     <h2 class="screenTitle">SELECT DIFFICULTY</h2>
     <div class="screenSub">Rotate the rings. Light every Lock at once to breach.</div>
-    <button class="actBtn powerEquipBtn">⚡ POWER: NONE</button>
     <div id="modeGrid"></div>
     <!-- All three bonus modes now show up together, right under the
          difficulty grid, on this same screen -- see #bonusRow's CSS and
@@ -1941,7 +1938,6 @@ body.theme-v2 .screenSub, body.theme-v2 #titleScreen .press, body.theme-v2 #game
     <div class="shopCornerBtn" id="shopBtnLevel" title="Inventory">🎒 INVENTORY</div>
     <h2 class="screenTitle" id="levelScreenTitle">EASY</h2>
     <div class="screenSub" id="levelScreenSub">Select a level</div>
-    <button class="actBtn powerEquipBtn">⚡ POWER: NONE</button>
     <div id="levelGrid"></div>
   </div>
 
@@ -5829,7 +5825,7 @@ function defaultSave(){
     // currently equipped), then must be bought from the Shop like any
     // other cosmetic before they can be equipped.
     themeState: { unlocked:['space'], equipped:'space' },
-    powers: { equipped:null },
+    hintTime: {},   // v0.44: ms spent on each Easy/Normal/Hard level ('mode:idx'); 5 min shows the hint button
     rewards: { claimed:{}, migrated:false },
   };
   Object.keys(LEVELS).forEach(mode=>{
@@ -5924,7 +5920,7 @@ function loadSaveFrom(raw){
       if(!fresh.themeState.discovered.includes('space')) fresh.themeState.discovered.unshift('space');
       if(!fresh.themeState.owned.includes('space')) fresh.themeState.owned.unshift('space');
     }
-    if(parsed.powers && typeof parsed.powers.equipped==='string') fresh.powers.equipped = parsed.powers.equipped;
+    if(parsed.hintTime && typeof parsed.hintTime==='object'){ Object.keys(parsed.hintTime).forEach(k=>{ const v = parsed.hintTime[k]; if(/^[a-z]+:\d+$/.test(k) && typeof v==='number' && isFinite(v) && v>0) fresh.hintTime[k] = Math.min(v, 300000); }); }
     if(parsed.rewards && typeof parsed.rewards==='object'){
       const cl = {}; const pcl = parsed.rewards.claimed || {};
       Object.keys(pcl).forEach(k=>{ if(typeof pcl[k]==='string') cl[k]=pcl[k]; });
@@ -6380,20 +6376,18 @@ function renderInvPicker(){
   invList('invPickList', kind, loadoutItems(kind));
 }
 // v0.34: the inventory also opens inside a level (🎒 button / pause menu). While it is open there
-// the mode clocks (meteor timer, Orchestra fog window, Rocket countdowns, Power) are held, exactly
+// the mode clocks (meteor timer, Orchestra fog window, Rocket countdowns, hint clock) are held, exactly
 // like the pause menu; opened from the pause menu, closing it goes back to the pause menu.
 let _invPausedGame = false, _invFromPause = false;
 function invPauseGameClocks(){
   if(currentMode === 'special') MeteorGame.pause();
   if(currentMode === 'orchestra') OrchestraAudio.pauseFog();
   if(currentMode === 'rocket') RocketGame.pause();
-  PowerSys.pause();
 }
 function invResumeGameClocks(){
   if(currentMode === 'special' && !gstate.won) MeteorGame.resume();
   if(currentMode === 'orchestra' && !gstate.won) OrchestraAudio.resumeFog();
   if(currentMode === 'rocket' && !gstate.won && !gstate.rocketFailed) RocketGame.resume();
-  PowerSys.resume();
 }
 function openShop(fromPause){
   AudioSys.playMenuBlip();
@@ -6750,7 +6744,6 @@ function openPauseMenu(){
   // RocketGame.resume()), so real-world pause time never counts against
   // the 10s/10s cycle.
   if(currentMode === 'rocket') RocketGame.pause();
-  PowerSys.pause();
   openModal('pauseModal');
 }
 function closePauseMenu(silent){
@@ -6759,7 +6752,6 @@ function closePauseMenu(silent){
   if(wasOpen && currentMode === 'special' && !gstate.won) MeteorGame.resume();
   if(wasOpen && currentMode === 'orchestra' && !gstate.won) OrchestraAudio.resumeFog();
   if(wasOpen && currentMode === 'rocket' && !gstate.won && !gstate.rocketFailed) RocketGame.resume();
-  if(wasOpen) PowerSys.resume();
   if(wasOpen && !silent) AudioSys.playMenuBlip();
 }
 document.getElementById('pauseBtn').addEventListener('click', ()=>{
@@ -7454,7 +7446,7 @@ function drawRimBandVoid(rimG, defs, n, states){
 
 let gstate = {
   level:null, rotations:[], selectedRing:0, litLocks:new Set(), beamResults:[],
-  won:false, requiredComplete:false, nextUnlocked:false, moves:0, elapsed:0, startTime:0, timerInterval:null, power:{used:false,coinDisabled:false,alias:null,ufo:null,fresh:false},
+  won:false, requiredComplete:false, nextUnlocked:false, moves:0, elapsed:0, startTime:0, timerInterval:null, power:{used:false,coinDisabled:false,alias:null,fresh:false},
 };
 let autoAdvanceTimer = null; // pending "jump to next level" timer set by finishLevel()
 
@@ -7855,39 +7847,57 @@ function stopGameTimers(){
 }
 
 /* =========================================================================
-   POWERS SYSTEM (replaces the old Auto-Ring hint). One Power equipped at a
-   time (save.powers.equipped), chosen BEFORE a level, activated on purpose
-   from the top-bar button. Using a Power sets gstate.power.coinDisabled for
-   the current attempt only; loadLevel() -> PowerSys.resetForLevel() restores
-   everything. Effects are runtime-only: Lock Expansion is an alias map layered
-   over the tracer result, UFO Strike clones the level before deleting a
-   gimmick, so LEVELS data is never mutated. Add Powers 3-10 by filling in the
-   reserved POWER_DEFS slots (id, name, icon, desc, unlocked, activate()).
-   activate() runs after used/coinDisabled are set; return false to cancel
-   (nothing is consumed).
+   HINT (v0.44; was the POWERS system). The Powers equip screen and UFO Strike
+   are gone. LOCK EXPANSION is the only Power left and it works as a hint: on
+   Easy / Normal / Hard the 💡 button in the top bar appears once the player
+   has spent HINT_UNLOCK_MS (5 minutes) on that level. Time counts only while
+   the level is actually being played (in game, not won, no menu / inventory /
+   modal open, tab visible). It is kept per level in save.hintTime ('mode:idx'),
+   so restarts, leaving and coming back, and reloads all keep it; once reached
+   the hint stays available on that level. Using it sets
+   gstate.power.coinDisabled for the current attempt (no gift box); restart
+   readies it again. The effect is runtime-only (an alias map layered over the
+   tracer result), so LEVELS data is never mutated. Debug Mode shows it at once.
    ========================================================================= */
 const POWER_MODES = ['easy','normal','hard'];
-const POWER_DEFS = [
-  {id:'lock_expansion', slot:1, name:'LOCK EXPANSION', icon:'\u21d4', unlocked:true, durationMs:0,
-   desc:'Every rim Lock grows to cover two adjacent rim slots (where there is room). No gift box on this attempt.',
-   activate:()=>PowerSys.lockExpansion()},
-  {id:'ufo_strike', slot:2, name:'UFO STRIKE', icon:'\ud83d\udef8', unlocked:true, durationMs:10000,
-   desc:'Summons the UFO for 10s. Tap ONE mechanism to destroy it. Never targets Locks. No gift box on this attempt.',
-   activate:()=>PowerSys.ufoStrike()},
-];
-for(let sl=3; sl<=10; sl++) POWER_DEFS.push({id:'power_'+sl, slot:sl, name:'LOCKED', icon:'\ud83d\udd12', unlocked:false, reserved:true, desc:'Reserved for a future Power.', activate:null});
+const HINT_UNLOCK_MS = 5*60*1000;
+const HINT_POWER = {id:'lock_expansion', name:'LOCK EXPANSION', icon:'💡'};
 
 const PowerSys = (function(){
-  const UFO_MS = 10000, FLIGHT_MS = 700;
-  let timer = null;
+  const TICK_MS = 1000, SAVE_EVERY_MS = 15000;
+  let lastTick = 0, unsaved = 0;
   const P = ()=>gstate.power;
   const $ = id=>document.getElementById(id);
-  const defOf = id=>POWER_DEFS.find(d=>d.id===id);
-  const isUnlocked = d=>!d.reserved && (d.unlocked || !!(save.options && save.options.debugMode));
-  function equipped(){ const id = save.powers && save.powers.equipped; const d = id && defOf(id); return (d && isUnlocked(d)) ? d : null; }
-  const eligible = ()=>POWER_MODES.includes(currentMode);
+  const eligible = ()=>POWER_MODES.includes(currentMode) && currentLevelIdx != null;
   const toast = m=>showNewGimmickToast(m);
-  function setEquipped(id){ if(!save.powers) save.powers = {equipped:null}; save.powers.equipped = id; persistSave(); updateUI(); }
+  const key = ()=>currentMode+':'+currentLevelIdx;
+  const debug = ()=>!!(save.options && save.options.debugMode);
+  function spentMs(){ return (save.hintTime && save.hintTime[key()]) || 0; }
+  function available(){ return eligible() && (debug() || spentMs() >= HINT_UNLOCK_MS); }
+
+  // ---- hint clock ----
+  function playing(){
+    return eligible() && document.body.classList.contains('inGame') && !gstate.won &&
+      !anyModalOpen() && !document.hidden;
+  }
+  function tick(){
+    const now = Date.now(), dt = Math.min(now - lastTick, 2*TICK_MS); lastTick = now; // a slept device never jumps the clock
+    if(!playing() || debug()) return;
+    if(!save.hintTime) save.hintTime = {};
+    const k = key(), before = save.hintTime[k] || 0;
+    if(before >= HINT_UNLOCK_MS) return;
+    const after = Math.min(HINT_UNLOCK_MS, before + dt);
+    save.hintTime[k] = after; unsaved += dt;
+    if(after >= HINT_UNLOCK_MS){
+      persistSave(); unsaved = 0; updateUI();
+      AudioSys.playMenuBlip();
+      toast('💡 HINT READY — tap 💡 to widen every Lock (no gift box this attempt).');
+    } else if(unsaved >= SAVE_EVERY_MS){ persistSave(); unsaved = 0; }
+  }
+  lastTick = Date.now(); setInterval(tick, TICK_MS);
+  function flush(){ if(unsaved){ persistSave(); unsaved = 0; } }
+  document.addEventListener('visibilitychange', ()=>{ if(document.hidden) flush(); else lastTick = Date.now(); });
+  window.addEventListener('pagehide', flush);
 
   // ---- Lock Expansion ----
   function computeExpansion(lvl){
@@ -7904,157 +7914,45 @@ const PowerSys = (function(){
   }
   function lockExpansion(){
     const lvl = gstate.level, m = computeExpansion(lvl);
-    if(!m.size){ toast('No room to expand any Lock here \u2014 Power not used.'); return false; }
+    if(!m.size){ toast('No room to expand any Lock here — hint not used.'); return false; }
     P().alias = m; P().fresh = true; setTimeout(()=>{ if(P()) P().fresh = false; }, 900);
     m.forEach((owner, extra)=>{ const a = slotToAngle(extra, lvl.slots), x = Math.cos(a)*RIM_R, y = Math.sin(a)*RIM_R; Fx.ring(x,y,6,42,'#9ff7ff'); Fx.burst(x,y,'#d8fbff',12); });
     AudioSys.playMenuBlip();
-    toast('LOCK EXPANSION \u2014 Locks widened. No gift box this attempt.');
+    toast('LOCK EXPANSION — Locks widened. No gift box this attempt.');
     recomputeFlow(); checkWin(); renderPuzzle(); updateTopBar();
     return true;
   }
 
-  // ---- UFO Strike ----
-  function listTargets(){
-    const lvl = gstate.level, n = lvl.slots, out = [];
-    lvl.rings.forEach((ring, r)=>{
-      Object.keys(ring.gimmicks||{}).forEach(k=>{
-        const raw = ring.gimmicks[k], type = typeof raw === 'string' ? raw : raw.type;
-        if(type === 'bell' || type === 'coin' || type === 'ufo') return;
-        const fixed = (typeof raw === 'object' && raw.fixed === true) || (type === 'echo_portal' && raw.moving !== true);
-        const w = typeof raw === 'string' ? 1 : Math.max(1, raw.width||1);
-        for(let q=0; q<w; q++){
-          const a0 = (parseInt(k,10)+q) % n, live = fixed ? a0 : (a0 + gstate.rotations[r]) % n;
-          const ang = slotToAngle(live, n), rad = ringRadius(r);
-          out.push({ringIdx:r, key:k, type, x:Math.cos(ang)*rad, y:Math.sin(ang)*rad});
-        }
-      });
-    });
-    return out;
-  }
-  function ufoStrike(){
-    if(!listTargets().length){ toast('No mechanisms on this level to target \u2014 Power not used.'); return false; }
-    P().ufo = {endsAt:Date.now()+UFO_MS, paused:false, pauseAt:0, shot:null};
-    startTimer(); AudioSys.playRocketLaunch();
-    toast('UFO on station \u2014 tap ONE mechanism within 10s. No gift box this attempt.');
-    renderPuzzle();
-    return true;
-  }
-  function startTimer(){ stopTimer(); timer = setInterval(tick, 80); }
-  function stopTimer(){ if(timer){ clearInterval(timer); timer = null; } }
-  function tick(){
-    const p = P(), u = p && p.ufo;
-    if(!u || gstate.won){ if(u) p.ufo = null; stopTimer(); if(gstate.level) renderPuzzle(); updateUI(); return; }
-    if(u.paused) return;
-    const now = Date.now();
-    if(u.shot){ if(now - u.shot.t0 >= FLIGHT_MS) impact(); else renderPuzzle(); }
-    else if(now >= u.endsAt){ p.ufo = null; stopTimer(); toast('UFO left \u2014 no shot fired.'); renderPuzzle(); }
-    else renderPuzzle();
-    updateUI();
-  }
-  function impact(){
-    const p = P(), t = p.ufo.shot.target;
-    stopTimer(); p.ufo = null;
-    gstate.level = JSON.parse(JSON.stringify(gstate.level)); // never mutate LEVELS; restart reloads the original
-    const ring = gstate.level.rings[t.ringIdx];
-    if(ring && ring.gimmicks) delete ring.gimmicks[t.key];
-    AudioSys.playRocketImpact(); Fx.shatter(t.x,t.y,'rgba(255,150,90,.55)'); Fx.burst(t.x,t.y,'#ffb347',16); Fx.shake(true);
-    toast('UFO STRIKE \u2014 mechanism destroyed. Restart to undo.');
-    recomputeFlow(); checkWin(); renderPuzzle(); updateTopBar(); updateUI();
-  }
-  const targeting = ()=>{ const u = P() && P().ufo; return !!(u && !u.shot && !u.paused && !gstate.won); };
-  function onPointer(e){
-    if(!targeting()) return;
-    const r = $('puzzle').getBoundingClientRect();
-    const x = (e.clientX-r.left)/r.width*520-260, y = (e.clientY-r.top)/r.height*520-260;
-    let best = null, bd = 1e9;
-    listTargets().forEach(t=>{ const d = Math.hypot(t.x-x, t.y-y); if(d < bd){ bd = d; best = t; } });
-    if(!best || bd > 36) return;
-    e.preventDefault(); e.stopPropagation();
-    P().ufo.shot = {t0:Date.now(), target:best}; AudioSys.playRocketLaunch();
-  }
-  function overlay(svg){
-    const p = P(), u = p && p.ufo; if(!u) return;
-    const g = el('g', {'pointer-events':'none'}, svg), now = u.paused ? u.pauseAt : Date.now();
-    if(!u.shot) listTargets().forEach(t=>el('rect',{x:t.x-15,y:t.y-15,width:30,height:30,rx:2,class:'rocketLockSquare'}, g));
-    const bg = el('g',{class:'ufo-bob', style:ph(4.2)}, el('g',{transform:'scale(1.35)'}, g));
-    el('ellipse',{cx:0,cy:0,rx:22,ry:8,fill:'rgba(20,40,25,0.94)',stroke:'#7dff9d','stroke-width':1.6}, bg);
-    el('ellipse',{cx:0,cy:-5,rx:11,ry:7,fill:'rgba(90,255,140,0.2)',stroke:'#a8ffc0','stroke-width':1.2}, bg);
-    [-17,17].forEach(x=>el('rect',{x:x-3,y:1,width:6,height:5,rx:1,fill:'#2fa85a'}, bg));
-    el('circle',{cx:0,cy:0,r:3,fill:'#eaffef'}, bg);
-    [-13,13].forEach((x,i)=>el('circle',{cx:x,cy:3,r:1.7,fill:'#ffe27a',class:'ufo-light',style:ph(1.2,i*.6)}, bg));
-    const C = 2*Math.PI*34, frac = Math.max(0, Math.min(1, (u.endsAt-now)/UFO_MS));
-    el('circle',{r:34,fill:'none',stroke:'#7dff9d','stroke-width':2.4,'stroke-dasharray':`${(C*frac).toFixed(1)} ${C.toFixed(1)}`,transform:'rotate(-90)',opacity:.85}, g);
-    if(u.shot){
-      const t = u.shot.target, f = Math.min(1, (now-u.shot.t0)/FLIGHT_MS);
-      el('rect',{x:t.x-16,y:t.y-16,width:32,height:32,rx:2,class:'rocketLockSquare traveling'}, g);
-      drawRocketProjectile(el('g',{transform:`translate(${t.x*f},${t.y*f}) rotate(${Math.atan2(t.y,t.x)*180/Math.PI})`}, g));
-    }
-  }
-
-  // ---- generic activation / lifecycle ----
+  // ---- activation / lifecycle ----
   function activate(){
     const p = P();
-    if(!document.body.classList.contains('inGame') || gstate.won) return;
-    if(!eligible()){ AudioSys.playError(); toast('Powers are available on Easy, Normal and Hard levels.'); return; }
-    const d = equipped();
-    if(!d){ AudioSys.playError(); toast('No Power equipped \u2014 pick one from the level-select screen (\u26a1 POWER).'); return; }
-    if(p.used){ AudioSys.playError(); toast(d.name+' already used this attempt \u2014 restart to ready it again.'); return; }
+    if(!document.body.classList.contains('inGame') || gstate.won || !available()) return;
+    if(p.used){ AudioSys.playError(); toast('Hint already used this attempt — restart to ready it again.'); return; }
     p.used = true; p.coinDisabled = true;
-    let ok = false; try{ ok = d.activate(); }catch(e){ ok = false; }
+    let ok = false; try{ ok = lockExpansion(); }catch(e){ ok = false; }
     if(!ok){ p.used = false; p.coinDisabled = false; }
     updateUI(); updateTopBar();
   }
-  function resetForLevel(){ stopTimer(); gstate.power = {used:false, coinDisabled:false, alias:null, ufo:null, fresh:false}; updateUI(); }
-  function cancel(){ stopTimer(); if(P()) P().ufo = null; }
-  function pause(){ const u = P() && P().ufo; if(u && !u.paused){ u.paused = true; u.pauseAt = Date.now(); } }
-  function resume(){ const u = P() && P().ufo; if(u && u.paused){ const d = Date.now()-u.pauseAt; u.endsAt += d; if(u.shot) u.shot.t0 += d; u.paused = false; } }
+  function resetForLevel(){ gstate.power = {used:false, coinDisabled:false, alias:null, fresh:false}; lastTick = Date.now(); updateUI(); }
+  function cancel(){ flush(); }
 
   function updateUI(){
     const btn = $('powerBtn'), st = $('powerStatus'); if(!btn) return;
-    const d = equipped(), p = P() || {}, ok = eligible();
-    btn.classList.toggle('ready', !!(d && ok && !p.used));
+    const p = P() || {}, show = document.body.classList.contains('inGame') && available();
+    btn.classList.toggle('avail', show);
+    btn.classList.toggle('ready', show && !p.used);
     btn.classList.toggle('used', !!p.used);
-    btn.classList.toggle('none', !d || !ok);
-    btn.textContent = d ? d.icon : '\u26a1';
-    btn.title = d ? ('Power: '+d.name+(p.used?' (used)':' (ready)')) : 'Power (none equipped)';
+    btn.classList.remove('none');
+    btn.textContent = HINT_POWER.icon;
+    btn.title = 'Hint: '+HINT_POWER.name+(p.used ? ' (used)' : '');
     if(st){
-      if(!document.body.classList.contains('inGame') || !d || !ok) st.style.display = 'none';
-      else {
-        st.style.display = '';
-        let t;
-        if(p.ufo){ const s = Math.max(0, Math.ceil(((p.ufo.paused ? p.ufo.pauseAt : Date.now()) < 0 ? 0 : (p.ufo.endsAt-(p.ufo.paused?p.ufo.pauseAt:Date.now())))/1000)); t = '\u26a1 '+d.name+' \u00b7 UFO '+(p.ufo.shot?'FIRING':'ON STATION '+s+'s \u00b7 TAP A GIMMICK')+' \u00b7 COIN DISABLED'; }
-        else if(p.used) t = '\u26a1 '+d.name+' \u00b7 USED \u00b7 COIN DISABLED';
-        else t = '\u26a1 '+d.name+' \u00b7 READY \u00b7 COIN AVAILABLE';
-        st.textContent = t; st.className = p.used ? 'used' : 'ready';
-      }
+      if(!show || !p.used) st.style.display = 'none';
+      else { st.style.display = ''; st.textContent = '💡 '+HINT_POWER.name+' · USED · NO GIFT BOX'; st.className = 'used'; }
     }
-    document.querySelectorAll('.powerEquipBtn').forEach(b=>{ b.textContent = '\u26a1 POWER: '+(d ? d.name : 'NONE'); });
   }
-  function renderModal(){
-    const wrap = $('powersList'); wrap.innerHTML = '';
-    const eq = equipped();
-    // v0.41: the 8 empty "Reserved for a future Power" slots are no longer listed to players
-    POWER_DEFS.filter(d=>!d.reserved).forEach(d=>{
-      const un = isUnlocked(d), isEq = !!(eq && eq.id === d.id);
-      const row = document.createElement('div'); row.className = 'shopItem'+(isEq ? ' equipped' : '');
-      row.innerHTML = `<div class="shopSwatch" style="display:flex;align-items:center;justify-content:center;font-size:13px;background:rgba(255,210,63,.1);">${d.icon}</div>
-        <div class="shopItemInfo"><div class="shopItemName">${d.slot}. ${d.name}</div><div class="shopItemPrice">${d.desc}</div></div>`;
-      const b = document.createElement('button');
-      b.className = 'shopItemBtn'+(isEq ? ' equipped' : '');
-      b.textContent = !un ? 'LOCKED' : (isEq ? 'UNEQUIP' : 'EQUIP');
-      if(!un) b.disabled = true;
-      b.addEventListener('click', ()=>{ AudioSys.playMenuBlip(); setEquipped(isEq ? null : d.id); renderModal(); });
-      row.appendChild(b); wrap.appendChild(row);
-    });
-  }
-  function openPowers(){ renderModal(); openModal('powersModal'); }
 
-  $('puzzle').addEventListener('pointerdown', onPointer, true);
   $('powerBtn').addEventListener('click', activate);
-  document.querySelectorAll('.powerEquipBtn').forEach(b=>b.addEventListener('click', ()=>{ AudioSys.playMenuBlip(); openPowers(); }));
-  $('powersCloseBtn').addEventListener('click', ()=>closeModal('powersModal'));
-  $('powersDoneBtn').addEventListener('click', ()=>closeModal('powersModal'));
-  return { activate, aliasMap, overlay, pause, resume, cancel, resetForLevel, updateUI, openPowers, targeting, equipped, listTargets, lockExpansion, ufoStrike };
+  return { activate, aliasMap, cancel, resetForLevel, updateUI, available, spentMs, lockExpansion };
 })();
 
 /* =========================================================================
@@ -8649,7 +8547,7 @@ function renderPuzzleFull(){
         // VISUAL MILESTONE 1: every gimmick -- pinned or not -- is now drawn
         // CENTRED ON THE RING, i.e. exactly where the tracer applies it (the
         // beam turns/splits/stops at the ring crossing; see traceBeamBranch,
-        // RocketGame.liveGimmickPosition and PowerSys.listTargets, which all
+        // and RocketGame.liveGimmickPosition, which both
         // already use this point). Pinned glyphs used to be pushed 11 units
         // outward so a spoke rotating onto the same slot would not be hidden;
         // instead they are now drawn UNDER the ring's spoke markers (same
@@ -9133,14 +9031,14 @@ function renderBeams(force){
   });
   alignHalos(svg);
 }
-// UFO strike / Rocket Attack overlays: rebuilt on their own tiny layer (never the whole puzzle).
+// Rim Emitter / Rocket / Meteor overlays: rebuilt on their own tiny layer (never the whole puzzle).
 function renderDynamic(){
   const dyn = document.getElementById('puzzleDyn');
   const emit = gstate.level && gstate.level.emitters && gstate.level.emitters.length;
-  const need = (gstate.power && gstate.power.ufo) || currentMode==='rocket' || currentMode==='special' || emit;
+  const need = currentMode==='rocket' || currentMode==='special' || emit;
   if(!need){ if(dyn.firstChild) dyn.innerHTML=''; return; }
   dyn.innerHTML='';
-  lite(()=>{ if(emit) drawRimEmitters(dyn, gstate.level); PowerSys.overlay(dyn); if(currentMode==='rocket') renderRocketOverlay(dyn); if(currentMode==='special') renderMeteorOverlay(dyn); });
+  lite(()=>{ if(emit) drawRimEmitters(dyn, gstate.level); if(currentMode==='rocket') renderRocketOverlay(dyn); if(currentMode==='special') renderMeteorOverlay(dyn); });
 }
 // ---- RIM EMITTER (v0.33, Challenge): the fixed source bolted to the rim. Drawn in the overlay
 // layer (like Rocket's trap locks) so every theme/rim shows it the same way. A heavy bracket on
@@ -9800,7 +9698,7 @@ function _dragAng(ev){
 }
 function attachRingDrag(dragRing, ringIdx, slotCount){
   function onDown(ev){
-    if(gstate.won || gstate.rocketFailed || PowerSys.targeting()) return;
+    if(gstate.won || gstate.rocketFailed) return;
     if(RocketGame.isFrozen(ringIdx)){ RocketGame.denyRotate(ringIdx); return; }
     _drag.on=true; _drag.accum=0; _drag.moves=0; _drag.ringIdx=ringIdx; _drag.n=slotCount;
     _drag.startAngle=_dragAng(ev); _drag.startRot=gstate.rotations[ringIdx];

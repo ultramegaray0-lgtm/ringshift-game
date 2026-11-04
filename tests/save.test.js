@@ -243,8 +243,12 @@ const same = (a, b) => canon(JSON.parse(a)) === canon(JSON.parse(b));
       const A = JSON.parse(afterOlderFull), B = JSON.parse(olderFull);
       const diff = [...new Set([...Object.keys(A), ...Object.keys(B)])].filter(k => canon(A[k]) !== canon(B[k]));
       H.assert(!diff.length, 'fields differ: ' + diff.map(k => k + ' ' + canon(B[k]).slice(0, 120) + ' -> ' + canon(A[k]).slice(0, 120)).join(' | ')); });
-  test('v0.41 save (full playthrough, all gifts): this build loads it to the identical save (every field, every value)',
-    () => { const a = JSON.parse(v41loaded), b = JSON.parse(V41);
+  // v0.44: the Powers equip screen is gone, so `powers` ({equipped}) is dropped on load, and `hintTime` (5-minute hint
+  // clock per level) is new and starts empty. Every other field must come through unchanged.
+  const V44_SHAPE = { powers: undefined, hintTime: {} };
+  test('v0.41 save (full playthrough, all gifts): this build loads it to the identical save (every field, every value; v0.44: powers dropped, hintTime added empty)',
+    () => { const a = JSON.parse(v41loaded), b = Object.assign(JSON.parse(V41), V44_SHAPE);
+      for (const k of Object.keys(V44_SHAPE)) if (V44_SHAPE[k] === undefined) delete b[k];
       for (const k of new Set([...Object.keys(a), ...Object.keys(b)])) H.assert(canon(a[k]) === canon(b[k]), 'field differs: ' + k);
       H.assert(v41stats.wins === 75 && v41stats.unlocked.every(Boolean), 'stats ' + JSON.stringify(v41stats));
       H.assert(v41lastGood === V41, 'last-good copy not written from the v0.41 save'); });

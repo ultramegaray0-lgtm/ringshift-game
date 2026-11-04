@@ -1,6 +1,6 @@
 // Browser check of phone layouts and the demo-end screen. Needs Playwright + Chromium; skips cleanly without them.
 //   node tests/layout.test.js
-// 1. Difficulty screen: the WINS / KEYS tally, the title, the POWER button and INVENTORY never overlap, in portrait
+// 1. Difficulty screen: the WINS / KEYS tally, the title and INVENTORY never overlap, in portrait
 //    and in short landscape (v0.40: in landscape the tally used to cover the subtitle and the POWER button).
 // 2. Demo-end screen: there is no Steam store page yet, so no Steam link or WISHLIST button is shown and the text
 //    does not ask the player to wishlist (v0.40: the button used to open Steam's home page).
@@ -30,7 +30,7 @@ const SIZES = [[360, 640], [390, 844], [412, 915], [568, 320], [640, 360], [740,
     await page.evaluate(() => goModeSelect());
     const r = await page.evaluate(() => {
       const box = s => { const b = document.querySelector(s).getBoundingClientRect(); return { s, l: b.left, t: b.top, r: b.right, b: b.bottom }; };
-      const items = [box('#modeScreen .coinTally'), box('#modeScreen .screenTitle'), box('#modeScreen .screenSub'), box('#modeScreen .powerEquipBtn'), box('#shopBtnMode')];
+      const items = [box('#modeScreen .coinTally'), box('#modeScreen .screenTitle'), box('#modeScreen .screenSub'), box('#shopBtnMode')];
       const hit = (a, b) => a.l < b.r - 1 && b.l < a.r - 1 && a.t < b.b - 1 && b.t < a.b - 1;
       const out = [];
       for (let i = 0; i < items.length; i++) for (let j = i + 1; j < items.length; j++) if (hit(items[i], items[j])) out.push(items[i].s + ' / ' + items[j].s);
@@ -110,7 +110,7 @@ const SIZES = [[360, 640], [390, 844], [412, 915], [568, 320], [640, 360], [740,
     () => H.assert(!hud.length, hud.slice(0, 8).join('\n        ')));
   test('Privacy and Terms: linked from the difficulty screen and Options (new tab), present, phone-friendly, and link back to the game',
     () => H.assert(!legal.length, legal.join('\n        ')));
-  test(`difficulty screen: tally, title, subtitle, POWER and INVENTORY never overlap (${SIZES.length} portrait / landscape sizes)`,
+  test(`difficulty screen: tally, title, subtitle and INVENTORY never overlap (${SIZES.length} portrait / landscape sizes)`,
     () => H.assert(!overlaps.length, overlaps.join('\n        ')));
   test('demo-end screen: no Steam link or WISHLIST button while there is no store page, and the text does not ask to wishlist',
     () => H.assert(!demoEnd.length, demoEnd.join('\n        ')));
