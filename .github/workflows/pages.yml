@@ -25,7 +25,7 @@ env:
   # the file in the repository is never renamed or deleted.
   GAME_FILE: ringshift v0.43.html
   # Other pages published next to the game (the game links to them).
-  EXTRA_PAGES: privacy.html terms.html
+  EXTRA_PAGES: privacy.html terms.html tiktokt4C6bybwyGxN6EfysCz65109WBXVhjbX.txt
 
 jobs:
   build:
@@ -50,7 +50,7 @@ jobs:
       - name: Check Pages is enabled for GitHub Actions
         uses: actions/configure-pages@v6
 
-      - name: Assemble site (game file -> index.html, plus the legal pages)
+      - name: Assemble site (game file -> index.html, plus the legal and verification pages)
         run: |
           set -euo pipefail
           if [ ! -f "$GAME_FILE" ]; then
