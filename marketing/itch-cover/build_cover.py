@@ -61,6 +61,7 @@ def main():
     x0 = (1920 - cw) // 2
     crop = big.crop((x0 * 2, 0, (x0 + cw) * 2, 2160)).resize((1260, 1000), Image.LANCZOS)
     crop.save(os.path.join(OUT, 'ringshift-itch-cover-630x500@2x.png'), optimize=True)
+    crop.resize((630, 500), Image.LANCZOS).save(os.path.join(OUT, 'ringshift-itch-cover-630x500.png'), optimize=True)
 
     # ---- beam / rim check ----
     beams = np.asarray(Image.open(os.path.join(OUT, '_beams.png')).convert('L')).astype(np.int32)
