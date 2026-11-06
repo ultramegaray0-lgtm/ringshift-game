@@ -1651,6 +1651,12 @@ body.theme-v2 .screenSub, body.theme-v2 #titleScreen .press, body.theme-v2 #game
   #modeScreen{padding-top:64px}
   #modeScreen .coinTally{position:static; margin:0 0 10px; text-align:center}
 }
+/* v0.46: the WINS / KEYS tally, pinned top-right, overlapped "SELECT DIFFICULTY" on screens 521-960px wide
+   (itch.io embeds, tablets, small laptop windows). Same fix as phones: it joins the column. */
+@media (max-width:960px){
+  #modeScreen{padding-top:64px}
+  #modeScreen .coinTally{position:static; margin:0 0 10px; text-align:center}
+}
 /* 2. Level select: "◀ MODES" sat under the round options button. */
 #levelScreen > .backBtn{left:62px}
 /* 4. Stacked pieces: a piece covered by another piece of its ring is ignored by the beam, so it is drawn faded. */
@@ -1787,18 +1793,6 @@ body.theme-v2 .screenSub, body.theme-v2 #titleScreen .press, body.theme-v2 #game
       <div class="optToggle" id="colorblindToggle"></div>
     </div>
     <div class="optRow">
-      <div><div class="optLabel">Rim Size <span id="rimSizeVal" style="color:var(--accent);font-family:var(--font-mono);">1.0&times;</span></div><div class="optHint">0.5&times; to 4&times;</div></div>
-      <input type="range" class="optSlider" id="rimSizeSlider" min="50" max="400" step="5" value="100">
-    </div>
-    <div class="optRow">
-      <div><div class="optLabel">Source / Beam Size <span id="sourceSizeVal" style="color:var(--accent);font-family:var(--font-mono);">1.0&times;</span></div><div class="optHint">0.5&times; to 4&times;</div></div>
-      <input type="range" class="optSlider" id="sourceSizeSlider" min="50" max="400" step="5" value="100">
-    </div>
-    <div class="optRow">
-      <div><div class="optLabel">Mechanism Size <span id="gimmickSizeVal" style="color:var(--accent);font-family:var(--font-mono);">1.0&times;</span></div><div class="optHint">0.5&times; to 4&times;</div></div>
-      <input type="range" class="optSlider" id="gimmickSizeSlider" min="50" max="400" step="5" value="100">
-    </div>
-    <div class="optRow">
       <div><div class="optLabel">How To Play</div><div class="optHint">Only need this if you're stuck — full field legend &amp; controls</div></div>
       <button class="modalBtn" id="optHelpBtn">? OPEN</button>
     </div>
@@ -1909,7 +1903,7 @@ body.theme-v2 .screenSub, body.theme-v2 #titleScreen .press, body.theme-v2 #game
     <div class="ringdeco r3"></div>
     <div class="ringdeco r2"></div>
     <h1 class="logo">RINGSHIFT</h1>
-    <div class="sub">DEMO · v0.44</div>
+    <div class="sub">DEMO · v0.46</div>
     <div class="press">PRESS ANY BUTTON</div>
   </div>
 
@@ -5798,12 +5792,9 @@ const MODE_META = {
 /* =========================================================================
    SAVE SYSTEM
    ========================================================================= */
-// SIZE TEST SLIDERS (Options): purely visual scale multipliers, 0.5x-4x.
-const SIZE_KEYS = ['rimSize','sourceSize','gimmickSize'];
-function optPercent(k){
-  const v = save.options && save.options[k];
-  return (typeof v==='number' && v>=50 && v<=400) ? v : 100;
-}
+// v0.45: the Rim / Source-Beam / Mechanism size sliders were removed from Options. Every size is fixed at 1x.
+// Old saves may still hold rimSize / sourceSize / gimmickSize; they are kept untouched (same save format) but ignored.
+function optPercent(k){ return 100; }
 function optScale(k){ return optPercent(k)/100; }
 const SAVE_KEY = 'ringshiftDemoSave_v1';
 function defaultSave(){
@@ -6570,11 +6561,6 @@ function applyOptionsToUI(){
   document.getElementById('reduceMotionToggle').classList.toggle('on', !!save.options.reduceMotion);
   document.getElementById('colorblindToggle').classList.toggle('on', !!save.options.colorblind);
   document.getElementById('debugModeToggle').classList.toggle('on', !!save.options.debugMode);
-  SIZE_KEYS.forEach(k=>{
-    const v = optPercent(k);
-    document.getElementById(k+'Slider').value = v;
-    document.getElementById(k+'Val').innerHTML = (v/100).toFixed(2).replace(/\.?0+$/,'')+'&times;';
-  });
   document.getElementById('fullscreenToggle').classList.toggle('on', !!document.fullscreenElement);
   document.body.classList.toggle('reduceMotion', !!save.options.reduceMotion);
   document.body.classList.toggle('colorblindMode', !!save.options.colorblind);
@@ -6619,14 +6605,6 @@ document.getElementById('debugModeToggle').addEventListener('click', ()=>{
   if(document.getElementById('modeScreen').classList.contains('active')) goModeSelect();
   if(document.getElementById('levelScreen').classList.contains('active')) renderLevelGrid(currentMode);
   if(document.getElementById('shopOverlay').classList.contains('show')) renderShop();
-});
-SIZE_KEYS.forEach(k=>{
-  document.getElementById(k+'Slider').addEventListener('input', (e)=>{
-    save.options[k] = parseInt(e.target.value,10);
-    document.getElementById(k+'Val').innerHTML = (save.options[k]/100).toFixed(2).replace(/\.?0+$/,'')+'&times;';
-    persistSave();
-    if(document.body.classList.contains('inGame') && gstate.level) renderPuzzle();
-  });
 });
 document.getElementById('fullscreenToggle').addEventListener('click', ()=>{
   AudioSys.playMenuBlip();
