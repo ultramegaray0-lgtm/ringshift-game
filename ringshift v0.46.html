@@ -1651,6 +1651,12 @@ body.theme-v2 .screenSub, body.theme-v2 #titleScreen .press, body.theme-v2 #game
   #modeScreen{padding-top:64px}
   #modeScreen .coinTally{position:static; margin:0 0 10px; text-align:center}
 }
+/* v0.46: the WINS / KEYS tally, pinned top-right, overlapped "SELECT DIFFICULTY" on screens 521-960px wide
+   (itch.io embeds, tablets, small laptop windows). Same fix as phones: it joins the column. */
+@media (max-width:960px){
+  #modeScreen{padding-top:64px}
+  #modeScreen .coinTally{position:static; margin:0 0 10px; text-align:center}
+}
 /* 2. Level select: "◀ MODES" sat under the round options button. */
 #levelScreen > .backBtn{left:62px}
 /* 4. Stacked pieces: a piece covered by another piece of its ring is ignored by the beam, so it is drawn faded. */
@@ -1897,7 +1903,7 @@ body.theme-v2 .screenSub, body.theme-v2 #titleScreen .press, body.theme-v2 #game
     <div class="ringdeco r3"></div>
     <div class="ringdeco r2"></div>
     <h1 class="logo">RINGSHIFT</h1>
-    <div class="sub">DEMO · v0.45</div>
+    <div class="sub">DEMO · v0.46</div>
     <div class="press">PRESS ANY BUTTON</div>
   </div>
 

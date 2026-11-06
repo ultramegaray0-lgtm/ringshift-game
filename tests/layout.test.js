@@ -15,7 +15,8 @@ for (const p of ['playwright', '/opt/npm-tools/node_modules/playwright']) { try 
 if (!chromium) { console.log('layout test SKIPPED: playwright not installed'); process.exit(0); }
 const { test, finish } = H.runner('PHONE LAYOUT + DEMO END  (' + path.basename(H.gameFile()) + ', headless Chromium)');
 
-const SIZES = [[360, 640], [390, 844], [412, 915], [568, 320], [640, 360], [740, 360], [844, 390], [915, 412], [1280, 800]];
+const SIZES = [[360, 640], [390, 844], [412, 915], [568, 320], [640, 360], [740, 360], [844, 390], [915, 412], [1280, 800],
+  [630, 500], [800, 600], [960, 600], [1024, 768]];   // v0.46: itch.io embed sizes (the tally overlapped at <= 960 px wide)
 
 (async () => {
   let browser;
