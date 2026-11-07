@@ -6,7 +6,7 @@ Everything here needs your account, so only you can do it. Copy and settings: `S
    first attempt on 4 Nov.
 2. Dashboard → **Create new project**. Fill the fields from `STORE_PAGE.md` → *Basic fields*.
    Keep **Visibility: Draft**.
-3. **Uploads** → Upload files → `ringshift-v0.46-itch-html5.zip` → tick *This file will be played in the browser*.
+3. **Uploads** → Upload files → `ringshift-v0.47-itch-html5.zip` → tick *This file will be played in the browser*.
    Set the embed options from `STORE_PAGE.md` (1024 × 768, Mobile friendly, Fullscreen button).
 4. **Cover image** → `marketing/itch-cover/ringshift-itch-cover-630x500@2x.png`.
 5. **Screenshots** → the five files in `screenshots/`, in the order listed in `STORE_PAGE.md`.
@@ -21,10 +21,10 @@ Everything here needs your account, so only you can do it. Copy and settings: `S
 
 ## Package check (done 6 Nov, before handing over)
 
-- ZIP built by `python3 tools/build_itch.py` from branch `release/v0.46-itch`: `index.html` (= `ringshift v0.46.html`),
+- ZIP built by `python3 tools/build_itch.py` from branch `release/v0.47-itch`: `index.html` (= `ringshift v0.47.html`),
   `privacy.html`, `terms.html`; no folders, no TikTok verification file, no absolute paths.
 - `node tests/run.js` all pass (engine, levels, design, robust, stack, layout incl. itch embed sizes, save safety);
   `node tests/render.test.js` 3/3.
-- `node tools/itch_embed_check.js dist/ringshift-v0.46-itch-html5.zip`: 30/30 in an itch-style cross-origin iframe
+- `node tools/itch_embed_check.js dist/ringshift-v0.47-itch-html5.zip`: 30/30 in an itch-style cross-origin iframe
   (1024 × 768, 630 × 500, Pixel 7): v0.46 label, tally clear of the title, How To Play on first level, arrow keys
   rotate rings, save survives reload, legal pages served, 0 external / failed requests, 0 page errors.

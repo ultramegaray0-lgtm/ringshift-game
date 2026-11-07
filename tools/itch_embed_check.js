@@ -37,7 +37,7 @@ const results = []; const ok = (name, cond, extra = '') => { results.push([cond 
     const frame = page.frames().find(f => f.url().startsWith('http://127.0.0.1:8611')) || (await (await page.waitForSelector('#g')).contentFrame());
     await frame.waitForSelector('#titleScreen.active', { timeout: 15000 });
     const label0 = await frame.textContent('#titleScreen .sub');
-    ok(`${label}: title shows v0.46`, /v0\.46/.test(label0), label0);
+    ok(`${label}: title shows v0.47`, /v0\.47/.test(label0), label0);
     // first input: a tap/click on the title, like a player
     await page.mouse.click(20 + w / 2, 20 + h / 2);
     await frame.waitForSelector('#modeScreen.active', { timeout: 8000 });

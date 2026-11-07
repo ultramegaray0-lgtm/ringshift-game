@@ -781,6 +781,10 @@ body.theme-sakura .gimmickChip, body.theme-sakura #powerStatus, body.theme-sakur
   .actBtn:hover{border-color:var(--ring); color:var(--ring);}
   .actBtn.next{border-color:#6b5400; color:var(--target-bonus-on);}
   .actBtn:disabled{opacity:0.4; cursor:not-allowed; border-style:dashed;}
+  /* v0.47: NEXT pulses gently once it can be pressed */
+  .actBtn.next.nextReady:not(:disabled){animation:nextReady 1.6s ease-in-out infinite}
+  @keyframes nextReady{0%,100%{box-shadow:0 0 0 0 rgba(255,214,90,0); filter:none}
+    50%{box-shadow:0 0 10px 2px rgba(255,214,90,.45); filter:brightness(1.25)}}
   .actBtn:disabled:hover{border-color:var(--panel-line); color:var(--text0);}
   .actBtn.next:disabled:hover{border-color:#6b5400; color:var(--target-bonus-on);}
 
@@ -1903,7 +1907,7 @@ body.theme-v2 .screenSub, body.theme-v2 #titleScreen .press, body.theme-v2 #game
     <div class="ringdeco r3"></div>
     <div class="ringdeco r2"></div>
     <h1 class="logo">RINGSHIFT</h1>
-    <div class="sub">DEMO · v0.46</div>
+    <div class="sub">DEMO · v0.47</div>
     <div class="press">PRESS ANY BUTTON</div>
   </div>
 
@@ -1987,7 +1991,7 @@ body.theme-v2 .screenSub, body.theme-v2 #titleScreen .press, body.theme-v2 #game
         <canvas id="meteorFxCanvas"></canvas>
         <canvas id="winParticleCanvas"></canvas>
         <div id="winBanner">
-          <div class="wtitle" id="winTitle">BREACHED</div>
+          <div class="wtitle" id="winTitle">GOOD</div>
           <div class="wsub" id="winSub">LEVEL COMPLETE</div>
           <div id="winStatsLine"></div>
         </div>
@@ -2495,7 +2499,8 @@ const UNLIT_COLORS = {
   coin:'#6a0d0d', coinLight:'#8f2626', coinDark:'#2e0505',          // dark red coin
 };
 const LIT_COLOR_OPTIONS = [
-  {id:'green',  name:'Green',  free:true,  main:'#34ff6e', light:'#d4ffe2', dark:'#10c850', coin:'#065a28', coinLight:'#1f9a52', coinDark:'#033a19'}, // coin = dark green
+  // v0.47: the default is green for normal Locks and YELLOW for gift locks -- the lock AND the beam that lights it (giftBeam).
+  {id:'green',  name:'Green',  free:true,  main:'#34ff6e', light:'#d4ffe2', dark:'#10c850', coin:'#ffe14a', coinLight:'#fff6b0', coinDark:'#b89a10', giftBeam:'#ffe14a'}, // coin = yellow
   {id:'blue',   name:'Blue',   free:false, main:'#3aa0ff', light:'#cfe6ff', dark:'#1260c8', coin:'#9b5cff', coinLight:'#d0b0ff', coinDark:'#5a2ab0'}, // coin = purple
   {id:'orange', name:'Orange', free:false, main:'#ff9a2e', light:'#ffe0b8', dark:'#c4600a', coin:'#ffe14a', coinLight:'#fff6b0', coinDark:'#b89a10'}, // coin = yellow
   {id:'white',  name:'White',  free:false, main:'#ffffff', light:'#ffffff', dark:'#aab4bc', coin:'#9aa3ab', coinLight:'#d5dbe0', coinDark:'#5f6870'}, // coin = grey
@@ -2516,6 +2521,26 @@ function lockPalette(lit, isCoin){
   return lit ? {main:o.main, light:o.light, dark:o.dark} : {main:u.lock, light:u.lockLight, dark:u.lockDark};
 }
 function beamColorFor(lit){ return lit ? litOpt().main : UNLIT_COLORS.beam; }
+// v0.47: is this rim slot a gift lock? Easy/Normal/Hard: the bonus Lock. Challenge, Space Orchestra,
+// Rocket and Meteor Attack: every Lock (drawn as gift locks there). Hint-expanded slots count as their owner.
+function isGiftLockSlot(slot){
+  const lvl = (typeof gstate!=='undefined') ? gstate.level : null; if(!lvl) return false;
+  const al = (typeof PowerSys!=='undefined') ? PowerSys.aliasMap(lvl) : null;
+  const s = (al && al.has(slot)) ? al.get(slot) : slot;
+  if((lvl.bonusLockSlots||[]).includes(s)) return true;
+  const allGift = currentMode==='special' || currentMode==='orchestra' || currentMode==='rocket' || currentMode==='challenge';
+  return allGift && lvl.lockSlots.includes(s);
+}
+// Lit beam colour for a list of lit rim slots: the gift-beam colour when one of them is a gift lock
+// (options without a giftBeam keep a single lit colour), otherwise the normal lit colour.
+function litBeamColorForSlots(slots){
+  const o = litOpt();
+  return (o.giftBeam && (slots||[]).some(isGiftLockSlot)) ? o.giftBeam : o.main;
+}
+function segBeamColor(seg){
+  const dead = (typeof gstate!=='undefined' && gstate.meteorDestroyed) ? gstate.meteorDestroyed : null;
+  return litBeamColorForSlots(dead ? seg.litSlots.filter(x=>!dead.has(x)) : seg.litSlots);
+}
 // A beam segment is lit iff it belongs to a beam path that actually reached a lit lock (see traceBeamBranch).
 function segIsLit(seg){
   if(!seg.litSlots || !seg.litSlots.length) return false;
@@ -7471,7 +7496,7 @@ function loadLevel(mode, idx){
   // Reset any Special-Mode banner text left over from a previous run --
   // see finishSpecialLevel(), which overwrites these two on completion.
   const winTitleEl = document.getElementById('winTitle');
-  if(winTitleEl) winTitleEl.textContent = 'BREACHED';
+  if(winTitleEl) winTitleEl.textContent = 'GOOD';
   updateNextButtonUI();
   renderGimmickChips(lvl);
   PowerSys.resetForLevel();
@@ -7659,10 +7684,12 @@ function updateNextButtonUI(){
   if(gstate.won){
     const hasNext = currentLevelIdx+1 < LEVELS[currentMode].length;
     nextBtn.disabled = !hasNext;
+    nextBtn.classList.toggle('nextReady', hasNext);
     nextBtn.title = hasNext ? 'Continue to the next level' : 'Last level in this mode';
     return;
   }
   nextBtn.disabled = !gstate.nextUnlocked;
+  nextBtn.classList.toggle('nextReady', !!gstate.nextUnlocked);
   nextBtn.title = currentMode === 'special'
     ? 'Wait it out \u2014 the run finishes once every gift lock is saved or lost'
     : (gstate.nextUnlocked ? 'Move on without the gift box' : 'Light every required Lock to unlock');
@@ -7678,8 +7705,13 @@ function doNextManual(){
   finishLevel(false);
 }
 
+// v0.47 win rating (replaces BREACHED): GOOD = won without the gift lock, EXCELLENT = every Lock incl. the gift
+// lock (or a level with no gift lock), PERFECT = every Lock in under PERFECT_SECS. Rocket / Meteor set their own titles.
+const PERFECT_SECS = 20;
+function winRating(allLocks, secs){ return !allLocks ? 'GOOD' : secs < PERFECT_SECS ? 'PERFECT' : 'EXCELLENT'; }
 function finishLevel(withCoin){
   if(gstate.power && gstate.power.coinDisabled) withCoin = false;
+  if(!gstate.won && gstate.startTime) gstate.elapsed = (Date.now()-gstate.startTime)/1000;   // exact time, not the 0.5 s tick
   gstate.won = true;
   if(gstate.timerInterval){ clearInterval(gstate.timerInterval); gstate.timerInterval = null; }
   const prog = save.progress[currentMode][currentLevelIdx];
@@ -7707,6 +7739,8 @@ function finishLevel(withCoin){
     }
   }
   document.getElementById('winStatsLine').textContent = `${gstate.moves} ${gstate.moves===1?'move':'moves'} \u00b7 ${formatTime(gstate.elapsed)}`;
+  { const lv = gstate.level, hasGift = currentMode==='challenge' || (lv.bonusLockSlots||[]).length>0;
+    document.getElementById('winTitle').textContent = winRating(withCoin || !hasGift, gstate.elapsed); }
   { const showWin = ()=>{
       document.getElementById('winBanner').classList.add('show');
       const app = document.getElementById('app');
@@ -8952,7 +8986,7 @@ function renderBeams(force){
     b.result.segments.forEach(seg=>{
       const d = `M ${seg.x1} ${seg.y1} L ${seg.x2} ${seg.y2}`;
       // BEAM COLOR comes from the real lock state: a segment on a path that lit a lock is the selected lit-beam color, every other beam is red.
-      const coreColor = segIsLit(seg) ? beamColorFor(true) : (isControlled ? getControlledBeamColor() : getBackgroundBeamColor());
+      const coreColor = segIsLit(seg) ? segBeamColor(seg) : (isControlled ? getControlledBeamColor() : getBackgroundBeamColor());
       el('path',{d, fill:'none', stroke:coreColor, 'stroke-width':haloWidth*srcK, opacity:haloOpacity, 'stroke-linecap':'round', filter:haloFilter, class:'beam-halo', style:`--ho:${haloOpacity};${ph(1.9)}`}, beamLayer);
       const core = el('path',{d, fill:'none', stroke:coreColor, 'stroke-width':coreWidth*srcK, opacity:coreOpacity, 'stroke-linecap':'round', filter:'url(#glowTight)', 'stroke-dasharray':beamDash}, beamLayer);
       core.classList.add('beam-core'); core.style.animationDelay = '-'+((performance.now()/1000)%0.6).toFixed(2)+'s';
@@ -9025,7 +9059,7 @@ function drawRimEmitters(g, lvl){
   const n = lvl.slots, k = optScale('rimSize'), half = RIM_BAND.half*k;
   const rIn = RIM_R - half, rOut = RIM_R + half;
   const lit = gstate.litLocks && lvl.lockSlots.some(s=>gstate.litLocks.has(s));
-  const hot = lit ? beamColorFor(true) : getBackgroundBeamColor();
+  const hot = lit ? litBeamColorForSlots(lvl.lockSlots.filter(s=>gstate.litLocks.has(s))) : getBackgroundBeamColor();
   (lvl.emitters||[]).forEach(slot=>{
     el('path',{d:rimPanelPath(slot, n, rIn, rOut, RIM_BAND.gap), fill:'rgba(12,16,24,0.92)', stroke:'#ffd36a', 'stroke-width':1.8}, g);
     const a = slotToAngle(slot, n), deg = a*180/Math.PI + 90;   // local -y points at the center
@@ -12655,7 +12689,7 @@ function renderBeamsV2(V2C, c){
   sorted.forEach(b=>{
     const segs = b.result.segments; if(!segs.length) return;
     const key = b.ring+':'+b.authoredSlot;
-    const sig = segs.map(s=>f1(s.x1)+','+f1(s.y1)+','+f1(s.x2)+','+f1(s.y2)+(segIsLit(s)?'L':'')).join(';');
+    const sig = segs.map(s=>f1(s.x1)+','+f1(s.y1)+','+f1(s.x2)+','+f1(s.y2)+(segIsLit(s)?'L'+segBeamColor(s):'')).join(';');
     sigs[key] = sig;
     const animate = !instant && (_rotChanged || !_same) && prevSig[key] !== sig;
     const isC = b.ring === gstate.selectedRing;
@@ -12663,7 +12697,7 @@ function renderBeamsV2(V2C, c){
     const SPD = Math.max(V2.SPD, Math.max(...end) / BUDGET);   // px per ms for this beam
     segs.forEach((s,i)=>{
       const lit = segIsLit(s);
-      const col = lit ? beamColorFor(true) : (isC ? getControlledBeamColor() : getBackgroundBeamColor());
+      const col = lit ? segBeamColor(s) : (isC ? getControlledBeamColor() : getBackgroundBeamColor());
       const len = end[i]-start[i];
       const d = `M ${f1(s.x1)} ${f1(s.y1)} L ${f1(s.x2)} ${f1(s.y2)}`;
       const cw = (isC?2.2:1.6)*srcK;
